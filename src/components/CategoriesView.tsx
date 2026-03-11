@@ -30,7 +30,7 @@ const COLOR_OPTIONS = [
   '#6366f1', '#8b5cf6', '#ec4899', '#14b8a6', '#0ea5e9', '#84cc16',
 ];
 
-const CategoriesView = ({ categories, recipes, onSave, onDelete, onReorder, onNavigateToRecipes }: CategoriesViewProps) => {
+const CategoriesView = ({ categories, recipes, onSave, onDelete, onReorder, onNavigateToRecipes, isAdmin }: CategoriesViewProps) => {
   const [modalOpen, setModalOpen] = useState(false);
   const [editing, setEditing] = useState<RecipeCategory | null>(null);
   const [form, setForm] = useState({ label: '', icon: '📋', color: '#94a3b8' });
