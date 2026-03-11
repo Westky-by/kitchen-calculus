@@ -172,14 +172,15 @@ const CalculatorView = ({ ingredients, onSaveRecipe, loadedRecipe, onClearLoaded
   };
 
   return (
-    <div className="animate-fade-in">
+    <div className="animate-fade-in" id="calculator-print-area">
       {/* Toolbar */}
-      <div className="flex flex-wrap items-center justify-between gap-3 mb-6">
+      <div className="flex flex-wrap items-center justify-between gap-3 mb-6 print:hidden">
         <div>
           <h2 className="text-2xl font-bold">Standard Recipe Card</h2>
           <p className="text-sm text-muted-foreground">เอกสารควบคุมต้นทุนมาตรฐาน</p>
         </div>
         <div className="flex gap-2">
+          <PrintActions printAreaId="calculator-print-area" title={`Recipe - ${menuName || 'Standard Recipe Card'}`} />
           <Button variant="outline" onClick={handleReset}>
             <RotateCcw className="w-4 h-4 mr-2" />เริ่มใหม่
           </Button>
