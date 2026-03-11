@@ -158,6 +158,10 @@ const CalculatorView = ({ ingredients, onSaveRecipe, loadedRecipe, onClearLoaded
     };
 
     onSaveRecipe(recipe);
+    setSavedRecipeName(menuName);
+    setShowSuccessDialog(true);
+    // Reset form
+    handleReset();
   };
 
   return (
