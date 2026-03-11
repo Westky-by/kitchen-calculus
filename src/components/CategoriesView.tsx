@@ -15,6 +15,7 @@ interface CategoriesViewProps {
   onDelete: (id: string) => void;
   onReorder: (categories: RecipeCategory[]) => void;
   onNavigateToRecipes?: (categoryValue: string) => void;
+  isAdmin?: boolean;
 }
 
 const EMOJI_OPTIONS = [
