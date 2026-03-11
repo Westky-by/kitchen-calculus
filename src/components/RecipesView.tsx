@@ -290,7 +290,7 @@ const RecipesView = ({ recipes, onLoad, onDelete, categories }: RecipesViewProps
               <div className="text-xs text-muted-foreground text-center mt-2">
                 สร้างเมื่อ: {new Date(selectedRecipe.createdAt).toLocaleDateString('th-TH')} · อัปเดต: {new Date(selectedRecipe.updatedAt).toLocaleDateString('th-TH')}
               </div>
-            </>
+            </div>
           )}
         </DialogContent>
       </Dialog>
