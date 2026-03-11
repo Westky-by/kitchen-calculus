@@ -204,11 +204,11 @@ export function useSupabaseData() {
       let newList: RecipeCategory[];
       if (idx >= 0) { newList = [...prev]; newList[idx] = category; }
       else { newList = [...prev, category]; }
-      // Persist with sort_order
       const dbData = categoryToDb(category, idx >= 0 ? idx : newList.length - 1);
       supabase.from('recipe_categories').upsert(dbData).then(({ error }) => {
         if (error) toast.error('บันทึกหมวดหมู่ไม่สำเร็จ');
       });
+      logActivity(idx >= 0 ? 'แก้ไขหมวดหมู่' : 'เพิ่มหมวดหมู่', 'recipe_categories', category.id, { label: category.label });
       return newList;
     });
   }, []);
