@@ -155,7 +155,6 @@ const CalculatorView = ({ ingredients, onSaveRecipe, loadedRecipe, onClearLoaded
     };
 
     onSaveRecipe(recipe);
-    toast.success('บันทึกสูตรเรียบร้อย!');
   };
 
   return (

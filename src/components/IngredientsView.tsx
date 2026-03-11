@@ -177,7 +177,6 @@ const IngredientsView = ({ ingredients, onSave, onDelete, onBulkImport }: Ingred
         // Re-generate IDs to avoid conflicts
         const restored = list.map((ing: Ingredient) => ({ ...ing, id: crypto.randomUUID() }));
         onBulkImport(restored);
-        toast.success(`กู้คืน ${restored.length} รายการเรียบร้อย!`);
       } catch {
         toast.error('ไม่สามารถอ่านไฟล์ Backup ได้');
       }
