@@ -4,8 +4,8 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Plus, Save, RotateCcw, Trash2, Search } from 'lucide-react';
-import type { Ingredient, Recipe, RecipeIngredient, OverheadCosts } from '@/types/recipe';
-import { CATEGORIES, PORTION_SIZES, Q_FACTOR_PERCENT, SERVICE_CHARGE_PERCENT, VAT_PERCENT } from '@/types/recipe';
+import type { Ingredient, Recipe, RecipeIngredient, OverheadCosts, RecipeCategory } from '@/types/recipe';
+import { PORTION_SIZES, Q_FACTOR_PERCENT, SERVICE_CHARGE_PERCENT, VAT_PERCENT } from '@/types/recipe';
 import { toast } from 'sonner';
 
 interface CalculatorViewProps {
@@ -13,6 +13,7 @@ interface CalculatorViewProps {
   onSaveRecipe: (recipe: Recipe) => void;
   loadedRecipe?: Recipe | null;
   onClearLoaded: () => void;
+  categories: RecipeCategory[];
 }
 
 const CalculatorView = ({ ingredients, onSaveRecipe, loadedRecipe, onClearLoaded }: CalculatorViewProps) => {
