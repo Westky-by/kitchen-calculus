@@ -248,9 +248,17 @@ const CalculatorView = ({ ingredients, onSaveRecipe, loadedRecipe, onClearLoaded
                 <tbody>
                   {recipeIngredients.map((item, idx) => (
                     <tr key={item.id} className="border-b border-border/30">
-                      <td className="p-2 text-muted-foreground">{idx + 1}</td>
-                      <td className="p-2 font-medium">{item.ingredientName}</td>
+                      <td className="p-2 text-muted-foreground align-top pt-3">{idx + 1}</td>
                       <td className="p-2">
+                        <div className="font-medium">{item.ingredientName}</div>
+                        <Input
+                          placeholder="Note..."
+                          value={item.note || ''}
+                          onChange={(e) => updateIngredientNote(item.id, e.target.value)}
+                          className="h-7 text-xs mt-1 text-muted-foreground"
+                        />
+                      </td>
+                      <td className="p-2 align-top pt-2">
                         <Input
                           type="number"
                           min={0}
@@ -260,11 +268,11 @@ const CalculatorView = ({ ingredients, onSaveRecipe, loadedRecipe, onClearLoaded
                           className="text-right h-8"
                         />
                       </td>
-                      <td className="p-2 text-muted-foreground">{item.unit}</td>
-                      <td className="p-2 text-right">{item.yieldPercent}%</td>
-                      <td className="p-2 text-right">{item.yieldQty.toFixed(2)}</td>
-                      <td className="p-2 text-right font-semibold">{item.totalCost.toFixed(2)}</td>
-                      <td className="p-2">
+                      <td className="p-2 text-muted-foreground align-top pt-3">{item.unit}</td>
+                      <td className="p-2 text-right align-top pt-3">{item.yieldPercent}%</td>
+                      <td className="p-2 text-right align-top pt-3">{item.yieldQty.toFixed(2)}</td>
+                      <td className="p-2 text-right font-semibold align-top pt-3">{item.totalCost.toFixed(2)}</td>
+                      <td className="p-2 align-top pt-2">
                         <Button variant="ghost" size="sm" onClick={() => removeIngredient(item.id)} className="text-destructive h-7 w-7 p-0">
                           <Trash2 className="w-3.5 h-3.5" />
                         </Button>
