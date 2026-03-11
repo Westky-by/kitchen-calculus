@@ -160,9 +160,9 @@ const RecipesView = ({ recipes, onLoad, onDelete, categories }: RecipesViewProps
 
       {/* Recipe Detail Dialog */}
       <Dialog open={!!selectedRecipe} onOpenChange={(open) => !open && setSelectedRecipe(null)}>
-        <DialogContent className="sm:max-w-2xl max-h-[85vh] overflow-y-auto" id="recipe-detail-print-area">
+        <DialogContent className="sm:max-w-2xl max-h-[85vh] overflow-y-auto">
           {selectedRecipe && (
-            <>
+            <div id="recipe-detail-print-area">
               <DialogHeader>
                 <div className="flex items-center justify-between">
                   <div className="flex items-center gap-2">
