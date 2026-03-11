@@ -105,6 +105,7 @@ const Index = () => {
             onSave={saveCategory}
             onDelete={deleteCategory}
             onReorder={reorderCategories}
+            isAdmin={role === 'admin'}
             onNavigateToRecipes={(catValue) => {
               setFilterCategory(catValue);
               setActiveTab('recipes');
