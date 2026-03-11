@@ -192,20 +192,23 @@ const IngredientsView = ({ ingredients, onSave, onDelete, onBulkImport }: Ingred
       <input ref={csvInputRef} type="file" accept=".csv" className="hidden" onChange={handleImportCSV} />
       <input ref={jsonInputRef} type="file" accept=".json" className="hidden" onChange={handleRestoreJSON} />
 
-      <div className="flex flex-col gap-4 mb-6">
+      <div className="flex flex-col gap-4 mb-6" id="ingredients-print-area">
         <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
           <div>
             <h2 className="text-2xl font-bold">ฐานข้อมูลวัตถุดิบ</h2>
             <p className="text-muted-foreground text-sm">จัดการรายการและราคาวัตถุดิบ (Master Data)</p>
           </div>
-          <div className="relative">
-            <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
-            <Input
-              placeholder="ค้นหาวัตถุดิบ..."
-              value={search}
-              onChange={(e) => setSearch(e.target.value)}
-              className="pl-10 w-64"
-            />
+          <div className="flex items-center gap-2">
+            <PrintActions printAreaId="ingredients-print-area" title="รายการวัตถุดิบ" />
+            <div className="relative">
+              <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
+              <Input
+                placeholder="ค้นหาวัตถุดิบ..."
+                value={search}
+                onChange={(e) => setSearch(e.target.value)}
+                className="pl-10 w-64"
+              />
+            </div>
           </div>
         </div>
 
