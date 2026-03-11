@@ -76,6 +76,8 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       }
       return { error: error.message };
     }
+    // Log after successful sign in
+    setTimeout(() => logActivity('เข้าสู่ระบบ', 'auth', '', { username }), 500);
     return { error: null };
   }, []);
 
