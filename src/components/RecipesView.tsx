@@ -1,17 +1,17 @@
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Upload, Trash2, Search } from 'lucide-react';
-import type { Recipe } from '@/types/recipe';
-import { CATEGORIES } from '@/types/recipe';
+import type { Recipe, RecipeCategory } from '@/types/recipe';
 import { useState } from 'react';
 
 interface RecipesViewProps {
   recipes: Recipe[];
   onLoad: (recipe: Recipe) => void;
   onDelete: (id: string) => void;
+  categories: RecipeCategory[];
 }
 
-const RecipesView = ({ recipes, onLoad, onDelete }: RecipesViewProps) => {
+const RecipesView = ({ recipes, onLoad, onDelete, categories }: RecipesViewProps) => {
   const [search, setSearch] = useState('');
 
   const filtered = recipes.filter(

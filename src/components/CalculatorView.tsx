@@ -192,8 +192,8 @@ const CalculatorView = ({ ingredients, onSaveRecipe, loadedRecipe, onClearLoaded
                   <Select value={category} onValueChange={setCategory}>
                     <SelectTrigger><SelectValue /></SelectTrigger>
                     <SelectContent>
-                      {CATEGORIES.map((c) => (
-                        <SelectItem key={c.value} value={c.value}>{c.label}</SelectItem>
+                      {categories.map((c) => (
+                        <SelectItem key={c.value} value={c.value}>{c.icon} {c.label}</SelectItem>
                       ))}
                     </SelectContent>
                   </Select>
