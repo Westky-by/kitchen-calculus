@@ -189,10 +189,12 @@ export function useSupabaseData() {
   }, []);
 
   const deleteRecipe = useCallback(async (id: string) => {
+    const rec = recipes.find(r => r.id === id);
     const { error } = await supabase.from('recipes').delete().eq('id', id);
     if (error) { toast.error('ลบสูตรไม่สำเร็จ'); return; }
     setRecipes((prev) => prev.filter((r) => r.id !== id));
     toast.success('ลบสูตรเรียบร้อย');
+    logActivity('ลบสูตรอาหาร', 'recipes', id, { name: rec?.name });
   }, []);
 
   // --- Categories ---
