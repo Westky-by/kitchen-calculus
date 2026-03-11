@@ -5,18 +5,23 @@ import { Pencil, Trash2, Search, Eye, Filter } from 'lucide-react';
 import type { Recipe, RecipeCategory } from '@/types/recipe';
 import { Q_FACTOR_PERCENT, SERVICE_CHARGE_PERCENT, VAT_PERCENT } from '@/types/recipe';
 import PrintActions from './PrintActions';
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 
 interface RecipesViewProps {
   recipes: Recipe[];
   onLoad: (recipe: Recipe) => void;
   onDelete: (id: string) => void;
   categories: RecipeCategory[];
+  initialCategory?: string;
 }
 
-const RecipesView = ({ recipes, onLoad, onDelete, categories }: RecipesViewProps) => {
+const RecipesView = ({ recipes, onLoad, onDelete, categories, initialCategory }: RecipesViewProps) => {
   const [search, setSearch] = useState('');
-  const [selectedCategory, setSelectedCategory] = useState<string>('all');
+  const [selectedCategory, setSelectedCategory] = useState<string>(initialCategory || 'all');
+
+  useEffect(() => {
+    if (initialCategory) setSelectedCategory(initialCategory);
+  }, [initialCategory]);
   const [selectedRecipe, setSelectedRecipe] = useState<Recipe | null>(null);
 
   const filtered = recipes.filter((r) => {

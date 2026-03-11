@@ -14,6 +14,7 @@ interface CategoriesViewProps {
   onSave: (category: RecipeCategory) => void;
   onDelete: (id: string) => void;
   onReorder: (categories: RecipeCategory[]) => void;
+  onNavigateToRecipes?: (categoryValue: string) => void;
 }
 
 const EMOJI_OPTIONS = [
@@ -28,7 +29,7 @@ const COLOR_OPTIONS = [
   '#6366f1', '#8b5cf6', '#ec4899', '#14b8a6', '#0ea5e9', '#84cc16',
 ];
 
-const CategoriesView = ({ categories, recipes, onSave, onDelete, onReorder }: CategoriesViewProps) => {
+const CategoriesView = ({ categories, recipes, onSave, onDelete, onReorder, onNavigateToRecipes }: CategoriesViewProps) => {
   const [modalOpen, setModalOpen] = useState(false);
   const [editing, setEditing] = useState<RecipeCategory | null>(null);
   const [form, setForm] = useState({ label: '', icon: '📋', color: '#94a3b8' });
@@ -110,7 +111,9 @@ const CategoriesView = ({ categories, recipes, onSave, onDelete, onReorder }: Ca
           return (
             <div
               key={cat.id}
-              className="section-card flex items-center gap-3 p-4 hover:shadow-md transition-shadow cursor-default"
+              className="section-card flex items-center gap-3 p-4 hover:shadow-md transition-shadow cursor-pointer group"
+              onClick={() => onNavigateToRecipes?.(cat.value)}
+              title={`ดูสูตรในหมวด ${cat.label}`}
             >
               <div
                 className="w-10 h-10 rounded-lg flex items-center justify-center text-xl shrink-0"
@@ -171,9 +174,12 @@ const CategoriesView = ({ categories, recipes, onSave, onDelete, onReorder }: Ca
                   </div>
                 </td>
                 <td className="p-3 text-center">
-                  <span className="px-2 py-0.5 rounded-full bg-secondary text-secondary-foreground text-xs font-semibold">
-                    {getRecipeCount(cat.value)}
-                  </span>
+                  <button
+                    onClick={() => onNavigateToRecipes?.(cat.value)}
+                    className="px-2 py-0.5 rounded-full bg-secondary text-secondary-foreground text-xs font-semibold hover:bg-accent/30 transition-colors"
+                  >
+                    {getRecipeCount(cat.value)} สูตร →
+                  </button>
                 </td>
                 <td className="p-3 text-center">
                   {cat.isDefault ? (
