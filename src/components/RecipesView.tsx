@@ -43,8 +43,8 @@ const RecipesView = ({ recipes, onLoad, onDelete, categories }: RecipesViewProps
   }, {});
 
   return (
-    <div className="animate-fade-in">
-      <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 mb-6">
+    <div className="animate-fade-in" id="recipes-print-area">
+      <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 mb-6 print:hidden">
         <div>
           <h2 className="text-2xl font-bold">สูตรที่บันทึกไว้ (My Recipes)</h2>
           <p className="text-muted-foreground text-sm">ประวัติสูตรอาหารทั้งหมดของคุณ</p>
