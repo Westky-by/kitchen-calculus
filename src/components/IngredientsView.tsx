@@ -10,6 +10,7 @@ import {
 } from '@/components/ui/dropdown-menu';
 import type { Ingredient } from '@/types/recipe';
 import IngredientModal from './IngredientModal';
+import PrintActions from './PrintActions';
 import { toast } from 'sonner';
 
 interface IngredientsViewProps {
