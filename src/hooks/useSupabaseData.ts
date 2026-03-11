@@ -170,6 +170,7 @@ export function useSupabaseData() {
     if (error) { toast.error('นำเข้าข้อมูลไม่สำเร็จ: ' + error.message); return; }
     setIngredients((prev) => [...prev, ...imported]);
     toast.success(`นำเข้า ${imported.length} รายการเรียบร้อย!`);
+    logActivity('นำเข้าวัตถุดิบ', 'ingredients', '', { count: imported.length });
   }, []);
 
   // --- Recipes ---
