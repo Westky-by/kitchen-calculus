@@ -100,6 +100,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   }, []);
 
   const signOut = useCallback(async () => {
+    await logActivity('ออกจากระบบ', 'auth', '', {});
     await supabase.auth.signOut();
     setUser(null);
     setProfile(null);
