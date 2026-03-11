@@ -18,6 +18,10 @@ interface RecipesViewProps {
 const RecipesView = ({ recipes, onLoad, onDelete, categories, initialCategory }: RecipesViewProps) => {
   const [search, setSearch] = useState('');
   const [selectedCategory, setSelectedCategory] = useState<string>(initialCategory || 'all');
+
+  useEffect(() => {
+    if (initialCategory) setSelectedCategory(initialCategory);
+  }, [initialCategory]);
   const [selectedRecipe, setSelectedRecipe] = useState<Recipe | null>(null);
 
   const filtered = recipes.filter((r) => {
