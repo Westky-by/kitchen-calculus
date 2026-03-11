@@ -28,6 +28,8 @@ const CalculatorView = ({ ingredients, onSaveRecipe, loadedRecipe, onClearLoaded
   const [sellingPrice, setSellingPrice] = useState(0);
   const [searchTerm, setSearchTerm] = useState('');
   const [showDropdown, setShowDropdown] = useState(false);
+  const [showSuccessDialog, setShowSuccessDialog] = useState(false);
+  const [savedRecipeName, setSavedRecipeName] = useState('');
   const dropdownRef = useRef<HTMLDivElement>(null);
 
   // Load recipe if provided
