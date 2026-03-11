@@ -5,6 +5,7 @@ import { Label } from '@/components/ui/label';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { Plus, Pencil, Trash2, GripVertical, FolderOpen } from 'lucide-react';
 import type { RecipeCategory, Recipe } from '@/types/recipe';
+import PrintActions from './PrintActions';
 import { toast } from 'sonner';
 
 interface CategoriesViewProps {
