@@ -160,16 +160,19 @@ const RecipesView = ({ recipes, onLoad, onDelete, categories }: RecipesViewProps
 
       {/* Recipe Detail Dialog */}
       <Dialog open={!!selectedRecipe} onOpenChange={(open) => !open && setSelectedRecipe(null)}>
-        <DialogContent className="sm:max-w-2xl max-h-[85vh] overflow-y-auto">
+        <DialogContent className="sm:max-w-2xl max-h-[85vh] overflow-y-auto" id="recipe-detail-print-area">
           {selectedRecipe && (
             <>
               <DialogHeader>
-                <div className="flex items-center gap-2">
-                  <span className="text-2xl">{getCategoryIcon(selectedRecipe.category)}</span>
-                  <div>
-                    <DialogTitle className="text-xl">{selectedRecipe.name}</DialogTitle>
-                    <p className="text-sm text-muted-foreground">{selectedRecipe.code} · {getCategoryLabel(selectedRecipe.category)}</p>
+                <div className="flex items-center justify-between">
+                  <div className="flex items-center gap-2">
+                    <span className="text-2xl">{getCategoryIcon(selectedRecipe.category)}</span>
+                    <div>
+                      <DialogTitle className="text-xl">{selectedRecipe.name}</DialogTitle>
+                      <p className="text-sm text-muted-foreground">{selectedRecipe.code} · {getCategoryLabel(selectedRecipe.category)}</p>
+                    </div>
                   </div>
+                  <PrintActions printAreaId="recipe-detail-print-area" title={`Recipe - ${selectedRecipe.name}`} />
                 </div>
               </DialogHeader>
 
