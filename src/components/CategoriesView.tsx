@@ -15,6 +15,7 @@ interface CategoriesViewProps {
   onDelete: (id: string) => void;
   onReorder: (categories: RecipeCategory[]) => void;
   onNavigateToRecipes?: (categoryValue: string) => void;
+  isAdmin?: boolean;
 }
 
 const EMOJI_OPTIONS = [
@@ -29,7 +30,7 @@ const COLOR_OPTIONS = [
   '#6366f1', '#8b5cf6', '#ec4899', '#14b8a6', '#0ea5e9', '#84cc16',
 ];
 
-const CategoriesView = ({ categories, recipes, onSave, onDelete, onReorder, onNavigateToRecipes }: CategoriesViewProps) => {
+const CategoriesView = ({ categories, recipes, onSave, onDelete, onReorder, onNavigateToRecipes, isAdmin }: CategoriesViewProps) => {
   const [modalOpen, setModalOpen] = useState(false);
   const [editing, setEditing] = useState<RecipeCategory | null>(null);
   const [form, setForm] = useState({ label: '', icon: '📋', color: '#94a3b8' });
@@ -98,9 +99,11 @@ const CategoriesView = ({ categories, recipes, onSave, onDelete, onReorder, onNa
         </div>
         <div className="flex gap-2">
           <PrintActions printAreaId="categories-print-area" title="หมวดหมู่สูตรอาหาร" />
-          <Button onClick={handleAdd} className="bg-success hover:bg-success/90 text-success-foreground">
-            <Plus className="w-4 h-4 mr-2" />เพิ่มหมวดหมู่ใหม่
-          </Button>
+          {isAdmin && (
+            <Button onClick={handleAdd} className="bg-success hover:bg-success/90 text-success-foreground">
+              <Plus className="w-4 h-4 mr-2" />เพิ่มหมวดหมู่ใหม่
+            </Button>
+          )}
         </div>
       </div>
 
@@ -135,36 +138,38 @@ const CategoriesView = ({ categories, recipes, onSave, onDelete, onReorder, onNa
         <table className="w-full text-sm">
           <thead>
             <tr className="border-b-2 border-border">
-              <th className="text-left p-3 w-10"></th>
+              {isAdmin && <th className="text-left p-3 w-10"></th>}
               <th className="text-left p-3 font-semibold">ไอคอน</th>
               <th className="text-left p-3 font-semibold">ชื่อหมวดหมู่</th>
               <th className="text-left p-3 font-semibold">สี</th>
               <th className="text-center p-3 font-semibold">จำนวนสูตร</th>
               <th className="text-center p-3 font-semibold">ประเภท</th>
-              <th className="text-center p-3 font-semibold">จัดการ</th>
+              {isAdmin && <th className="text-center p-3 font-semibold">จัดการ</th>}
             </tr>
           </thead>
           <tbody>
             {categories.map((cat, idx) => (
               <tr key={cat.id} className="border-b border-border/50 hover:bg-muted/50 transition-colors">
-                <td className="p-3">
-                  <div className="flex flex-col gap-0.5">
-                    <button
-                      onClick={() => moveCategory(idx, 'up')}
-                      disabled={idx === 0}
-                      className="text-muted-foreground hover:text-foreground disabled:opacity-30 text-xs"
-                    >
-                      ▲
-                    </button>
-                    <button
-                      onClick={() => moveCategory(idx, 'down')}
-                      disabled={idx === categories.length - 1}
-                      className="text-muted-foreground hover:text-foreground disabled:opacity-30 text-xs"
-                    >
-                      ▼
-                    </button>
-                  </div>
-                </td>
+                {isAdmin && (
+                  <td className="p-3">
+                    <div className="flex flex-col gap-0.5">
+                      <button
+                        onClick={() => moveCategory(idx, 'up')}
+                        disabled={idx === 0}
+                        className="text-muted-foreground hover:text-foreground disabled:opacity-30 text-xs"
+                      >
+                        ▲
+                      </button>
+                      <button
+                        onClick={() => moveCategory(idx, 'down')}
+                        disabled={idx === categories.length - 1}
+                        className="text-muted-foreground hover:text-foreground disabled:opacity-30 text-xs"
+                      >
+                        ▼
+                      </button>
+                    </div>
+                  </td>
+                )}
                 <td className="p-3 text-xl">{cat.icon}</td>
                 <td className="p-3 font-medium">{cat.label}</td>
                 <td className="p-3">
@@ -188,23 +193,25 @@ const CategoriesView = ({ categories, recipes, onSave, onDelete, onReorder, onNa
                     <span className="text-xs px-2 py-0.5 rounded-full bg-accent/20 text-accent-foreground">กำหนดเอง</span>
                   )}
                 </td>
-                <td className="p-3 text-center">
-                  <div className="flex items-center justify-center gap-1">
-                    <Button variant="ghost" size="sm" onClick={() => handleEdit(cat)}>
-                      <Pencil className="w-4 h-4" />
-                    </Button>
-                    {!cat.isDefault && (
-                      <Button
-                        variant="ghost"
-                        size="sm"
-                        onClick={() => handleDelete(cat)}
-                        className="text-destructive hover:text-destructive"
-                      >
-                        <Trash2 className="w-4 h-4" />
+                {isAdmin && (
+                  <td className="p-3 text-center">
+                    <div className="flex items-center justify-center gap-1">
+                      <Button variant="ghost" size="sm" onClick={() => handleEdit(cat)}>
+                        <Pencil className="w-4 h-4" />
                       </Button>
-                    )}
-                  </div>
-                </td>
+                      {!cat.isDefault && (
+                        <Button
+                          variant="ghost"
+                          size="sm"
+                          onClick={() => handleDelete(cat)}
+                          className="text-destructive hover:text-destructive"
+                        >
+                          <Trash2 className="w-4 h-4" />
+                        </Button>
+                      )}
+                    </div>
+                  </td>
+                )}
               </tr>
             ))}
           </tbody>
