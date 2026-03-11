@@ -2,6 +2,7 @@ import { useState, useEffect, useCallback } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import type { Ingredient, Recipe, RecipeCategory, RecipeIngredient, OverheadCosts } from '@/types/recipe';
 import { toast } from 'sonner';
+import { logActivity } from '@/hooks/useActivityLog';
 
 // --- Mappers: DB row <-> App type ---
 
@@ -142,6 +143,7 @@ export function useSupabaseData() {
   // --- Ingredients ---
   const saveIngredient = useCallback(async (ingredient: Ingredient) => {
     const dbData = ingredientToDb(ingredient);
+    const isNew = !ingredients.find(i => i.id === ingredient.id);
     const { error } = await supabase.from('ingredients').upsert(dbData);
     if (error) { toast.error('บันทึกวัตถุดิบไม่สำเร็จ: ' + error.message); return; }
     setIngredients((prev) => {
@@ -150,13 +152,16 @@ export function useSupabaseData() {
       return [...prev, ingredient];
     });
     toast.success('บันทึกวัตถุดิบเรียบร้อย!');
+    logActivity(isNew ? 'เพิ่มวัตถุดิบ' : 'แก้ไขวัตถุดิบ', 'ingredients', ingredient.id, { name: ingredient.name });
   }, []);
 
   const deleteIngredient = useCallback(async (id: string) => {
+    const ing = ingredients.find(i => i.id === id);
     const { error } = await supabase.from('ingredients').delete().eq('id', id);
     if (error) { toast.error('ลบวัตถุดิบไม่สำเร็จ'); return; }
     setIngredients((prev) => prev.filter((i) => i.id !== id));
     toast.success('ลบวัตถุดิบเรียบร้อย');
+    logActivity('ลบวัตถุดิบ', 'ingredients', id, { name: ing?.name });
   }, []);
 
   const bulkImportIngredients = useCallback(async (imported: Ingredient[]) => {
@@ -165,11 +170,13 @@ export function useSupabaseData() {
     if (error) { toast.error('นำเข้าข้อมูลไม่สำเร็จ: ' + error.message); return; }
     setIngredients((prev) => [...prev, ...imported]);
     toast.success(`นำเข้า ${imported.length} รายการเรียบร้อย!`);
+    logActivity('นำเข้าวัตถุดิบ', 'ingredients', '', { count: imported.length });
   }, []);
 
   // --- Recipes ---
   const saveRecipe = useCallback(async (recipe: Recipe) => {
     const dbData = recipeToDb(recipe);
+    const isNew = !recipes.find(r => r.id === recipe.id);
     const { error } = await supabase.from('recipes').upsert(dbData);
     if (error) { toast.error('บันทึกสูตรไม่สำเร็จ: ' + error.message); return; }
     setRecipes((prev) => {
@@ -178,13 +185,16 @@ export function useSupabaseData() {
       return [...prev, recipe];
     });
     toast.success('บันทึกสูตรเรียบร้อย!');
+    logActivity(isNew ? 'เพิ่มสูตรอาหาร' : 'แก้ไขสูตรอาหาร', 'recipes', recipe.id, { name: recipe.name });
   }, []);
 
   const deleteRecipe = useCallback(async (id: string) => {
+    const rec = recipes.find(r => r.id === id);
     const { error } = await supabase.from('recipes').delete().eq('id', id);
     if (error) { toast.error('ลบสูตรไม่สำเร็จ'); return; }
     setRecipes((prev) => prev.filter((r) => r.id !== id));
     toast.success('ลบสูตรเรียบร้อย');
+    logActivity('ลบสูตรอาหาร', 'recipes', id, { name: rec?.name });
   }, []);
 
   // --- Categories ---
@@ -194,19 +204,21 @@ export function useSupabaseData() {
       let newList: RecipeCategory[];
       if (idx >= 0) { newList = [...prev]; newList[idx] = category; }
       else { newList = [...prev, category]; }
-      // Persist with sort_order
       const dbData = categoryToDb(category, idx >= 0 ? idx : newList.length - 1);
       supabase.from('recipe_categories').upsert(dbData).then(({ error }) => {
         if (error) toast.error('บันทึกหมวดหมู่ไม่สำเร็จ');
       });
+      logActivity(idx >= 0 ? 'แก้ไขหมวดหมู่' : 'เพิ่มหมวดหมู่', 'recipe_categories', category.id, { label: category.label });
       return newList;
     });
   }, []);
 
   const deleteCategory = useCallback(async (id: string) => {
+    const cat = categories.find(c => c.id === id);
     const { error } = await supabase.from('recipe_categories').delete().eq('id', id);
     if (error) { toast.error('ลบหมวดหมู่ไม่สำเร็จ'); return; }
     setCategories((prev) => prev.filter((c) => c.id !== id));
+    logActivity('ลบหมวดหมู่', 'recipe_categories', id, { label: cat?.label });
   }, []);
 
   const reorderCategories = useCallback(async (newCategories: RecipeCategory[]) => {
