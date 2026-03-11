@@ -22,6 +22,7 @@ export interface RecipeIngredient {
   yieldQty: number;
   costPerUnit: number;
   totalCost: number;
+  note?: string;
 }
 
 export interface OverheadCosts {
