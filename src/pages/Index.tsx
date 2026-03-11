@@ -33,6 +33,10 @@ const Index = () => {
     toast.success('ลบวัตถุดิบเรียบร้อย');
   }, [setIngredients]);
 
+  const handleBulkImportIngredients = useCallback((imported: Ingredient[]) => {
+    setIngredients((prev) => [...prev, ...imported]);
+  }, [setIngredients]);
+
   const handleSaveRecipe = useCallback((recipe: Recipe) => {
     setRecipes((prev) => {
       const idx = prev.findIndex((r) => r.id === recipe.id);
@@ -73,6 +77,7 @@ const Index = () => {
             ingredients={ingredients}
             onSave={handleSaveIngredient}
             onDelete={handleDeleteIngredient}
+            onBulkImport={handleBulkImportIngredients}
           />
         )}
         {activeTab === 'recipes' && (
