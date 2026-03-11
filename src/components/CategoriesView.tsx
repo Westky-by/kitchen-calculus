@@ -111,7 +111,9 @@ const CategoriesView = ({ categories, recipes, onSave, onDelete, onReorder, onNa
           return (
             <div
               key={cat.id}
-              className="section-card flex items-center gap-3 p-4 hover:shadow-md transition-shadow cursor-default"
+              className="section-card flex items-center gap-3 p-4 hover:shadow-md transition-shadow cursor-pointer group"
+              onClick={() => onNavigateToRecipes?.(cat.value)}
+              title={`ดูสูตรในหมวด ${cat.label}`}
             >
               <div
                 className="w-10 h-10 rounded-lg flex items-center justify-center text-xl shrink-0"
