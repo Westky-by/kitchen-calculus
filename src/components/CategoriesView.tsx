@@ -5,6 +5,7 @@ import { Label } from '@/components/ui/label';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { Plus, Pencil, Trash2, GripVertical, FolderOpen } from 'lucide-react';
 import type { RecipeCategory, Recipe } from '@/types/recipe';
+import PrintActions from './PrintActions';
 import { toast } from 'sonner';
 
 interface CategoriesViewProps {
@@ -88,15 +89,18 @@ const CategoriesView = ({ categories, recipes, onSave, onDelete, onReorder }: Ca
   };
 
   return (
-    <div className="animate-fade-in">
-      <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 mb-6">
+    <div className="animate-fade-in" id="categories-print-area">
+      <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 mb-6 print:hidden">
         <div>
           <h2 className="text-2xl font-bold">หมวดหมู่สูตรอาหาร</h2>
           <p className="text-muted-foreground text-sm">จัดการหมวดหมู่สำหรับจัดกลุ่มสูตรอาหาร</p>
         </div>
-        <Button onClick={handleAdd} className="bg-success hover:bg-success/90 text-success-foreground">
-          <Plus className="w-4 h-4 mr-2" />เพิ่มหมวดหมู่ใหม่
-        </Button>
+        <div className="flex gap-2">
+          <PrintActions printAreaId="categories-print-area" title="หมวดหมู่สูตรอาหาร" />
+          <Button onClick={handleAdd} className="bg-success hover:bg-success/90 text-success-foreground">
+            <Plus className="w-4 h-4 mr-2" />เพิ่มหมวดหมู่ใหม่
+          </Button>
+        </div>
       </div>
 
       {/* Summary cards */}

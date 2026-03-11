@@ -4,6 +4,7 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/u
 import { Pencil, Trash2, Search, Eye, Filter } from 'lucide-react';
 import type { Recipe, RecipeCategory } from '@/types/recipe';
 import { Q_FACTOR_PERCENT, SERVICE_CHARGE_PERCENT, VAT_PERCENT } from '@/types/recipe';
+import PrintActions from './PrintActions';
 import { useState } from 'react';
 
 interface RecipesViewProps {
@@ -42,20 +43,23 @@ const RecipesView = ({ recipes, onLoad, onDelete, categories }: RecipesViewProps
   }, {});
 
   return (
-    <div className="animate-fade-in">
-      <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 mb-6">
+    <div className="animate-fade-in" id="recipes-print-area">
+      <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 mb-6 print:hidden">
         <div>
           <h2 className="text-2xl font-bold">สูตรที่บันทึกไว้ (My Recipes)</h2>
           <p className="text-muted-foreground text-sm">ประวัติสูตรอาหารทั้งหมดของคุณ</p>
         </div>
-        <div className="relative">
-          <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
-          <Input
-            placeholder="ค้นหาสูตร..."
-            value={search}
-            onChange={(e) => setSearch(e.target.value)}
-            className="pl-10 w-64"
-          />
+        <div className="flex items-center gap-2">
+          <PrintActions printAreaId="recipes-print-area" title="รายการสูตรอาหาร" />
+          <div className="relative">
+            <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
+            <Input
+              placeholder="ค้นหาสูตร..."
+              value={search}
+              onChange={(e) => setSearch(e.target.value)}
+              className="pl-10 w-64"
+            />
+          </div>
         </div>
       </div>
 
@@ -156,16 +160,19 @@ const RecipesView = ({ recipes, onLoad, onDelete, categories }: RecipesViewProps
 
       {/* Recipe Detail Dialog */}
       <Dialog open={!!selectedRecipe} onOpenChange={(open) => !open && setSelectedRecipe(null)}>
-        <DialogContent className="sm:max-w-2xl max-h-[85vh] overflow-y-auto">
+        <DialogContent className="sm:max-w-2xl max-h-[85vh] overflow-y-auto" id="recipe-detail-print-area">
           {selectedRecipe && (
             <>
               <DialogHeader>
-                <div className="flex items-center gap-2">
-                  <span className="text-2xl">{getCategoryIcon(selectedRecipe.category)}</span>
-                  <div>
-                    <DialogTitle className="text-xl">{selectedRecipe.name}</DialogTitle>
-                    <p className="text-sm text-muted-foreground">{selectedRecipe.code} · {getCategoryLabel(selectedRecipe.category)}</p>
+                <div className="flex items-center justify-between">
+                  <div className="flex items-center gap-2">
+                    <span className="text-2xl">{getCategoryIcon(selectedRecipe.category)}</span>
+                    <div>
+                      <DialogTitle className="text-xl">{selectedRecipe.name}</DialogTitle>
+                      <p className="text-sm text-muted-foreground">{selectedRecipe.code} · {getCategoryLabel(selectedRecipe.category)}</p>
+                    </div>
                   </div>
+                  <PrintActions printAreaId="recipe-detail-print-area" title={`Recipe - ${selectedRecipe.name}`} />
                 </div>
               </DialogHeader>
 
