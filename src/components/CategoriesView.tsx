@@ -14,6 +14,7 @@ interface CategoriesViewProps {
   onSave: (category: RecipeCategory) => void;
   onDelete: (id: string) => void;
   onReorder: (categories: RecipeCategory[]) => void;
+  onNavigateToRecipes?: (categoryValue: string) => void;
 }
 
 const EMOJI_OPTIONS = [
