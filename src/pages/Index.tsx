@@ -95,6 +95,7 @@ const Index = () => {
             onLoad={handleLoadRecipe}
             onDelete={deleteRecipe}
             categories={categories}
+            initialCategory={filterCategory}
           />
         )}
         {activeTab === 'categories' && (
@@ -104,6 +105,10 @@ const Index = () => {
             onSave={saveCategory}
             onDelete={deleteCategory}
             onReorder={reorderCategories}
+            onNavigateToRecipes={(catValue) => {
+              setFilterCategory(catValue);
+              setActiveTab('recipes');
+            }}
           />
         )}
       </main>
