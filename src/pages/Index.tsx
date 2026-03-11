@@ -77,6 +77,7 @@ const Index = () => {
             ingredients={ingredients}
             onSave={handleSaveIngredient}
             onDelete={handleDeleteIngredient}
+            onBulkImport={handleBulkImportIngredients}
           />
         )}
         {activeTab === 'recipes' && (
