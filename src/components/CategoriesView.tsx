@@ -174,9 +174,12 @@ const CategoriesView = ({ categories, recipes, onSave, onDelete, onReorder, onNa
                   </div>
                 </td>
                 <td className="p-3 text-center">
-                  <span className="px-2 py-0.5 rounded-full bg-secondary text-secondary-foreground text-xs font-semibold">
-                    {getRecipeCount(cat.value)}
-                  </span>
+                  <button
+                    onClick={() => onNavigateToRecipes?.(cat.value)}
+                    className="px-2 py-0.5 rounded-full bg-secondary text-secondary-foreground text-xs font-semibold hover:bg-accent/30 transition-colors"
+                  >
+                    {getRecipeCount(cat.value)} สูตร →
+                  </button>
                 </td>
                 <td className="p-3 text-center">
                   {cat.isDefault ? (
