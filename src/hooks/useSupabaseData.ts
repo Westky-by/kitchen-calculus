@@ -143,6 +143,7 @@ export function useSupabaseData() {
   // --- Ingredients ---
   const saveIngredient = useCallback(async (ingredient: Ingredient) => {
     const dbData = ingredientToDb(ingredient);
+    const isNew = !ingredients.find(i => i.id === ingredient.id);
     const { error } = await supabase.from('ingredients').upsert(dbData);
     if (error) { toast.error('บันทึกวัตถุดิบไม่สำเร็จ: ' + error.message); return; }
     setIngredients((prev) => {
@@ -151,6 +152,7 @@ export function useSupabaseData() {
       return [...prev, ingredient];
     });
     toast.success('บันทึกวัตถุดิบเรียบร้อย!');
+    logActivity(isNew ? 'เพิ่มวัตถุดิบ' : 'แก้ไขวัตถุดิบ', 'ingredients', ingredient.id, { name: ingredient.name });
   }, []);
 
   const deleteIngredient = useCallback(async (id: string) => {
