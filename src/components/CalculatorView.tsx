@@ -16,7 +16,7 @@ interface CalculatorViewProps {
   categories: RecipeCategory[];
 }
 
-const CalculatorView = ({ ingredients, onSaveRecipe, loadedRecipe, onClearLoaded }: CalculatorViewProps) => {
+const CalculatorView = ({ ingredients, onSaveRecipe, loadedRecipe, onClearLoaded, categories }: CalculatorViewProps) => {
   const [menuName, setMenuName] = useState('');
   const [category, setCategory] = useState('general');
   const [menuCode, setMenuCode] = useState('');
