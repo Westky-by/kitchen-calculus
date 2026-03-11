@@ -49,16 +49,18 @@ const RecipesView = ({ recipes, onLoad, onDelete, categories }: RecipesViewProps
           <h2 className="text-2xl font-bold">สูตรที่บันทึกไว้ (My Recipes)</h2>
           <p className="text-muted-foreground text-sm">ประวัติสูตรอาหารทั้งหมดของคุณ</p>
         </div>
-        <div className="relative">
-          <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
-          <Input
-            placeholder="ค้นหาสูตร..."
-            value={search}
-            onChange={(e) => setSearch(e.target.value)}
-            className="pl-10 w-64"
-          />
+        <div className="flex items-center gap-2">
+          <PrintActions printAreaId="recipes-print-area" title="รายการสูตรอาหาร" />
+          <div className="relative">
+            <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
+            <Input
+              placeholder="ค้นหาสูตร..."
+              value={search}
+              onChange={(e) => setSearch(e.target.value)}
+              className="pl-10 w-64"
+            />
+          </div>
         </div>
-      </div>
 
       {/* Category Filter */}
       <div className="flex flex-wrap gap-2 mb-6">
