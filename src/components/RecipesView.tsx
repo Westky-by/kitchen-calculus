@@ -4,6 +4,7 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/u
 import { Pencil, Trash2, Search, Eye, Filter } from 'lucide-react';
 import type { Recipe, RecipeCategory } from '@/types/recipe';
 import { Q_FACTOR_PERCENT, SERVICE_CHARGE_PERCENT, VAT_PERCENT } from '@/types/recipe';
+import PrintActions from './PrintActions';
 import { useState } from 'react';
 
 interface RecipesViewProps {
