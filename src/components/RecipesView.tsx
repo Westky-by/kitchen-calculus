@@ -160,9 +160,9 @@ const RecipesView = ({ recipes, onLoad, onDelete, categories }: RecipesViewProps
 
       {/* Recipe Detail Dialog */}
       <Dialog open={!!selectedRecipe} onOpenChange={(open) => !open && setSelectedRecipe(null)}>
-        <DialogContent className="sm:max-w-2xl max-h-[85vh] overflow-y-auto" id="recipe-detail-print-area">
+        <DialogContent className="sm:max-w-2xl max-h-[85vh] overflow-y-auto">
           {selectedRecipe && (
-            <>
+            <div id="recipe-detail-print-area">
               <DialogHeader>
                 <div className="flex items-center justify-between">
                   <div className="flex items-center gap-2">
@@ -290,7 +290,7 @@ const RecipesView = ({ recipes, onLoad, onDelete, categories }: RecipesViewProps
               <div className="text-xs text-muted-foreground text-center mt-2">
                 สร้างเมื่อ: {new Date(selectedRecipe.createdAt).toLocaleDateString('th-TH')} · อัปเดต: {new Date(selectedRecipe.updatedAt).toLocaleDateString('th-TH')}
               </div>
-            </>
+            </div>
           )}
         </DialogContent>
       </Dialog>

@@ -11,47 +11,56 @@ interface PrintActionsProps {
 async function captureElement(el: HTMLElement) {
   const { default: html2canvas } = await import('html2canvas');
 
-  // Hide buttons/actions temporarily
-  const hideSelectors = [
-    '[class*="print:hidden"]',
-    'button',
-    '[role="button"]',
-  ];
-  const hiddenEls: { el: HTMLElement; prev: string }[] = [];
+  const sandbox = document.createElement('div');
+  sandbox.style.position = 'fixed';
+  sandbox.style.left = '-100000px';
+  sandbox.style.top = '0';
+  sandbox.style.zIndex = '-1';
+  sandbox.style.background = 'white';
+  sandbox.style.padding = '0';
 
-  // Only hide direct action buttons, not table content
-  el.querySelectorAll(hideSelectors.join(',')).forEach((node) => {
-    const htmlEl = node as HTMLElement;
-    // Keep buttons inside tables visible (they're data)
-    if (htmlEl.closest('table')) return;
-    // Keep dialog close button
-    if (htmlEl.closest('[role="dialog"]') && htmlEl.getAttribute('class')?.includes('absolute')) return;
-    hiddenEls.push({ el: htmlEl, prev: htmlEl.style.display });
-    htmlEl.style.display = 'none';
+  const clone = el.cloneNode(true) as HTMLElement;
+  clone.style.width = `${Math.max(el.clientWidth, 760)}px`;
+  clone.style.maxHeight = 'none';
+  clone.style.height = 'auto';
+  clone.style.overflow = 'visible';
+  clone.style.transform = 'none';
+
+  // Remove scroll clipping from cloned nodes
+  clone.querySelectorAll<HTMLElement>('[class*="overflow"], [class*="max-h-"]').forEach((node) => {
+    node.style.overflow = 'visible';
+    node.style.maxHeight = 'none';
+    node.style.height = 'auto';
   });
 
-  const canvas = await html2canvas(el, {
+  // Hide explicitly non-printable elements only
+  clone.querySelectorAll<HTMLElement>('.print\\:hidden, [class*="print:hidden"], [data-print-hide="true"]').forEach((node) => {
+    node.style.display = 'none';
+  });
+
+  sandbox.appendChild(clone);
+  document.body.appendChild(sandbox);
+
+  const canvas = await html2canvas(clone, {
     scale: 2,
     useCORS: true,
     logging: false,
     backgroundColor: '#ffffff',
-    windowWidth: el.scrollWidth,
-    windowHeight: el.scrollHeight,
+    windowWidth: clone.scrollWidth,
+    windowHeight: clone.scrollHeight,
   });
 
-  // Restore hidden elements
-  hiddenEls.forEach(({ el, prev }) => {
-    el.style.display = prev;
-  });
-
+  document.body.removeChild(sandbox);
   return canvas;
 }
 
 const PrintActions = ({ printAreaId, title, size = 'sm' }: PrintActionsProps) => {
-
   const handlePrint = async () => {
     const el = document.getElementById(printAreaId);
-    if (!el) { toast.error('ไม่พบเนื้อหาสำหรับพิมพ์'); return; }
+    if (!el) {
+      toast.error('ไม่พบเนื้อหาสำหรับพิมพ์');
+      return;
+    }
 
     const toastId = toast.loading('กำลังเตรียมหน้าพิมพ์...');
 
@@ -59,7 +68,6 @@ const PrintActions = ({ printAreaId, title, size = 'sm' }: PrintActionsProps) =>
       const canvas = await captureElement(el);
       const dataUrl = canvas.toDataURL('image/png');
 
-      // Use hidden iframe instead of popup (avoids popup blockers)
       const iframe = document.createElement('iframe');
       iframe.style.position = 'fixed';
       iframe.style.right = '0';
@@ -96,16 +104,17 @@ const PrintActions = ({ printAreaId, title, size = 'sm' }: PrintActionsProps) =>
       `);
       iframeDoc.close();
 
-      // Wait for image to load then print
       const img = iframeDoc.querySelector('img');
       if (img) {
         img.onload = () => {
           toast.dismiss(toastId);
+          iframe.contentWindow?.focus();
           iframe.contentWindow?.print();
           setTimeout(() => document.body.removeChild(iframe), 1000);
         };
       } else {
         toast.dismiss(toastId);
+        iframe.contentWindow?.focus();
         iframe.contentWindow?.print();
         setTimeout(() => document.body.removeChild(iframe), 1000);
       }
@@ -118,7 +127,10 @@ const PrintActions = ({ printAreaId, title, size = 'sm' }: PrintActionsProps) =>
 
   const handleSavePDF = async () => {
     const el = document.getElementById(printAreaId);
-    if (!el) { toast.error('ไม่พบเนื้อหาสำหรับบันทึก PDF'); return; }
+    if (!el) {
+      toast.error('ไม่พบเนื้อหาสำหรับบันทึก PDF');
+      return;
+    }
 
     const toastId = toast.loading('กำลังสร้างไฟล์ PDF...');
 
@@ -126,15 +138,15 @@ const PrintActions = ({ printAreaId, title, size = 'sm' }: PrintActionsProps) =>
       const { jsPDF } = await import('jspdf');
       const canvas = await captureElement(el);
 
-      const imgWidth = 190; // A4 with margins
-      const pageHeight = 277; // A4 with margins
+      const imgWidth = 190;
+      const pageHeight = 277;
       const imgHeight = (canvas.height * imgWidth) / canvas.width;
 
       const pdf = new jsPDF('p', 'mm', 'a4');
       const imgData = canvas.toDataURL('image/png');
 
       let heightLeft = imgHeight;
-      let position = 10; // top margin
+      let position = 10;
 
       pdf.addImage(imgData, 'PNG', 10, position, imgWidth, imgHeight);
       heightLeft -= pageHeight;
@@ -158,7 +170,7 @@ const PrintActions = ({ printAreaId, title, size = 'sm' }: PrintActionsProps) =>
   };
 
   return (
-    <div className="flex gap-1 print:hidden">
+    <div className="flex gap-1 print:hidden" data-print-hide="true">
       <Button variant="outline" size={size} onClick={handlePrint}>
         <Printer className="w-3.5 h-3.5 mr-1" />พิมพ์
       </Button>
