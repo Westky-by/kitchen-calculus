@@ -15,9 +15,9 @@ interface RecipesViewProps {
   initialCategory?: string;
 }
 
-const RecipesView = ({ recipes, onLoad, onDelete, categories }: RecipesViewProps) => {
+const RecipesView = ({ recipes, onLoad, onDelete, categories, initialCategory }: RecipesViewProps) => {
   const [search, setSearch] = useState('');
-  const [selectedCategory, setSelectedCategory] = useState<string>('all');
+  const [selectedCategory, setSelectedCategory] = useState<string>(initialCategory || 'all');
   const [selectedRecipe, setSelectedRecipe] = useState<Recipe | null>(null);
 
   const filtered = recipes.filter((r) => {
