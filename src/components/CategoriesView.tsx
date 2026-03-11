@@ -193,23 +193,25 @@ const CategoriesView = ({ categories, recipes, onSave, onDelete, onReorder, onNa
                     <span className="text-xs px-2 py-0.5 rounded-full bg-accent/20 text-accent-foreground">กำหนดเอง</span>
                   )}
                 </td>
-                <td className="p-3 text-center">
-                  <div className="flex items-center justify-center gap-1">
-                    <Button variant="ghost" size="sm" onClick={() => handleEdit(cat)}>
-                      <Pencil className="w-4 h-4" />
-                    </Button>
-                    {!cat.isDefault && (
-                      <Button
-                        variant="ghost"
-                        size="sm"
-                        onClick={() => handleDelete(cat)}
-                        className="text-destructive hover:text-destructive"
-                      >
-                        <Trash2 className="w-4 h-4" />
+                {isAdmin && (
+                  <td className="p-3 text-center">
+                    <div className="flex items-center justify-center gap-1">
+                      <Button variant="ghost" size="sm" onClick={() => handleEdit(cat)}>
+                        <Pencil className="w-4 h-4" />
                       </Button>
-                    )}
-                  </div>
-                </td>
+                      {!cat.isDefault && (
+                        <Button
+                          variant="ghost"
+                          size="sm"
+                          onClick={() => handleDelete(cat)}
+                          className="text-destructive hover:text-destructive"
+                        >
+                          <Trash2 className="w-4 h-4" />
+                        </Button>
+                      )}
+                    </div>
+                  </td>
+                )}
               </tr>
             ))}
           </tbody>
