@@ -72,7 +72,7 @@ const Admin = () => {
   const handleRoleChange = async (userId: string, newRole: string) => {
     const { error } = await supabase
       .from('user_roles')
-      .update({ role: newRole })
+      .update({ role: newRole as any })
       .eq('user_id', userId);
     if (error) { toast.error('เปลี่ยน Role ไม่สำเร็จ'); return; }
     toast.success('เปลี่ยน Role สำเร็จ');
