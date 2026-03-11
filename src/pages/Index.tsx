@@ -1,18 +1,20 @@
 import { useState, useCallback } from 'react';
 import AppNavbar from '@/components/AppNavbar';
+import type { TabType } from '@/components/AppNavbar';
 import CalculatorView from '@/components/CalculatorView';
 import IngredientsView from '@/components/IngredientsView';
 import RecipesView from '@/components/RecipesView';
+import CategoriesView from '@/components/CategoriesView';
 import { useLocalStorage } from '@/hooks/useLocalStorage';
-import type { Ingredient, Recipe } from '@/types/recipe';
+import type { Ingredient, Recipe, RecipeCategory } from '@/types/recipe';
+import { DEFAULT_CATEGORIES } from '@/types/recipe';
 import { toast } from 'sonner';
-
-type TabType = 'calculator' | 'ingredients' | 'recipes';
 
 const Index = () => {
   const [activeTab, setActiveTab] = useState<TabType>('calculator');
   const [ingredients, setIngredients] = useLocalStorage<Ingredient[]>('prc-ingredients', []);
   const [recipes, setRecipes] = useLocalStorage<Recipe[]>('prc-recipes', []);
+  const [categories, setCategories] = useLocalStorage<RecipeCategory[]>('prc-categories', DEFAULT_CATEGORIES);
   const [loadedRecipe, setLoadedRecipe] = useState<Recipe | null>(null);
 
   const handleSaveIngredient = useCallback((ingredient: Ingredient) => {
@@ -60,6 +62,27 @@ const Index = () => {
     toast.info(`โหลดสูตร "${recipe.name}" เรียบร้อย`);
   }, []);
 
+  // Category handlers
+  const handleSaveCategory = useCallback((category: RecipeCategory) => {
+    setCategories((prev) => {
+      const idx = prev.findIndex((c) => c.id === category.id);
+      if (idx >= 0) {
+        const updated = [...prev];
+        updated[idx] = category;
+        return updated;
+      }
+      return [...prev, category];
+    });
+  }, [setCategories]);
+
+  const handleDeleteCategory = useCallback((id: string) => {
+    setCategories((prev) => prev.filter((c) => c.id !== id));
+  }, [setCategories]);
+
+  const handleReorderCategories = useCallback((newCategories: RecipeCategory[]) => {
+    setCategories(newCategories);
+  }, [setCategories]);
+
   return (
     <div className="min-h-screen bg-background">
       <AppNavbar activeTab={activeTab} onTabChange={setActiveTab} />
@@ -70,6 +93,7 @@ const Index = () => {
             onSaveRecipe={handleSaveRecipe}
             loadedRecipe={loadedRecipe}
             onClearLoaded={() => setLoadedRecipe(null)}
+            categories={categories}
           />
         )}
         {activeTab === 'ingredients' && (
@@ -85,6 +109,16 @@ const Index = () => {
             recipes={recipes}
             onLoad={handleLoadRecipe}
             onDelete={handleDeleteRecipe}
+            categories={categories}
+          />
+        )}
+        {activeTab === 'categories' && (
+          <CategoriesView
+            categories={categories}
+            recipes={recipes}
+            onSave={handleSaveCategory}
+            onDelete={handleDeleteCategory}
+            onReorder={handleReorderCategories}
           />
         )}
       </main>
