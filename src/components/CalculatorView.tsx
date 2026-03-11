@@ -92,6 +92,12 @@ const CalculatorView = ({ ingredients, onSaveRecipe, loadedRecipe, onClearLoaded
     setRecipeIngredients((prev) => prev.filter((i) => i.id !== id));
   };
 
+  const updateIngredientNote = (id: string, note: string) => {
+    setRecipeIngredients((prev) =>
+      prev.map((item) => (item.id === id ? { ...item, note } : item))
+    );
+  };
+
   // Calculations
   const rawMaterialCost = useMemo(
     () => recipeIngredients.reduce((sum, i) => sum + i.totalCost, 0),
