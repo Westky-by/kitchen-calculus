@@ -156,10 +156,12 @@ export function useSupabaseData() {
   }, []);
 
   const deleteIngredient = useCallback(async (id: string) => {
+    const ing = ingredients.find(i => i.id === id);
     const { error } = await supabase.from('ingredients').delete().eq('id', id);
     if (error) { toast.error('ลบวัตถุดิบไม่สำเร็จ'); return; }
     setIngredients((prev) => prev.filter((i) => i.id !== id));
     toast.success('ลบวัตถุดิบเรียบร้อย');
+    logActivity('ลบวัตถุดิบ', 'ingredients', id, { name: ing?.name });
   }, []);
 
   const bulkImportIngredients = useCallback(async (imported: Ingredient[]) => {
