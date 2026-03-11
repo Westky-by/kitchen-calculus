@@ -55,20 +55,32 @@ export interface Recipe {
   updatedAt: string;
 }
 
-export const CATEGORIES = [
-  { value: 'general', label: 'ทั่วไป (General)', icon: '' },
-  { value: 'boil', label: '🥣 ต้ม (Boil/Soup)', icon: '🥣' },
-  { value: 'stirfry', label: '🍳 ผัด (Stir-fry)', icon: '🍳' },
-  { value: 'curry', label: '🥘 แกง (Curry)', icon: '🥘' },
-  { value: 'deepfry', label: '🍗 ทอด (Deep Fry)', icon: '🍗' },
-  { value: 'grill', label: '🔥 ย่าง/อบ (Grill/Bake)', icon: '🔥' },
-  { value: 'salad', label: '🥗 ยำ/สลัด (Salad)', icon: '🥗' },
-  { value: 'appetizer', label: '🍟 ของทานเล่น (Appetizer)', icon: '🍟' },
-  { value: 'dessert', label: '🍰 ขนมหวาน (Dessert)', icon: '🍰' },
-  { value: 'beverage', label: '🥤 เครื่องดื่ม (Beverage)', icon: '🥤' },
-  { value: 'vegetarian', label: '🥦 มังสวิรัติ (Vegetarian)', icon: '🥦' },
-  { value: 'jay', label: '🟡 เจ (Jay)', icon: '🟡' },
+export interface RecipeCategory {
+  id: string;
+  value: string;
+  label: string;
+  icon: string;
+  color: string;
+  isDefault?: boolean;
+}
+
+export const DEFAULT_CATEGORIES: RecipeCategory[] = [
+  { id: 'cat-general', value: 'general', label: 'ทั่วไป (General)', icon: '📋', color: '#94a3b8', isDefault: true },
+  { id: 'cat-boil', value: 'boil', label: 'ต้ม (Boil/Soup)', icon: '🥣', color: '#38bdf8', isDefault: true },
+  { id: 'cat-stirfry', value: 'stirfry', label: 'ผัด (Stir-fry)', icon: '🍳', color: '#fbbf24', isDefault: true },
+  { id: 'cat-curry', value: 'curry', label: 'แกง (Curry)', icon: '🥘', color: '#f97316', isDefault: true },
+  { id: 'cat-deepfry', value: 'deepfry', label: 'ทอด (Deep Fry)', icon: '🍗', color: '#a78bfa', isDefault: true },
+  { id: 'cat-grill', value: 'grill', label: 'ย่าง/อบ (Grill/Bake)', icon: '🔥', color: '#ef4444', isDefault: true },
+  { id: 'cat-salad', value: 'salad', label: 'ยำ/สลัด (Salad)', icon: '🥗', color: '#4ade80', isDefault: true },
+  { id: 'cat-appetizer', value: 'appetizer', label: 'ของทานเล่น (Appetizer)', icon: '🍟', color: '#facc15', isDefault: true },
+  { id: 'cat-dessert', value: 'dessert', label: 'ขนมหวาน (Dessert)', icon: '🍰', color: '#f472b6', isDefault: true },
+  { id: 'cat-beverage', value: 'beverage', label: 'เครื่องดื่ม (Beverage)', icon: '🥤', color: '#22d3ee', isDefault: true },
+  { id: 'cat-vegetarian', value: 'vegetarian', label: 'มังสวิรัติ (Vegetarian)', icon: '🥦', color: '#22c55e', isDefault: true },
+  { id: 'cat-jay', value: 'jay', label: 'เจ (Jay)', icon: '🟡', color: '#eab308', isDefault: true },
 ];
+
+// Keep backward compatibility
+export const CATEGORIES = DEFAULT_CATEGORIES;
 
 export const INGREDIENT_CATEGORIES = [
   'เนื้อสัตว์', 'อาหารทะเล', 'ผัก/ผลไม้', 'เครื่องปรุง', 'แป้ง/ธัญพืช',

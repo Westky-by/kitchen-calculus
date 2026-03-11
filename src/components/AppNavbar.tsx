@@ -1,6 +1,6 @@
-import { Calculator, Database, BookOpen } from 'lucide-react';
+import { Calculator, Database, BookOpen, FolderOpen } from 'lucide-react';
 
-type TabType = 'calculator' | 'ingredients' | 'recipes';
+export type TabType = 'calculator' | 'ingredients' | 'recipes' | 'categories';
 
 interface AppNavbarProps {
   activeTab: TabType;
@@ -12,6 +12,7 @@ const AppNavbar = ({ activeTab, onTabChange }: AppNavbarProps) => {
     { id: 'calculator' as TabType, label: 'คำนวณสูตร', icon: Calculator },
     { id: 'ingredients' as TabType, label: 'ฐานข้อมูล', icon: Database },
     { id: 'recipes' as TabType, label: 'สูตรที่บันทึก', icon: BookOpen },
+    { id: 'categories' as TabType, label: 'หมวดหมู่', icon: FolderOpen },
   ];
 
   return (

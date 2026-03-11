@@ -1,17 +1,17 @@
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Upload, Trash2, Search } from 'lucide-react';
-import type { Recipe } from '@/types/recipe';
-import { CATEGORIES } from '@/types/recipe';
+import type { Recipe, RecipeCategory } from '@/types/recipe';
 import { useState } from 'react';
 
 interface RecipesViewProps {
   recipes: Recipe[];
   onLoad: (recipe: Recipe) => void;
   onDelete: (id: string) => void;
+  categories: RecipeCategory[];
 }
 
-const RecipesView = ({ recipes, onLoad, onDelete }: RecipesViewProps) => {
+const RecipesView = ({ recipes, onLoad, onDelete, categories }: RecipesViewProps) => {
   const [search, setSearch] = useState('');
 
   const filtered = recipes.filter(
@@ -19,7 +19,10 @@ const RecipesView = ({ recipes, onLoad, onDelete }: RecipesViewProps) => {
            r.code.toLowerCase().includes(search.toLowerCase())
   );
 
-  const getCategoryLabel = (val: string) => CATEGORIES.find((c) => c.value === val)?.label || val;
+  const getCategoryLabel = (val: string) => {
+    const cat = categories.find((c) => c.value === val);
+    return cat ? `${cat.icon} ${cat.label}` : val;
+  };
 
   return (
     <div className="animate-fade-in">
