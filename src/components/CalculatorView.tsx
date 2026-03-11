@@ -439,6 +439,23 @@ const CalculatorView = ({ ingredients, onSaveRecipe, loadedRecipe, onClearLoaded
           </div>
         </div>
       </div>
+      {/* Success Dialog */}
+      <Dialog open={showSuccessDialog} onOpenChange={setShowSuccessDialog}>
+        <DialogContent className="sm:max-w-md text-center">
+          <DialogHeader className="items-center">
+            <div className="w-16 h-16 rounded-full bg-primary/10 flex items-center justify-center mx-auto mb-2">
+              <CheckCircle2 className="w-10 h-10 text-primary" />
+            </div>
+            <DialogTitle className="text-xl">บันทึกสูตรสำเร็จ!</DialogTitle>
+            <DialogDescription className="text-base">
+              สูตร "{savedRecipeName}" ถูกบันทึกเรียบร้อยแล้ว
+            </DialogDescription>
+          </DialogHeader>
+          <Button onClick={() => setShowSuccessDialog(false)} className="mt-2">
+            ตกลง
+          </Button>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 };
