@@ -99,9 +99,11 @@ const CategoriesView = ({ categories, recipes, onSave, onDelete, onReorder, onNa
         </div>
         <div className="flex gap-2">
           <PrintActions printAreaId="categories-print-area" title="หมวดหมู่สูตรอาหาร" />
-          <Button onClick={handleAdd} className="bg-success hover:bg-success/90 text-success-foreground">
-            <Plus className="w-4 h-4 mr-2" />เพิ่มหมวดหมู่ใหม่
-          </Button>
+          {isAdmin && (
+            <Button onClick={handleAdd} className="bg-success hover:bg-success/90 text-success-foreground">
+              <Plus className="w-4 h-4 mr-2" />เพิ่มหมวดหมู่ใหม่
+            </Button>
+          )}
         </div>
       </div>
 
