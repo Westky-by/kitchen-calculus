@@ -12,6 +12,7 @@ interface RecipesViewProps {
   onLoad: (recipe: Recipe) => void;
   onDelete: (id: string) => void;
   categories: RecipeCategory[];
+  initialCategory?: string;
 }
 
 const RecipesView = ({ recipes, onLoad, onDelete, categories }: RecipesViewProps) => {
