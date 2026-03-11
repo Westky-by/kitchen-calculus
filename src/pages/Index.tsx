@@ -5,56 +5,20 @@ import CalculatorView from '@/components/CalculatorView';
 import IngredientsView from '@/components/IngredientsView';
 import RecipesView from '@/components/RecipesView';
 import CategoriesView from '@/components/CategoriesView';
-import { useLocalStorage } from '@/hooks/useLocalStorage';
-import type { Ingredient, Recipe, RecipeCategory } from '@/types/recipe';
-import { DEFAULT_CATEGORIES } from '@/types/recipe';
+import { useSupabaseData } from '@/hooks/useSupabaseData';
+import type { Recipe } from '@/types/recipe';
 import { toast } from 'sonner';
 
 const Index = () => {
   const [activeTab, setActiveTab] = useState<TabType>('calculator');
-  const [ingredients, setIngredients] = useLocalStorage<Ingredient[]>('prc-ingredients', []);
-  const [recipes, setRecipes] = useLocalStorage<Recipe[]>('prc-recipes', []);
-  const [categories, setCategories] = useLocalStorage<RecipeCategory[]>('prc-categories', DEFAULT_CATEGORIES);
   const [loadedRecipe, setLoadedRecipe] = useState<Recipe | null>(null);
 
-  const handleSaveIngredient = useCallback((ingredient: Ingredient) => {
-    setIngredients((prev) => {
-      const idx = prev.findIndex((i) => i.id === ingredient.id);
-      if (idx >= 0) {
-        const updated = [...prev];
-        updated[idx] = ingredient;
-        return updated;
-      }
-      return [...prev, ingredient];
-    });
-    toast.success('บันทึกวัตถุดิบเรียบร้อย!');
-  }, [setIngredients]);
-
-  const handleDeleteIngredient = useCallback((id: string) => {
-    setIngredients((prev) => prev.filter((i) => i.id !== id));
-    toast.success('ลบวัตถุดิบเรียบร้อย');
-  }, [setIngredients]);
-
-  const handleBulkImportIngredients = useCallback((imported: Ingredient[]) => {
-    setIngredients((prev) => [...prev, ...imported]);
-  }, [setIngredients]);
-
-  const handleSaveRecipe = useCallback((recipe: Recipe) => {
-    setRecipes((prev) => {
-      const idx = prev.findIndex((r) => r.id === recipe.id);
-      if (idx >= 0) {
-        const updated = [...prev];
-        updated[idx] = recipe;
-        return updated;
-      }
-      return [...prev, recipe];
-    });
-  }, [setRecipes]);
-
-  const handleDeleteRecipe = useCallback((id: string) => {
-    setRecipes((prev) => prev.filter((r) => r.id !== id));
-    toast.success('ลบสูตรเรียบร้อย');
-  }, [setRecipes]);
+  const {
+    ingredients, recipes, categories, loading,
+    saveIngredient, deleteIngredient, bulkImportIngredients,
+    saveRecipe, deleteRecipe,
+    saveCategory, deleteCategory, reorderCategories,
+  } = useSupabaseData();
 
   const handleLoadRecipe = useCallback((recipe: Recipe) => {
     setLoadedRecipe(recipe);
@@ -62,26 +26,16 @@ const Index = () => {
     toast.info(`โหลดสูตร "${recipe.name}" เรียบร้อย`);
   }, []);
 
-  // Category handlers
-  const handleSaveCategory = useCallback((category: RecipeCategory) => {
-    setCategories((prev) => {
-      const idx = prev.findIndex((c) => c.id === category.id);
-      if (idx >= 0) {
-        const updated = [...prev];
-        updated[idx] = category;
-        return updated;
-      }
-      return [...prev, category];
-    });
-  }, [setCategories]);
-
-  const handleDeleteCategory = useCallback((id: string) => {
-    setCategories((prev) => prev.filter((c) => c.id !== id));
-  }, [setCategories]);
-
-  const handleReorderCategories = useCallback((newCategories: RecipeCategory[]) => {
-    setCategories(newCategories);
-  }, [setCategories]);
+  if (loading) {
+    return (
+      <div className="min-h-screen bg-background flex items-center justify-center">
+        <div className="text-center">
+          <div className="w-12 h-12 border-4 border-accent border-t-transparent rounded-full animate-spin mx-auto mb-4" />
+          <p className="text-muted-foreground">กำลังโหลดข้อมูล...</p>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="min-h-screen bg-background">
@@ -90,7 +44,7 @@ const Index = () => {
         {activeTab === 'calculator' && (
           <CalculatorView
             ingredients={ingredients}
-            onSaveRecipe={handleSaveRecipe}
+            onSaveRecipe={saveRecipe}
             loadedRecipe={loadedRecipe}
             onClearLoaded={() => setLoadedRecipe(null)}
             categories={categories}
@@ -99,16 +53,16 @@ const Index = () => {
         {activeTab === 'ingredients' && (
           <IngredientsView
             ingredients={ingredients}
-            onSave={handleSaveIngredient}
-            onDelete={handleDeleteIngredient}
-            onBulkImport={handleBulkImportIngredients}
+            onSave={saveIngredient}
+            onDelete={deleteIngredient}
+            onBulkImport={bulkImportIngredients}
           />
         )}
         {activeTab === 'recipes' && (
           <RecipesView
             recipes={recipes}
             onLoad={handleLoadRecipe}
-            onDelete={handleDeleteRecipe}
+            onDelete={deleteRecipe}
             categories={categories}
           />
         )}
@@ -116,9 +70,9 @@ const Index = () => {
           <CategoriesView
             categories={categories}
             recipes={recipes}
-            onSave={handleSaveCategory}
-            onDelete={handleDeleteCategory}
-            onReorder={handleReorderCategories}
+            onSave={saveCategory}
+            onDelete={deleteCategory}
+            onReorder={reorderCategories}
           />
         )}
       </main>

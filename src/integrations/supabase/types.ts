@@ -14,7 +14,159 @@ export type Database = {
   }
   public: {
     Tables: {
-      [_ in never]: never
+      ingredients: {
+        Row: {
+          category: string
+          code: string
+          cost_per_unit: number
+          created_at: string
+          id: string
+          name: string
+          purchase_price: number
+          purchase_qty: number
+          purchase_unit: string
+          updated_at: string
+          usage_unit: string
+          yield_percent: number
+          yield_qty: number
+        }
+        Insert: {
+          category?: string
+          code?: string
+          cost_per_unit?: number
+          created_at?: string
+          id?: string
+          name: string
+          purchase_price?: number
+          purchase_qty?: number
+          purchase_unit?: string
+          updated_at?: string
+          usage_unit?: string
+          yield_percent?: number
+          yield_qty?: number
+        }
+        Update: {
+          category?: string
+          code?: string
+          cost_per_unit?: number
+          created_at?: string
+          id?: string
+          name?: string
+          purchase_price?: number
+          purchase_qty?: number
+          purchase_unit?: string
+          updated_at?: string
+          usage_unit?: string
+          yield_percent?: number
+          yield_qty?: number
+        }
+        Relationships: []
+      }
+      recipe_categories: {
+        Row: {
+          color: string
+          created_at: string
+          icon: string
+          id: string
+          is_default: boolean
+          label: string
+          sort_order: number
+          value: string
+        }
+        Insert: {
+          color?: string
+          created_at?: string
+          icon?: string
+          id?: string
+          is_default?: boolean
+          label: string
+          sort_order?: number
+          value: string
+        }
+        Update: {
+          color?: string
+          created_at?: string
+          icon?: string
+          id?: string
+          is_default?: boolean
+          label?: string
+          sort_order?: number
+          value?: string
+        }
+        Relationships: []
+      }
+      recipes: {
+        Row: {
+          category: string
+          code: string
+          cost_per_portion: number
+          created_at: string
+          grand_total: number
+          id: string
+          ingredients: Json
+          name: string
+          overhead: Json
+          portion_size: string
+          profit_percent: number
+          q_factor: number
+          raw_material_cost: number
+          real_fc_percent: number
+          selling_price: number
+          service_charge: number
+          suggested_price: number
+          target_fc_percent: number
+          total_product_cost: number
+          updated_at: string
+          vat: number
+        }
+        Insert: {
+          category?: string
+          code?: string
+          cost_per_portion?: number
+          created_at?: string
+          grand_total?: number
+          id?: string
+          ingredients?: Json
+          name: string
+          overhead?: Json
+          portion_size?: string
+          profit_percent?: number
+          q_factor?: number
+          raw_material_cost?: number
+          real_fc_percent?: number
+          selling_price?: number
+          service_charge?: number
+          suggested_price?: number
+          target_fc_percent?: number
+          total_product_cost?: number
+          updated_at?: string
+          vat?: number
+        }
+        Update: {
+          category?: string
+          code?: string
+          cost_per_portion?: number
+          created_at?: string
+          grand_total?: number
+          id?: string
+          ingredients?: Json
+          name?: string
+          overhead?: Json
+          portion_size?: string
+          profit_percent?: number
+          q_factor?: number
+          raw_material_cost?: number
+          real_fc_percent?: number
+          selling_price?: number
+          service_charge?: number
+          suggested_price?: number
+          target_fc_percent?: number
+          total_product_cost?: number
+          updated_at?: string
+          vat?: number
+        }
+        Relationships: []
+      }
     }
     Views: {
       [_ in never]: never
