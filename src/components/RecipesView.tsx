@@ -1,6 +1,6 @@
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
-import { Upload, Trash2, Search } from 'lucide-react';
+import { Pencil, Trash2, Search } from 'lucide-react';
 import type { Recipe, RecipeCategory } from '@/types/recipe';
 import { useState } from 'react';
 
@@ -92,7 +92,7 @@ const RecipesView = ({ recipes, onLoad, onDelete, categories }: RecipesViewProps
 
               <div className="flex gap-2">
                 <Button size="sm" variant="outline" onClick={() => onLoad(recipe)} className="flex-1">
-                  <Upload className="w-3.5 h-3.5 mr-1" />Load
+                  <Pencil className="w-3.5 h-3.5 mr-1" />แก้ไข
                 </Button>
                 <Button size="sm" variant="ghost" onClick={() => onDelete(recipe.id)} className="text-destructive">
                   <Trash2 className="w-3.5 h-3.5" />
