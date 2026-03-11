@@ -61,6 +61,7 @@ const RecipesView = ({ recipes, onLoad, onDelete, categories }: RecipesViewProps
             />
           </div>
         </div>
+      </div>
 
       {/* Category Filter */}
       <div className="flex flex-wrap gap-2 mb-6">
