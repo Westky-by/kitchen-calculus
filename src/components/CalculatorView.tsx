@@ -3,7 +3,8 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { Plus, Save, RotateCcw, Trash2, Search } from 'lucide-react';
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from '@/components/ui/dialog';
+import { Plus, Save, RotateCcw, Trash2, Search, CheckCircle2 } from 'lucide-react';
 import type { Ingredient, Recipe, RecipeIngredient, OverheadCosts, RecipeCategory } from '@/types/recipe';
 import { PORTION_SIZES, Q_FACTOR_PERCENT, SERVICE_CHARGE_PERCENT, VAT_PERCENT } from '@/types/recipe';
 import { toast } from 'sonner';
@@ -27,6 +28,8 @@ const CalculatorView = ({ ingredients, onSaveRecipe, loadedRecipe, onClearLoaded
   const [sellingPrice, setSellingPrice] = useState(0);
   const [searchTerm, setSearchTerm] = useState('');
   const [showDropdown, setShowDropdown] = useState(false);
+  const [showSuccessDialog, setShowSuccessDialog] = useState(false);
+  const [savedRecipeName, setSavedRecipeName] = useState('');
   const dropdownRef = useRef<HTMLDivElement>(null);
 
   // Load recipe if provided
@@ -155,6 +158,10 @@ const CalculatorView = ({ ingredients, onSaveRecipe, loadedRecipe, onClearLoaded
     };
 
     onSaveRecipe(recipe);
+    setSavedRecipeName(menuName);
+    setShowSuccessDialog(true);
+    // Reset form
+    handleReset();
   };
 
   return (
@@ -432,6 +439,23 @@ const CalculatorView = ({ ingredients, onSaveRecipe, loadedRecipe, onClearLoaded
           </div>
         </div>
       </div>
+      {/* Success Dialog */}
+      <Dialog open={showSuccessDialog} onOpenChange={setShowSuccessDialog}>
+        <DialogContent className="sm:max-w-md text-center">
+          <DialogHeader className="items-center">
+            <div className="w-16 h-16 rounded-full bg-primary/10 flex items-center justify-center mx-auto mb-2">
+              <CheckCircle2 className="w-10 h-10 text-primary" />
+            </div>
+            <DialogTitle className="text-xl">บันทึกสูตรสำเร็จ!</DialogTitle>
+            <DialogDescription className="text-base">
+              สูตร "{savedRecipeName}" ถูกบันทึกเรียบร้อยแล้ว
+            </DialogDescription>
+          </DialogHeader>
+          <Button onClick={() => setShowSuccessDialog(false)} className="mt-2">
+            ตกลง
+          </Button>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 };
