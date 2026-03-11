@@ -176,6 +176,7 @@ export function useSupabaseData() {
   // --- Recipes ---
   const saveRecipe = useCallback(async (recipe: Recipe) => {
     const dbData = recipeToDb(recipe);
+    const isNew = !recipes.find(r => r.id === recipe.id);
     const { error } = await supabase.from('recipes').upsert(dbData);
     if (error) { toast.error('บันทึกสูตรไม่สำเร็จ: ' + error.message); return; }
     setRecipes((prev) => {
@@ -184,6 +185,7 @@ export function useSupabaseData() {
       return [...prev, recipe];
     });
     toast.success('บันทึกสูตรเรียบร้อย!');
+    logActivity(isNew ? 'เพิ่มสูตรอาหาร' : 'แก้ไขสูตรอาหาร', 'recipes', recipe.id, { name: recipe.name });
   }, []);
 
   const deleteRecipe = useCallback(async (id: string) => {
