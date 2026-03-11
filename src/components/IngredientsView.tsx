@@ -147,7 +147,6 @@ const IngredientsView = ({ ingredients, onSave, onDelete, onBulkImport }: Ingred
 
         if (imported.length === 0) { toast.error('ไม่พบข้อมูลที่ถูกต้องในไฟล์'); return; }
         onBulkImport(imported);
-        toast.success(`นำเข้า ${imported.length} รายการเรียบร้อย!`);
       } catch {
         toast.error('ไม่สามารถอ่านไฟล์ CSV ได้');
       }
