@@ -2,6 +2,7 @@ import { useState, useEffect, useCallback } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import type { Ingredient, Recipe, RecipeCategory, RecipeIngredient, OverheadCosts } from '@/types/recipe';
 import { toast } from 'sonner';
+import { logActivity } from '@/hooks/useActivityLog';
 
 // --- Mappers: DB row <-> App type ---
 
