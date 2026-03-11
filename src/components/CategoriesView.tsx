@@ -150,24 +150,26 @@ const CategoriesView = ({ categories, recipes, onSave, onDelete, onReorder, onNa
           <tbody>
             {categories.map((cat, idx) => (
               <tr key={cat.id} className="border-b border-border/50 hover:bg-muted/50 transition-colors">
-                <td className="p-3">
-                  <div className="flex flex-col gap-0.5">
-                    <button
-                      onClick={() => moveCategory(idx, 'up')}
-                      disabled={idx === 0}
-                      className="text-muted-foreground hover:text-foreground disabled:opacity-30 text-xs"
-                    >
-                      ▲
-                    </button>
-                    <button
-                      onClick={() => moveCategory(idx, 'down')}
-                      disabled={idx === categories.length - 1}
-                      className="text-muted-foreground hover:text-foreground disabled:opacity-30 text-xs"
-                    >
-                      ▼
-                    </button>
-                  </div>
-                </td>
+                {isAdmin && (
+                  <td className="p-3">
+                    <div className="flex flex-col gap-0.5">
+                      <button
+                        onClick={() => moveCategory(idx, 'up')}
+                        disabled={idx === 0}
+                        className="text-muted-foreground hover:text-foreground disabled:opacity-30 text-xs"
+                      >
+                        ▲
+                      </button>
+                      <button
+                        onClick={() => moveCategory(idx, 'down')}
+                        disabled={idx === categories.length - 1}
+                        className="text-muted-foreground hover:text-foreground disabled:opacity-30 text-xs"
+                      >
+                        ▼
+                      </button>
+                    </div>
+                  </td>
+                )}
                 <td className="p-3 text-xl">{cat.icon}</td>
                 <td className="p-3 font-medium">{cat.label}</td>
                 <td className="p-3">
