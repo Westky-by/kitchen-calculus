@@ -138,13 +138,13 @@ const CategoriesView = ({ categories, recipes, onSave, onDelete, onReorder, onNa
         <table className="w-full text-sm">
           <thead>
             <tr className="border-b-2 border-border">
-              <th className="text-left p-3 w-10"></th>
+              {isAdmin && <th className="text-left p-3 w-10"></th>}
               <th className="text-left p-3 font-semibold">ไอคอน</th>
               <th className="text-left p-3 font-semibold">ชื่อหมวดหมู่</th>
               <th className="text-left p-3 font-semibold">สี</th>
               <th className="text-center p-3 font-semibold">จำนวนสูตร</th>
               <th className="text-center p-3 font-semibold">ประเภท</th>
-              <th className="text-center p-3 font-semibold">จัดการ</th>
+              {isAdmin && <th className="text-center p-3 font-semibold">จัดการ</th>}
             </tr>
           </thead>
           <tbody>
