@@ -19,7 +19,10 @@ const RecipesView = ({ recipes, onLoad, onDelete, categories }: RecipesViewProps
            r.code.toLowerCase().includes(search.toLowerCase())
   );
 
-  const getCategoryLabel = (val: string) => CATEGORIES.find((c) => c.value === val)?.label || val;
+  const getCategoryLabel = (val: string) => {
+    const cat = categories.find((c) => c.value === val);
+    return cat ? `${cat.icon} ${cat.label}` : val;
+  };
 
   return (
     <div className="animate-fade-in">
