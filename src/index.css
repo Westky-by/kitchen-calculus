@@ -114,3 +114,27 @@
     @apply w-2 h-2 rounded-full bg-[hsl(var(--success))] animate-pulse;
   }
 }
+
+/* Print styles */
+@media print {
+  body * {
+    visibility: hidden;
+  }
+  .printable-area,
+  .printable-area * {
+    visibility: visible !important;
+  }
+  .printable-area {
+    position: absolute;
+    left: 0;
+    top: 0;
+    width: 100%;
+    padding: 20px;
+  }
+  .print\\:hidden {
+    display: none !important;
+  }
+  nav, .nav-bar, header {
+    display: none !important;
+  }
+}
