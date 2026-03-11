@@ -214,9 +214,11 @@ export function useSupabaseData() {
   }, []);
 
   const deleteCategory = useCallback(async (id: string) => {
+    const cat = categories.find(c => c.id === id);
     const { error } = await supabase.from('recipe_categories').delete().eq('id', id);
     if (error) { toast.error('ลบหมวดหมู่ไม่สำเร็จ'); return; }
     setCategories((prev) => prev.filter((c) => c.id !== id));
+    logActivity('ลบหมวดหมู่', 'recipe_categories', id, { label: cat?.label });
   }, []);
 
   const reorderCategories = useCallback(async (newCategories: RecipeCategory[]) => {
