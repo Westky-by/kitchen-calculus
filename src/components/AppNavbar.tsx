@@ -21,6 +21,7 @@ const AppNavbar = ({ activeTab, onTabChange, profile, role, onSignOut, onAdmin }
     { id: 'recipes' as TabType, label: 'สูตรที่บันทึก', icon: BookOpen },
     { id: 'categories' as TabType, label: 'หมวดหมู่', icon: FolderOpen },
     { id: 'orders' as TabType, label: 'ใบสั่งซื้อ', icon: ShoppingCart },
+    { id: 'assets' as TabType, label: 'คลังทรัพย์สิน', icon: Package },
   ];
 
   const initials = profile?.full_name
