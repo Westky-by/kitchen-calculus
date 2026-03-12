@@ -3,7 +3,7 @@ import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigge
 import { Avatar, AvatarFallback } from '@/components/ui/avatar';
 import type { Profile } from '@/hooks/useAuth';
 
-export type TabType = 'calculator' | 'ingredients' | 'recipes' | 'categories';
+export type TabType = 'calculator' | 'ingredients' | 'recipes' | 'categories' | 'orders';
 
 interface AppNavbarProps {
   activeTab: TabType;
