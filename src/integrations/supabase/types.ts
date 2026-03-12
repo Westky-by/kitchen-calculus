@@ -47,6 +47,92 @@ export type Database = {
         }
         Relationships: []
       }
+      asset_categories: {
+        Row: {
+          color: string
+          created_at: string
+          icon: string
+          id: string
+          name: string
+          sort_order: number
+        }
+        Insert: {
+          color?: string
+          created_at?: string
+          icon?: string
+          id?: string
+          name: string
+          sort_order?: number
+        }
+        Update: {
+          color?: string
+          created_at?: string
+          icon?: string
+          id?: string
+          name?: string
+          sort_order?: number
+        }
+        Relationships: []
+      }
+      assets: {
+        Row: {
+          category_id: string | null
+          code: string
+          condition: string
+          cost_per_unit: number
+          created_at: string
+          id: string
+          location: string
+          min_stock: number
+          name: string
+          notes: string
+          quantity: number
+          total_value: number
+          unit: string
+          updated_at: string
+        }
+        Insert: {
+          category_id?: string | null
+          code?: string
+          condition?: string
+          cost_per_unit?: number
+          created_at?: string
+          id?: string
+          location?: string
+          min_stock?: number
+          name: string
+          notes?: string
+          quantity?: number
+          total_value?: number
+          unit?: string
+          updated_at?: string
+        }
+        Update: {
+          category_id?: string | null
+          code?: string
+          condition?: string
+          cost_per_unit?: number
+          created_at?: string
+          id?: string
+          location?: string
+          min_stock?: number
+          name?: string
+          notes?: string
+          quantity?: number
+          total_value?: number
+          unit?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "assets_category_id_fkey"
+            columns: ["category_id"]
+            isOneToOne: false
+            referencedRelation: "asset_categories"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       ingredients: {
         Row: {
           category: string
