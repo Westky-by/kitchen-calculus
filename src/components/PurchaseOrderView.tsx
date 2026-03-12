@@ -198,7 +198,7 @@ const PurchaseOrderView = ({ ingredients }: PurchaseOrderViewProps) => {
                   <SelectContent>
                     {filteredIngredients.map(ing => (
                       <SelectItem key={ing.id} value={ing.id}>
-                        {ing.code ? `[${ing.code}] ` : ''}{ing.name} — {ing.purchase_unit}
+                        {ing.code ? `[${ing.code}] ` : ''}{ing.name} — {ing.purchaseUnit}
                       </SelectItem>
                     ))}
                     {filteredIngredients.length === 0 && (
