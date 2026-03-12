@@ -4,7 +4,8 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from '@/components/ui/dialog';
-import { Plus, Save, RotateCcw, Trash2, Search, CheckCircle2 } from 'lucide-react';
+import { Plus, Save, RotateCcw, Trash2, Search, CheckCircle2, ChevronDown } from 'lucide-react';
+import { Collapsible, CollapsibleContent, CollapsibleTrigger } from '@/components/ui/collapsible';
 import PrintActions from './PrintActions';
 import type { Ingredient, Recipe, RecipeIngredient, OverheadCosts, RecipeCategory } from '@/types/recipe';
 import { PORTION_SIZES, Q_FACTOR_PERCENT, SERVICE_CHARGE_PERCENT, VAT_PERCENT } from '@/types/recipe';
@@ -351,24 +352,29 @@ const CalculatorView = ({ ingredients, onSaveRecipe, loadedRecipe, onClearLoaded
             </div>
 
             {/* Overhead */}
-            <div className="mt-4 pt-4 border-t">
-              <h4 className="text-sm font-semibold mb-2">ต้นทุนแฝงอื่นๆ (Overhead)</h4>
-              <div className="grid grid-cols-2 gap-2 text-sm">
-                {(['packaging', 'labor', 'utilities', 'misc'] as const).map((key) => (
-                  <div key={key}>
-                    <Label className="text-xs capitalize">{key}</Label>
-                    <Input
-                      type="number"
-                      min={0}
-                      step={0.5}
-                      value={overhead[key] || ''}
-                      onChange={(e) => setOverhead({ ...overhead, [key]: parseFloat(e.target.value) || 0 })}
-                      className="h-8 text-sm"
-                    />
-                  </div>
-                ))}
-              </div>
-            </div>
+            <Collapsible className="mt-4 pt-4 border-t">
+              <CollapsibleTrigger className="flex items-center justify-between w-full text-sm font-semibold hover:text-accent transition-colors">
+                <span>ต้นทุนแฝงอื่นๆ (Overhead)</span>
+                <ChevronDown className="h-4 w-4 transition-transform duration-200 [[data-state=open]>>&]:rotate-180" />
+              </CollapsibleTrigger>
+              <CollapsibleContent className="mt-2">
+                <div className="grid grid-cols-2 gap-2 text-sm">
+                  {(['packaging', 'labor', 'utilities', 'misc'] as const).map((key) => (
+                    <div key={key}>
+                      <Label className="text-xs capitalize">{key}</Label>
+                      <Input
+                        type="number"
+                        min={0}
+                        step={0.5}
+                        value={overhead[key] || ''}
+                        onChange={(e) => setOverhead({ ...overhead, [key]: parseFloat(e.target.value) || 0 })}
+                        className="h-8 text-sm"
+                      />
+                    </div>
+                  ))}
+                </div>
+              </CollapsibleContent>
+            </Collapsible>
 
             {/* Cost Per Portion */}
             <div className="mt-4 cost-highlight text-center">
