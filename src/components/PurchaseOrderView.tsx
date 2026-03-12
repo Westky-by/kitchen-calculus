@@ -4,12 +4,10 @@ import { Input } from '@/components/ui/input';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
-import { Plus, Trash2, ShoppingCart, FileDown, Printer, Search } from 'lucide-react';
+import { Plus, Trash2, ShoppingCart, Search } from 'lucide-react';
 import { toast } from 'sonner';
-import type { Tables } from '@/integrations/supabase/types';
+import type { Ingredient } from '@/types/recipe';
 import PrintActions from './PrintActions';
-
-type Ingredient = Tables<'ingredients'>;
 
 interface OrderItem {
   id: string;
