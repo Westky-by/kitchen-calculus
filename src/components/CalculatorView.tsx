@@ -265,7 +265,7 @@ const CalculatorView = ({ ingredients, onSaveRecipe, loadedRecipe, onClearLoaded
                           type="number"
                           min={0}
                           step={0.1}
-                          value={item.qty || ''}
+                          value={item.qty}
                           onChange={(e) => updateIngredientQty(item.id, parseFloat(e.target.value) || 0)}
                           className="text-right h-8"
                         />
