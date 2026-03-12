@@ -59,10 +59,10 @@ const PurchaseOrderView = ({ ingredients }: PurchaseOrderViewProps) => {
       ingredientId: ing.id,
       name: ing.name,
       code: ing.code,
-      qty: ing.purchase_qty,
-      unit: ing.purchase_unit,
-      pricePerUnit: ing.purchase_price,
-      total: ing.purchase_qty * ing.purchase_price,
+      qty: ing.purchaseQty,
+      unit: ing.purchaseUnit,
+      pricePerUnit: ing.purchasePrice,
+      total: ing.purchaseQty * ing.purchasePrice,
     };
 
     setOrderItems(prev => [...prev, newItem]);
