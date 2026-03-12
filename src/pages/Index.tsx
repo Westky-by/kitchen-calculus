@@ -114,6 +114,9 @@ const Index = () => {
             }}
           />
         )}
+        {activeTab === 'orders' && (
+          <PurchaseOrderView ingredients={ingredients} />
+        )}
       </main>
       <AiChatBubble />
     </div>
