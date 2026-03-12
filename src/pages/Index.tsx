@@ -118,6 +118,9 @@ const Index = () => {
         {activeTab === 'orders' && (
           <PurchaseOrderView ingredients={ingredients} />
         )}
+        {activeTab === 'assets' && (
+          <AssetsView />
+        )}
       </main>
       <AiChatBubble />
     </div>
