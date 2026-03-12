@@ -415,7 +415,7 @@ const CalculatorView = ({ ingredients, onSaveRecipe, loadedRecipe, onClearLoaded
                   <Input
                     type="number"
                     min={0}
-                    value={sellingPrice || ''}
+                    value={sellingPrice}
                     onChange={(e) => setSellingPrice(parseFloat(e.target.value) || 0)}
                   />
                 </div>
