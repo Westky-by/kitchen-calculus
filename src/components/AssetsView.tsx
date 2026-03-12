@@ -1,4 +1,4 @@
-import { useState, useEffect, useCallback } from 'react';
+import { useState, useEffect, useCallback, useRef } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -11,8 +11,9 @@ import { Badge } from '@/components/ui/badge';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import {
   Package, Plus, Pencil, Trash2, AlertTriangle, Search,
-  Tags, LayoutGrid, List,
+  Tags, LayoutGrid, List, ImagePlus, QrCode, X,
 } from 'lucide-react';
+import { QRCodeSVG } from 'qrcode.react';
 import { toast } from 'sonner';
 import { logActivity } from '@/hooks/useActivityLog';
 
@@ -37,6 +38,7 @@ interface Asset {
   location: string;
   condition: string;
   notes: string;
+  image_url: string;
   created_at: string;
   updated_at: string;
 }
@@ -60,11 +62,18 @@ const AssetsView = () => {
     code: '', name: '', category_id: '', quantity: 0, unit: 'ชิ้น',
     min_stock: 0, cost_per_unit: 0, location: '', condition: 'ดี', notes: '',
   });
+  const [imageFile, setImageFile] = useState<File | null>(null);
+  const [imagePreview, setImagePreview] = useState('');
+  const [uploading, setUploading] = useState(false);
+  const fileInputRef = useRef<HTMLInputElement>(null);
 
   // Category form
   const [catDialogOpen, setCatDialogOpen] = useState(false);
   const [editingCat, setEditingCat] = useState<AssetCategory | null>(null);
   const [catForm, setCatForm] = useState({ name: '', icon: '📦', color: '#94a3b8' });
+
+  // QR Dialog
+  const [qrAsset, setQrAsset] = useState<Asset | null>(null);
 
   const fetchData = useCallback(async () => {
     setLoading(true);
@@ -79,10 +88,33 @@ const AssetsView = () => {
 
   useEffect(() => { fetchData(); }, [fetchData]);
 
+  // ---- Image Upload ----
+  const handleImageSelect = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    if (file.size > 5 * 1024 * 1024) { toast.error('ไฟล์ใหญ่เกิน 5MB'); return; }
+    setImageFile(file);
+    setImagePreview(URL.createObjectURL(file));
+  };
+
+  const uploadImage = async (assetId: string): Promise<string> => {
+    if (!imageFile) return editingAsset?.image_url || '';
+    const ext = imageFile.name.split('.').pop();
+    const path = `${assetId}.${ext}`;
+
+    const { error } = await supabase.storage.from('asset-images').upload(path, imageFile, { upsert: true });
+    if (error) { toast.error('อัปโหลดรูปไม่สำเร็จ'); return ''; }
+
+    const { data } = supabase.storage.from('asset-images').getPublicUrl(path);
+    return data.publicUrl + '?t=' + Date.now();
+  };
+
   // ---- Asset CRUD ----
   const openAddAsset = () => {
     setEditingAsset(null);
     setForm({ code: '', name: '', category_id: '', quantity: 0, unit: 'ชิ้น', min_stock: 0, cost_per_unit: 0, location: '', condition: 'ดี', notes: '' });
+    setImageFile(null);
+    setImagePreview('');
     setAssetDialogOpen(true);
   };
 
@@ -94,33 +126,47 @@ const AssetsView = () => {
       cost_per_unit: a.cost_per_unit, location: a.location,
       condition: a.condition, notes: a.notes,
     });
+    setImageFile(null);
+    setImagePreview(a.image_url || '');
     setAssetDialogOpen(true);
   };
 
   const handleSaveAsset = async () => {
     if (!form.name.trim()) { toast.error('กรุณากรอกชื่อทรัพย์สิน'); return; }
+    setUploading(true);
 
     const totalValue = form.quantity * form.cost_per_unit;
-    const payload = {
+    const payload: any = {
       ...form,
       name: form.name.trim(),
       category_id: form.category_id || null,
       total_value: totalValue,
     };
 
-    if (editingAsset) {
-      const { error } = await supabase.from('assets').update(payload).eq('id', editingAsset.id);
-      if (error) { toast.error('แก้ไขไม่สำเร็จ'); return; }
-      toast.success('แก้ไขทรัพย์สินสำเร็จ');
-      await logActivity('แก้ไขทรัพย์สิน', 'assets', editingAsset.id, { name: form.name });
-    } else {
-      const { error } = await supabase.from('assets').insert(payload);
-      if (error) { toast.error('เพิ่มไม่สำเร็จ'); return; }
-      toast.success('เพิ่มทรัพย์สินสำเร็จ');
-      await logActivity('เพิ่มทรัพย์สิน', 'assets', '', { name: form.name });
+    try {
+      if (editingAsset) {
+        const image_url = await uploadImage(editingAsset.id);
+        payload.image_url = image_url;
+        const { error } = await supabase.from('assets').update(payload).eq('id', editingAsset.id);
+        if (error) { toast.error('แก้ไขไม่สำเร็จ'); return; }
+        toast.success('แก้ไขทรัพย์สินสำเร็จ');
+        await logActivity('แก้ไขทรัพย์สิน', 'assets', editingAsset.id, { name: form.name });
+      } else {
+        // Insert first to get ID, then upload image
+        const { data: inserted, error } = await supabase.from('assets').insert(payload).select('id').single();
+        if (error || !inserted) { toast.error('เพิ่มไม่สำเร็จ'); return; }
+        if (imageFile) {
+          const image_url = await uploadImage(inserted.id);
+          await supabase.from('assets').update({ image_url }).eq('id', inserted.id);
+        }
+        toast.success('เพิ่มทรัพย์สินสำเร็จ');
+        await logActivity('เพิ่มทรัพย์สิน', 'assets', inserted.id, { name: form.name });
+      }
+      setAssetDialogOpen(false);
+      fetchData();
+    } finally {
+      setUploading(false);
     }
-    setAssetDialogOpen(false);
-    fetchData();
   };
 
   const handleDeleteAsset = async (a: Asset) => {
@@ -147,7 +193,6 @@ const AssetsView = () => {
 
   const handleSaveCat = async () => {
     if (!catForm.name.trim()) { toast.error('กรุณากรอกชื่อหมวดหมู่'); return; }
-
     if (editingCat) {
       const { error } = await supabase.from('asset_categories').update(catForm).eq('id', editingCat.id);
       if (error) { toast.error('แก้ไขไม่สำเร็จ'); return; }
@@ -170,15 +215,34 @@ const AssetsView = () => {
     fetchData();
   };
 
-  // ---- Filters ----
-  const getCategoryName = (catId: string | null) => {
-    if (!catId) return 'ไม่ระบุ';
-    return categories.find(c => c.id === catId)?.name || 'ไม่ระบุ';
+  // ---- Helpers ----
+  const getCategoryName = (catId: string | null) => categories.find(c => c.id === catId)?.name || 'ไม่ระบุ';
+  const getCategoryIcon = (catId: string | null) => categories.find(c => c.id === catId)?.icon || '📋';
+
+  const getAssetUrl = (assetId: string) => {
+    const base = window.location.origin;
+    return `${base}/asset/${assetId}`;
   };
 
-  const getCategoryIcon = (catId: string | null) => {
-    if (!catId) return '📋';
-    return categories.find(c => c.id === catId)?.icon || '📋';
+  const handlePrintQR = () => {
+    const svgEl = document.getElementById('qr-code-svg');
+    if (!svgEl) return;
+    const svgData = new XMLSerializer().serializeToString(svgEl);
+    const win = window.open('', '_blank');
+    if (!win) return;
+    win.document.write(`
+      <!DOCTYPE html><html><head><title>QR - ${qrAsset?.name}</title>
+      <style>body{display:flex;flex-direction:column;align-items:center;justify-content:center;min-height:100vh;font-family:sans-serif;}
+      h2{margin-bottom:8px;} p{color:#666;margin:4px 0;}</style></head>
+      <body>
+        <h2>${qrAsset?.name || ''}</h2>
+        <p>${qrAsset?.code ? `รหัส: ${qrAsset.code}` : ''}</p>
+        ${svgData}
+        <p style="margin-top:12px;font-size:12px;">Scan QR เพื่อดูรายละเอียด</p>
+        <script>setTimeout(()=>{ window.print(); },500);</script>
+      </body></html>
+    `);
+    win.document.close();
   };
 
   const filteredAssets = assets.filter(a => {
@@ -238,7 +302,6 @@ const AssetsView = () => {
         </Card>
       </div>
 
-      {/* Tabs */}
       <Tabs value={activeTab} onValueChange={setActiveTab}>
         <TabsList>
           <TabsTrigger value="assets" className="gap-1"><Package className="w-4 h-4" /> รายการทรัพย์สิน</TabsTrigger>
@@ -251,36 +314,21 @@ const AssetsView = () => {
             <div className="flex gap-2 items-center flex-1">
               <div className="relative flex-1 max-w-xs">
                 <Search className="absolute left-2.5 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
-                <Input
-                  value={searchTerm}
-                  onChange={e => setSearchTerm(e.target.value)}
-                  placeholder="ค้นหาชื่อหรือรหัส..."
-                  className="pl-8 h-9 text-sm"
-                />
+                <Input value={searchTerm} onChange={e => setSearchTerm(e.target.value)} placeholder="ค้นหาชื่อหรือรหัส..." className="pl-8 h-9 text-sm" />
               </div>
               <Select value={filterCategory} onValueChange={setFilterCategory}>
-                <SelectTrigger className="w-40 h-9 text-sm">
-                  <SelectValue placeholder="หมวดหมู่" />
-                </SelectTrigger>
+                <SelectTrigger className="w-40 h-9 text-sm"><SelectValue placeholder="หมวดหมู่" /></SelectTrigger>
                 <SelectContent>
                   <SelectItem value="all">ทั้งหมด</SelectItem>
-                  {categories.map(c => (
-                    <SelectItem key={c.id} value={c.id}>{c.icon} {c.name}</SelectItem>
-                  ))}
+                  {categories.map(c => <SelectItem key={c.id} value={c.id}>{c.icon} {c.name}</SelectItem>)}
                 </SelectContent>
               </Select>
               <div className="flex border rounded-md overflow-hidden">
-                <button onClick={() => setViewMode('table')} className={`p-2 ${viewMode === 'table' ? 'bg-accent text-accent-foreground' : 'text-muted-foreground hover:bg-muted'}`}>
-                  <List className="w-4 h-4" />
-                </button>
-                <button onClick={() => setViewMode('grid')} className={`p-2 ${viewMode === 'grid' ? 'bg-accent text-accent-foreground' : 'text-muted-foreground hover:bg-muted'}`}>
-                  <LayoutGrid className="w-4 h-4" />
-                </button>
+                <button onClick={() => setViewMode('table')} className={`p-2 ${viewMode === 'table' ? 'bg-accent text-accent-foreground' : 'text-muted-foreground hover:bg-muted'}`}><List className="w-4 h-4" /></button>
+                <button onClick={() => setViewMode('grid')} className={`p-2 ${viewMode === 'grid' ? 'bg-accent text-accent-foreground' : 'text-muted-foreground hover:bg-muted'}`}><LayoutGrid className="w-4 h-4" /></button>
               </div>
             </div>
-            <Button size="sm" onClick={openAddAsset} className="gap-1">
-              <Plus className="w-4 h-4" /> เพิ่มทรัพย์สิน
-            </Button>
+            <Button size="sm" onClick={openAddAsset} className="gap-1"><Plus className="w-4 h-4" /> เพิ่มทรัพย์สิน</Button>
           </div>
 
           {filteredAssets.length === 0 ? (
@@ -294,42 +342,44 @@ const AssetsView = () => {
                 <Table>
                   <TableHeader>
                     <TableRow>
+                      <TableHead className="w-12">รูป</TableHead>
                       <TableHead className="w-16">รหัส</TableHead>
                       <TableHead>ชื่อทรัพย์สิน</TableHead>
                       <TableHead>หมวดหมู่</TableHead>
                       <TableHead className="text-center">จำนวน</TableHead>
-                      <TableHead className="text-center">หน่วย</TableHead>
-                      <TableHead className="text-right">ราคา/หน่วย</TableHead>
                       <TableHead className="text-right">มูลค่ารวม</TableHead>
-                      <TableHead>สถานที่</TableHead>
                       <TableHead>สภาพ</TableHead>
-                      <TableHead className="w-20">จัดการ</TableHead>
+                      <TableHead className="w-28">จัดการ</TableHead>
                     </TableRow>
                   </TableHeader>
                   <TableBody>
                     {filteredAssets.map(a => (
                       <TableRow key={a.id} className={a.min_stock > 0 && a.quantity <= a.min_stock ? 'bg-destructive/5' : ''}>
-                        <TableCell className="text-xs font-mono">{a.code || '-'}</TableCell>
-                        <TableCell className="font-medium">
-                          <span className="mr-1">{getCategoryIcon(a.category_id)}</span>
-                          {a.name}
-                          {a.min_stock > 0 && a.quantity <= a.min_stock && (
-                            <AlertTriangle className="inline w-3.5 h-3.5 text-destructive ml-1" />
+                        <TableCell>
+                          {a.image_url ? (
+                            <img src={a.image_url} alt={a.name} className="w-10 h-10 rounded object-cover" />
+                          ) : (
+                            <div className="w-10 h-10 rounded bg-muted flex items-center justify-center text-lg">
+                              {getCategoryIcon(a.category_id)}
+                            </div>
                           )}
                         </TableCell>
+                        <TableCell className="text-xs font-mono">{a.code || '-'}</TableCell>
+                        <TableCell className="font-medium text-sm">
+                          {a.name}
+                          {a.min_stock > 0 && a.quantity <= a.min_stock && <AlertTriangle className="inline w-3.5 h-3.5 text-destructive ml-1" />}
+                        </TableCell>
                         <TableCell className="text-sm">{getCategoryName(a.category_id)}</TableCell>
-                        <TableCell className="text-center font-semibold">{a.quantity}</TableCell>
-                        <TableCell className="text-center text-sm">{a.unit}</TableCell>
-                        <TableCell className="text-right text-sm">฿{a.cost_per_unit.toLocaleString('th-TH')}</TableCell>
+                        <TableCell className="text-center font-semibold">{a.quantity} {a.unit}</TableCell>
                         <TableCell className="text-right text-sm font-semibold">฿{a.total_value.toLocaleString('th-TH')}</TableCell>
-                        <TableCell className="text-sm">{a.location || '-'}</TableCell>
                         <TableCell>
-                          <Badge variant={a.condition === 'ดี' ? 'default' : a.condition === 'ชำรุด' ? 'destructive' : 'secondary'} className="text-xs">
-                            {a.condition}
-                          </Badge>
+                          <Badge variant={a.condition === 'ดี' ? 'default' : a.condition === 'ชำรุด' ? 'destructive' : 'secondary'} className="text-xs">{a.condition}</Badge>
                         </TableCell>
                         <TableCell>
                           <div className="flex gap-1">
+                            <Button variant="ghost" size="icon" className="h-7 w-7" onClick={() => setQrAsset(a)} title="QR Code">
+                              <QrCode className="w-3.5 h-3.5" />
+                            </Button>
                             <Button variant="ghost" size="icon" className="h-7 w-7" onClick={() => openEditAsset(a)}>
                               <Pencil className="w-3.5 h-3.5" />
                             </Button>
@@ -347,41 +397,35 @@ const AssetsView = () => {
           ) : (
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
               {filteredAssets.map(a => (
-                <Card key={a.id} className={`p-4 ${a.min_stock > 0 && a.quantity <= a.min_stock ? 'border-destructive/50' : ''}`}>
-                  <div className="flex items-start justify-between mb-2">
-                    <div>
-                      <p className="font-semibold text-sm">{getCategoryIcon(a.category_id)} {a.name}</p>
-                      <p className="text-xs text-muted-foreground">{a.code || 'ไม่มีรหัส'} • {getCategoryName(a.category_id)}</p>
+                <Card key={a.id} className={`overflow-hidden ${a.min_stock > 0 && a.quantity <= a.min_stock ? 'border-destructive/50' : ''}`}>
+                  {a.image_url ? (
+                    <img src={a.image_url} alt={a.name} className="w-full h-36 object-cover" />
+                  ) : (
+                    <div className="w-full h-36 bg-muted flex items-center justify-center text-4xl">
+                      {getCategoryIcon(a.category_id)}
                     </div>
-                    <div className="flex gap-1">
-                      <Button variant="ghost" size="icon" className="h-7 w-7" onClick={() => openEditAsset(a)}>
-                        <Pencil className="w-3.5 h-3.5" />
-                      </Button>
-                      <Button variant="ghost" size="icon" className="h-7 w-7 text-destructive" onClick={() => handleDeleteAsset(a)}>
-                        <Trash2 className="w-3.5 h-3.5" />
-                      </Button>
+                  )}
+                  <div className="p-4">
+                    <div className="flex items-start justify-between mb-2">
+                      <div>
+                        <p className="font-semibold text-sm">{a.name}</p>
+                        <p className="text-xs text-muted-foreground">{a.code || 'ไม่มีรหัส'} • {getCategoryName(a.category_id)}</p>
+                      </div>
+                      <div className="flex gap-1">
+                        <Button variant="ghost" size="icon" className="h-7 w-7" onClick={() => setQrAsset(a)}><QrCode className="w-3.5 h-3.5" /></Button>
+                        <Button variant="ghost" size="icon" className="h-7 w-7" onClick={() => openEditAsset(a)}><Pencil className="w-3.5 h-3.5" /></Button>
+                        <Button variant="ghost" size="icon" className="h-7 w-7 text-destructive" onClick={() => handleDeleteAsset(a)}><Trash2 className="w-3.5 h-3.5" /></Button>
+                      </div>
                     </div>
-                  </div>
-                  <div className="grid grid-cols-2 gap-2 text-sm">
-                    <div>
-                      <p className="text-xs text-muted-foreground">จำนวน</p>
-                      <p className="font-semibold">{a.quantity} {a.unit}
-                        {a.min_stock > 0 && a.quantity <= a.min_stock && <AlertTriangle className="inline w-3.5 h-3.5 text-destructive ml-1" />}
-                      </p>
-                    </div>
-                    <div>
-                      <p className="text-xs text-muted-foreground">มูลค่า</p>
-                      <p className="font-semibold text-accent">฿{a.total_value.toLocaleString('th-TH')}</p>
-                    </div>
-                    <div>
-                      <p className="text-xs text-muted-foreground">สถานที่</p>
-                      <p>{a.location || '-'}</p>
-                    </div>
-                    <div>
-                      <p className="text-xs text-muted-foreground">สภาพ</p>
-                      <Badge variant={a.condition === 'ดี' ? 'default' : a.condition === 'ชำรุด' ? 'destructive' : 'secondary'} className="text-xs">
-                        {a.condition}
-                      </Badge>
+                    <div className="grid grid-cols-2 gap-2 text-sm">
+                      <div>
+                        <p className="text-xs text-muted-foreground">จำนวน</p>
+                        <p className="font-semibold">{a.quantity} {a.unit}</p>
+                      </div>
+                      <div>
+                        <p className="text-xs text-muted-foreground">มูลค่า</p>
+                        <p className="font-semibold text-accent">฿{a.total_value.toLocaleString('th-TH')}</p>
+                      </div>
                     </div>
                   </div>
                 </Card>
@@ -394,9 +438,7 @@ const AssetsView = () => {
         <TabsContent value="categories" className="space-y-3 mt-3">
           <div className="flex items-center justify-between">
             <h3 className="text-sm font-semibold">หมวดหมู่ทรัพย์สิน ({categories.length})</h3>
-            <Button size="sm" onClick={openAddCat} className="gap-1">
-              <Plus className="w-4 h-4" /> เพิ่มหมวดหมู่
-            </Button>
+            <Button size="sm" onClick={openAddCat} className="gap-1"><Plus className="w-4 h-4" /> เพิ่มหมวดหมู่</Button>
           </div>
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
             {categories.map(c => {
@@ -405,21 +447,15 @@ const AssetsView = () => {
                 <Card key={c.id} className="p-4">
                   <div className="flex items-center justify-between">
                     <div className="flex items-center gap-3">
-                      <div className="w-10 h-10 rounded-lg flex items-center justify-center text-xl" style={{ backgroundColor: c.color + '20' }}>
-                        {c.icon}
-                      </div>
+                      <div className="w-10 h-10 rounded-lg flex items-center justify-center text-xl" style={{ backgroundColor: c.color + '20' }}>{c.icon}</div>
                       <div>
                         <p className="font-semibold text-sm">{c.name}</p>
                         <p className="text-xs text-muted-foreground">{count} รายการ</p>
                       </div>
                     </div>
                     <div className="flex gap-1">
-                      <Button variant="ghost" size="icon" className="h-7 w-7" onClick={() => openEditCat(c)}>
-                        <Pencil className="w-3.5 h-3.5" />
-                      </Button>
-                      <Button variant="ghost" size="icon" className="h-7 w-7 text-destructive" onClick={() => handleDeleteCat(c)}>
-                        <Trash2 className="w-3.5 h-3.5" />
-                      </Button>
+                      <Button variant="ghost" size="icon" className="h-7 w-7" onClick={() => openEditCat(c)}><Pencil className="w-3.5 h-3.5" /></Button>
+                      <Button variant="ghost" size="icon" className="h-7 w-7 text-destructive" onClick={() => handleDeleteCat(c)}><Trash2 className="w-3.5 h-3.5" /></Button>
                     </div>
                   </div>
                 </Card>
@@ -436,6 +472,38 @@ const AssetsView = () => {
             <DialogTitle>{editingAsset ? 'แก้ไขทรัพย์สิน' : 'เพิ่มทรัพย์สินใหม่'}</DialogTitle>
           </DialogHeader>
           <div className="space-y-3 py-2">
+            {/* Image Upload */}
+            <div className="space-y-1">
+              <Label className="text-xs">รูปภาพ</Label>
+              <div className="flex gap-3 items-start">
+                {imagePreview ? (
+                  <div className="relative w-24 h-24 rounded-lg overflow-hidden border">
+                    <img src={imagePreview} alt="preview" className="w-full h-full object-cover" />
+                    <button
+                      onClick={() => { setImageFile(null); setImagePreview(''); }}
+                      className="absolute top-1 right-1 bg-background/80 rounded-full p-0.5"
+                    >
+                      <X className="w-3.5 h-3.5" />
+                    </button>
+                  </div>
+                ) : (
+                  <button
+                    onClick={() => fileInputRef.current?.click()}
+                    className="w-24 h-24 rounded-lg border-2 border-dashed border-muted-foreground/30 flex flex-col items-center justify-center text-muted-foreground hover:border-accent hover:text-accent transition-colors"
+                  >
+                    <ImagePlus className="w-6 h-6 mb-1" />
+                    <span className="text-[10px]">เพิ่มรูป</span>
+                  </button>
+                )}
+                <input ref={fileInputRef} type="file" accept="image/*" className="hidden" onChange={handleImageSelect} />
+                {imagePreview && (
+                  <Button variant="outline" size="sm" onClick={() => fileInputRef.current?.click()} className="text-xs">
+                    เปลี่ยนรูป
+                  </Button>
+                )}
+              </div>
+            </div>
+
             <div className="grid grid-cols-2 gap-3">
               <div className="space-y-1">
                 <Label className="text-xs">รหัส</Label>
@@ -451,9 +519,7 @@ const AssetsView = () => {
               <Select value={form.category_id} onValueChange={v => setForm(f => ({ ...f, category_id: v }))}>
                 <SelectTrigger className="h-9 text-sm"><SelectValue placeholder="เลือกหมวดหมู่" /></SelectTrigger>
                 <SelectContent>
-                  {categories.map(c => (
-                    <SelectItem key={c.id} value={c.id}>{c.icon} {c.name}</SelectItem>
-                  ))}
+                  {categories.map(c => <SelectItem key={c.id} value={c.id}>{c.icon} {c.name}</SelectItem>)}
                 </SelectContent>
               </Select>
             </div>
@@ -466,9 +532,7 @@ const AssetsView = () => {
                 <Label className="text-xs">หน่วย</Label>
                 <Select value={form.unit} onValueChange={v => setForm(f => ({ ...f, unit: v }))}>
                   <SelectTrigger className="h-9 text-sm"><SelectValue /></SelectTrigger>
-                  <SelectContent>
-                    {UNIT_OPTIONS.map(u => <SelectItem key={u} value={u}>{u}</SelectItem>)}
-                  </SelectContent>
+                  <SelectContent>{UNIT_OPTIONS.map(u => <SelectItem key={u} value={u}>{u}</SelectItem>)}</SelectContent>
                 </Select>
               </div>
               <div className="space-y-1">
@@ -490,9 +554,7 @@ const AssetsView = () => {
               <Label className="text-xs">สภาพ</Label>
               <Select value={form.condition} onValueChange={v => setForm(f => ({ ...f, condition: v }))}>
                 <SelectTrigger className="h-9 text-sm"><SelectValue /></SelectTrigger>
-                <SelectContent>
-                  {CONDITION_OPTIONS.map(c => <SelectItem key={c} value={c}>{c}</SelectItem>)}
-                </SelectContent>
+                <SelectContent>{CONDITION_OPTIONS.map(c => <SelectItem key={c} value={c}>{c}</SelectItem>)}</SelectContent>
               </Select>
             </div>
             <div className="space-y-1">
@@ -502,7 +564,9 @@ const AssetsView = () => {
           </div>
           <DialogFooter className="gap-2">
             <DialogClose asChild><Button variant="outline">ยกเลิก</Button></DialogClose>
-            <Button onClick={handleSaveAsset}>{editingAsset ? 'บันทึก' : 'เพิ่ม'}</Button>
+            <Button onClick={handleSaveAsset} disabled={uploading}>
+              {uploading ? 'กำลังบันทึก...' : editingAsset ? 'บันทึก' : 'เพิ่ม'}
+            </Button>
           </DialogFooter>
         </DialogContent>
       </Dialog>
@@ -536,6 +600,34 @@ const AssetsView = () => {
             <DialogClose asChild><Button variant="outline">ยกเลิก</Button></DialogClose>
             <Button onClick={handleSaveCat}>{editingCat ? 'บันทึก' : 'เพิ่ม'}</Button>
           </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      {/* QR Code Dialog */}
+      <Dialog open={!!qrAsset} onOpenChange={(open) => { if (!open) setQrAsset(null); }}>
+        <DialogContent className="sm:max-w-xs">
+          <DialogHeader>
+            <DialogTitle className="flex items-center gap-2">
+              <QrCode className="w-5 h-5" /> QR Code
+            </DialogTitle>
+          </DialogHeader>
+          {qrAsset && (
+            <div className="flex flex-col items-center py-4 space-y-3">
+              <QRCodeSVG
+                id="qr-code-svg"
+                value={getAssetUrl(qrAsset.id)}
+                size={200}
+                level="M"
+                includeMargin
+              />
+              <p className="font-semibold text-sm">{qrAsset.name}</p>
+              <p className="text-xs text-muted-foreground">{qrAsset.code || 'ไม่มีรหัส'}</p>
+              <p className="text-[10px] text-muted-foreground break-all text-center">{getAssetUrl(qrAsset.id)}</p>
+              <Button size="sm" onClick={handlePrintQR} className="gap-1 mt-2">
+                พิมพ์ QR Code
+              </Button>
+            </div>
+          )}
         </DialogContent>
       </Dialog>
     </div>
