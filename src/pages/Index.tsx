@@ -114,6 +114,7 @@ const Index = () => {
           />
         )}
       </main>
+      <AiChatBubble />
     </div>
   );
 };
