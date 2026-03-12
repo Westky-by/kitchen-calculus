@@ -439,15 +439,15 @@ const CalculatorView = ({ ingredients, onSaveRecipe, loadedRecipe, onClearLoaded
               {/* FC% and Profit indicators */}
               <div className="grid grid-cols-2 gap-3 pt-3">
                 <div className={`text-center p-3 rounded-lg ${realFC > targetFC ? 'bg-destructive/10' : 'bg-success/10'}`}>
-                  <div className="text-xs text-muted-foreground">Real FC%</div>
+                  <div className="text-xs text-muted-foreground">REAL FC%</div>
                   <div className={`text-xl font-bold ${realFC > targetFC ? 'text-destructive' : 'text-[hsl(var(--success))]'}`}>
-                    {realFC.toFixed(1)}%
+                    {realFC.toFixed(2)}%
                   </div>
                 </div>
-                <div className="text-center p-3 rounded-lg bg-success/10">
-                  <div className="text-xs text-muted-foreground">Profit</div>
-                  <div className="text-xl font-bold text-[hsl(var(--success))]">
-                    {profitPercent.toFixed(1)}%
+                <div className={`text-center p-3 rounded-lg ${profitPercent < 0 ? 'bg-destructive/10' : 'bg-success/10'}`}>
+                  <div className="text-xs text-muted-foreground">PROFIT</div>
+                  <div className={`text-xl font-bold ${profitPercent < 0 ? 'text-destructive' : 'text-[hsl(var(--success))]'}`}>
+                    {profitPercent.toFixed(2)}%
                   </div>
                 </div>
               </div>
