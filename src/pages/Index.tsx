@@ -8,6 +8,7 @@ import IngredientsView from '@/components/IngredientsView';
 import RecipesView from '@/components/RecipesView';
 import CategoriesView from '@/components/CategoriesView';
 import { useSupabaseData } from '@/hooks/useSupabaseData';
+import AiChatBubble from '@/components/AiChatBubble';
 import type { Recipe } from '@/types/recipe';
 import { toast } from 'sonner';
 
