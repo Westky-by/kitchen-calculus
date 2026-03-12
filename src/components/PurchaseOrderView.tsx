@@ -2,10 +2,12 @@ import { useState, useMemo } from 'react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
-import { Plus, Trash2, ShoppingCart, Search } from 'lucide-react';
+import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
+import { Command, CommandEmpty, CommandGroup, CommandInput, CommandItem, CommandList } from '@/components/ui/command';
+import { Plus, Trash2, ShoppingCart, ChevronsUpDown, Check } from 'lucide-react';
 import { toast } from 'sonner';
+import { cn } from '@/lib/utils';
 import type { Ingredient } from '@/types/recipe';
 import PrintActions from './PrintActions';
 
@@ -27,48 +29,42 @@ interface PurchaseOrderViewProps {
 const PurchaseOrderView = ({ ingredients }: PurchaseOrderViewProps) => {
   const [orderItems, setOrderItems] = useState<OrderItem[]>([]);
   const [selectedIngredient, setSelectedIngredient] = useState('');
-  const [searchTerm, setSearchTerm] = useState('');
+  const [comboOpen, setComboOpen] = useState(false);
   const [orderNumber, setOrderNumber] = useState(`PO-${Date.now().toString(36).toUpperCase()}`);
   const [orderDate, setOrderDate] = useState(new Date().toISOString().split('T')[0]);
   const [supplierName, setSupplierName] = useState('');
   const [note, setNote] = useState('');
 
-  const filteredIngredients = useMemo(() => {
-    if (!searchTerm) return ingredients;
-    const lower = searchTerm.toLowerCase();
-    return ingredients.filter(
-      i => i.name.toLowerCase().includes(lower) || i.code.toLowerCase().includes(lower)
-    );
-  }, [ingredients, searchTerm]);
+  const selectedIng = useMemo(
+    () => ingredients.find(i => i.id === selectedIngredient),
+    [ingredients, selectedIngredient]
+  );
 
   const addItem = () => {
-    if (!selectedIngredient) {
+    if (!selectedIng) {
       toast.warning('กรุณาเลือกวัตถุดิบ');
       return;
     }
-    const ing = ingredients.find(i => i.id === selectedIngredient);
-    if (!ing) return;
 
-    if (orderItems.some(item => item.ingredientId === ing.id)) {
-      toast.warning(`"${ing.name}" อยู่ในรายการแล้ว`);
+    if (orderItems.some(item => item.ingredientId === selectedIng.id)) {
+      toast.warning(`"${selectedIng.name}" อยู่ในรายการแล้ว`);
       return;
     }
 
     const newItem: OrderItem = {
       id: crypto.randomUUID(),
-      ingredientId: ing.id,
-      name: ing.name,
-      code: ing.code,
-      qty: ing.purchaseQty,
-      unit: ing.purchaseUnit,
-      pricePerUnit: ing.purchasePrice,
-      total: ing.purchaseQty * ing.purchasePrice,
+      ingredientId: selectedIng.id,
+      name: selectedIng.name,
+      code: selectedIng.code,
+      qty: selectedIng.purchaseQty,
+      unit: selectedIng.purchaseUnit,
+      pricePerUnit: selectedIng.purchasePrice,
+      total: selectedIng.purchaseQty * selectedIng.purchasePrice,
     };
 
     setOrderItems(prev => [...prev, newItem]);
     setSelectedIngredient('');
-    setSearchTerm('');
-    toast.success(`เพิ่ม "${ing.name}" ในรายการสั่งซื้อ`);
+    toast.success(`เพิ่ม "${selectedIng.name}" ในรายการสั่งซื้อ`);
   };
 
   const removeItem = (id: string) => {
@@ -78,9 +74,7 @@ const PurchaseOrderView = ({ ingredients }: PurchaseOrderViewProps) => {
   const updateItemQty = (id: string, qty: number) => {
     setOrderItems(prev =>
       prev.map(item =>
-        item.id === id
-          ? { ...item, qty, total: qty * item.pricePerUnit }
-          : item
+        item.id === id ? { ...item, qty, total: qty * item.pricePerUnit } : item
       )
     );
   };
@@ -88,9 +82,7 @@ const PurchaseOrderView = ({ ingredients }: PurchaseOrderViewProps) => {
   const updateItemPrice = (id: string, pricePerUnit: number) => {
     setOrderItems(prev =>
       prev.map(item =>
-        item.id === id
-          ? { ...item, pricePerUnit, total: item.qty * pricePerUnit }
-          : item
+        item.id === id ? { ...item, pricePerUnit, total: item.qty * pricePerUnit } : item
       )
     );
   };
@@ -106,6 +98,15 @@ const PurchaseOrderView = ({ ingredients }: PurchaseOrderViewProps) => {
     setSupplierName('');
     setNote('');
     toast.info('ล้างรายการสั่งซื้อแล้ว');
+  };
+
+  const formatDate = (dateStr: string) => {
+    try {
+      const d = new Date(dateStr);
+      return d.toLocaleDateString('th-TH', { year: 'numeric', month: 'long', day: 'numeric' });
+    } catch {
+      return dateStr;
+    }
   };
 
   return (
@@ -129,90 +130,101 @@ const PurchaseOrderView = ({ ingredients }: PurchaseOrderViewProps) => {
         </div>
       </div>
 
+      {/* Order Info — editable (hidden in print) */}
+      <Card data-print-hide="true">
+        <CardContent className="pt-4 pb-4">
+          <div className="grid grid-cols-1 md:grid-cols-4 gap-3">
+            <div>
+              <label className="text-xs font-medium text-muted-foreground">เลขที่ใบสั่งซื้อ</label>
+              <Input value={orderNumber} onChange={e => setOrderNumber(e.target.value)} className="mt-1 h-9 text-sm" />
+            </div>
+            <div>
+              <label className="text-xs font-medium text-muted-foreground">วันที่</label>
+              <Input type="date" value={orderDate} onChange={e => setOrderDate(e.target.value)} className="mt-1 h-9 text-sm" />
+            </div>
+            <div>
+              <label className="text-xs font-medium text-muted-foreground">ชื่อผู้จำหน่าย</label>
+              <Input value={supplierName} onChange={e => setSupplierName(e.target.value)} placeholder="ระบุชื่อร้าน/ผู้จำหน่าย" className="mt-1 h-9 text-sm" />
+            </div>
+            <div>
+              <label className="text-xs font-medium text-muted-foreground">หมายเหตุ</label>
+              <Input value={note} onChange={e => setNote(e.target.value)} placeholder="บันทึกเพิ่มเติม" className="mt-1 h-9 text-sm" />
+            </div>
+          </div>
+        </CardContent>
+      </Card>
+
+      {/* Add Item — hidden in print */}
+      <Card data-print-hide="true">
+        <CardContent className="pt-4 pb-4">
+          <div className="flex gap-2 items-end">
+            <div className="flex-1">
+              <label className="text-xs font-medium text-muted-foreground">เลือกวัตถุดิบ</label>
+              <Popover open={comboOpen} onOpenChange={setComboOpen}>
+                <PopoverTrigger asChild>
+                  <Button
+                    variant="outline"
+                    role="combobox"
+                    aria-expanded={comboOpen}
+                    className="w-full justify-between mt-1 h-9 text-sm font-normal"
+                  >
+                    {selectedIng
+                      ? `${selectedIng.code ? `[${selectedIng.code}] ` : ''}${selectedIng.name}`
+                      : 'พิมพ์ค้นหาหรือเลือกวัตถุดิบ...'}
+                    <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
+                  </Button>
+                </PopoverTrigger>
+                <PopoverContent className="w-[400px] p-0" align="start">
+                  <Command>
+                    <CommandInput placeholder="ค้นหาชื่อหรือรหัสวัตถุดิบ..." />
+                    <CommandList>
+                      <CommandEmpty>ไม่พบวัตถุดิบ</CommandEmpty>
+                      <CommandGroup className="max-h-60 overflow-y-auto">
+                        {ingredients.map(ing => (
+                          <CommandItem
+                            key={ing.id}
+                            value={`${ing.code} ${ing.name}`}
+                            onSelect={() => {
+                              setSelectedIngredient(ing.id === selectedIngredient ? '' : ing.id);
+                              setComboOpen(false);
+                            }}
+                          >
+                            <Check
+                              className={cn(
+                                'mr-2 h-4 w-4',
+                                selectedIngredient === ing.id ? 'opacity-100' : 'opacity-0'
+                              )}
+                            />
+                            {ing.code ? `[${ing.code}] ` : ''}{ing.name} — {ing.purchaseUnit}
+                          </CommandItem>
+                        ))}
+                      </CommandGroup>
+                    </CommandList>
+                  </Command>
+                </PopoverContent>
+              </Popover>
+            </div>
+            <Button size="sm" onClick={addItem} className="h-9">
+              <Plus className="w-4 h-4 mr-1" /> เพิ่ม
+            </Button>
+          </div>
+        </CardContent>
+      </Card>
+
       {/* Print area */}
       <div id="purchase-order-print" className="space-y-4">
-        {/* Order Info */}
-        <Card>
-          <CardContent className="pt-4 pb-4">
-            <div className="grid grid-cols-1 md:grid-cols-4 gap-3">
-              <div>
-                <label className="text-xs font-medium text-muted-foreground">เลขที่ใบสั่งซื้อ</label>
-                <Input
-                  value={orderNumber}
-                  onChange={e => setOrderNumber(e.target.value)}
-                  className="mt-1 h-9 text-sm"
-                />
-              </div>
-              <div>
-                <label className="text-xs font-medium text-muted-foreground">วันที่</label>
-                <Input
-                  type="date"
-                  value={orderDate}
-                  onChange={e => setOrderDate(e.target.value)}
-                  className="mt-1 h-9 text-sm"
-                />
-              </div>
-              <div>
-                <label className="text-xs font-medium text-muted-foreground">ชื่อผู้จำหน่าย</label>
-                <Input
-                  value={supplierName}
-                  onChange={e => setSupplierName(e.target.value)}
-                  placeholder="ระบุชื่อร้าน/ผู้จำหน่าย"
-                  className="mt-1 h-9 text-sm"
-                />
-              </div>
-              <div>
-                <label className="text-xs font-medium text-muted-foreground">หมายเหตุ</label>
-                <Input
-                  value={note}
-                  onChange={e => setNote(e.target.value)}
-                  placeholder="บันทึกเพิ่มเติม"
-                  className="mt-1 h-9 text-sm"
-                />
-              </div>
-            </div>
-          </CardContent>
-        </Card>
-
-        {/* Add Item */}
-        <Card data-print-hide="true">
-          <CardContent className="pt-4 pb-4">
-            <div className="flex gap-2 items-end">
-              <div className="flex-1">
-                <label className="text-xs font-medium text-muted-foreground">เลือกวัตถุดิบ</label>
-                <div className="relative mt-1">
-                  <Search className="absolute left-2.5 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
-                  <Input
-                    value={searchTerm}
-                    onChange={e => setSearchTerm(e.target.value)}
-                    placeholder="ค้นหาวัตถุดิบ..."
-                    className="pl-8 h-9 text-sm"
-                  />
-                </div>
-              </div>
-              <div className="flex-1">
-                <Select value={selectedIngredient} onValueChange={setSelectedIngredient}>
-                  <SelectTrigger className="h-9 text-sm">
-                    <SelectValue placeholder="เลือกจากรายการ" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    {filteredIngredients.map(ing => (
-                      <SelectItem key={ing.id} value={ing.id}>
-                        {ing.code ? `[${ing.code}] ` : ''}{ing.name} — {ing.purchaseUnit}
-                      </SelectItem>
-                    ))}
-                    {filteredIngredients.length === 0 && (
-                      <div className="px-3 py-2 text-sm text-muted-foreground">ไม่พบวัตถุดิบ</div>
-                    )}
-                  </SelectContent>
-                </Select>
-              </div>
-              <Button size="sm" onClick={addItem} className="h-9">
-                <Plus className="w-4 h-4 mr-1" /> เพิ่ม
-              </Button>
-            </div>
-          </CardContent>
-        </Card>
+        {/* Order Info for print — plain text */}
+        <div className="border rounded-lg p-4 bg-card">
+          <div className="text-center mb-4">
+            <h3 className="text-lg font-bold text-foreground">ใบสั่งซื้อวัตถุดิบ</h3>
+          </div>
+          <div className="grid grid-cols-2 gap-x-8 gap-y-2 text-sm">
+            <p><span className="font-medium text-muted-foreground">เลขที่:</span> <span className="font-semibold">{orderNumber}</span></p>
+            <p><span className="font-medium text-muted-foreground">วันที่:</span> <span className="font-semibold">{formatDate(orderDate)}</span></p>
+            <p><span className="font-medium text-muted-foreground">ผู้จำหน่าย:</span> <span className="font-semibold">{supplierName || '-'}</span></p>
+            <p><span className="font-medium text-muted-foreground">หมายเหตุ:</span> <span className="font-semibold">{note || '-'}</span></p>
+          </div>
+        </div>
 
         {/* Order Table */}
         <Card>
@@ -258,7 +270,7 @@ const PurchaseOrderView = ({ ingredients }: PurchaseOrderViewProps) => {
                             min={0}
                             value={item.qty}
                             onChange={e => updateItemQty(item.id, Number(e.target.value))}
-                            className="h-8 w-24 text-center text-sm mx-auto print:border-none print:bg-transparent"
+                            className="h-8 w-24 text-center text-sm mx-auto"
                           />
                         </TableCell>
                         <TableCell className="text-center text-sm">{item.unit}</TableCell>
@@ -268,7 +280,7 @@ const PurchaseOrderView = ({ ingredients }: PurchaseOrderViewProps) => {
                             min={0}
                             value={item.pricePerUnit}
                             onChange={e => updateItemPrice(item.id, Number(e.target.value))}
-                            className="h-8 w-28 text-right text-sm ml-auto print:border-none print:bg-transparent"
+                            className="h-8 w-28 text-right text-sm ml-auto"
                           />
                         </TableCell>
                         <TableCell className="text-right font-semibold text-sm">
@@ -286,7 +298,6 @@ const PurchaseOrderView = ({ ingredients }: PurchaseOrderViewProps) => {
                         </TableCell>
                       </TableRow>
                     ))}
-                    {/* Grand Total Row */}
                     <TableRow className="bg-muted/50 font-bold">
                       <TableCell colSpan={6} className="text-right text-sm">
                         รวมทั้งสิ้น
