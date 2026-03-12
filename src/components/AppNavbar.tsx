@@ -1,9 +1,9 @@
-import { Calculator, Database, BookOpen, FolderOpen, Shield, LogOut, User } from 'lucide-react';
+import { Calculator, Database, BookOpen, FolderOpen, ShoppingCart, Shield, LogOut, User } from 'lucide-react';
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from '@/components/ui/dropdown-menu';
 import { Avatar, AvatarFallback } from '@/components/ui/avatar';
 import type { Profile } from '@/hooks/useAuth';
 
-export type TabType = 'calculator' | 'ingredients' | 'recipes' | 'categories';
+export type TabType = 'calculator' | 'ingredients' | 'recipes' | 'categories' | 'orders';
 
 interface AppNavbarProps {
   activeTab: TabType;
@@ -20,6 +20,7 @@ const AppNavbar = ({ activeTab, onTabChange, profile, role, onSignOut, onAdmin }
     { id: 'ingredients' as TabType, label: 'ฐานข้อมูล', icon: Database },
     { id: 'recipes' as TabType, label: 'สูตรที่บันทึก', icon: BookOpen },
     { id: 'categories' as TabType, label: 'หมวดหมู่', icon: FolderOpen },
+    { id: 'orders' as TabType, label: 'ใบสั่งซื้อ', icon: ShoppingCart },
   ];
 
   const initials = profile?.full_name
