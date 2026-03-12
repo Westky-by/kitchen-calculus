@@ -1,4 +1,4 @@
-import { Calculator, Database, BookOpen, FolderOpen, ShoppingCart, Package, Shield, LogOut, User } from 'lucide-react';
+import { Calculator, Database, BookOpen, FolderOpen, ShoppingCart, Shield, LogOut, User } from 'lucide-react';
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from '@/components/ui/dropdown-menu';
 import { Avatar, AvatarFallback } from '@/components/ui/avatar';
 import type { Profile } from '@/hooks/useAuth';
