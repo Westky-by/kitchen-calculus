@@ -15,7 +15,7 @@ export interface Profile {
 export interface AuthContextType {
   user: User | null;
   profile: Profile | null;
-  role: 'admin' | 'user' | null;
+  role: 'super_admin' | 'admin' | 'user' | null;
   loading: boolean;
   signIn: (username: string, password: string) => Promise<{ error: string | null }>;
   signUp: (username: string, password: string, fullName: string, position: string) => Promise<{ error: string | null }>;
@@ -28,7 +28,7 @@ const AuthContext = createContext<AuthContextType | null>(null);
 export function AuthProvider({ children }: { children: ReactNode }) {
   const [user, setUser] = useState<User | null>(null);
   const [profile, setProfile] = useState<Profile | null>(null);
-  const [role, setRole] = useState<'admin' | 'user' | null>(null);
+  const [role, setRole] = useState<'super_admin' | 'admin' | 'user' | null>(null);
   const [loading, setLoading] = useState(true);
 
   const fetchProfile = useCallback(async (userId: string) => {
@@ -37,7 +37,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       supabase.from('user_roles').select('role').eq('user_id', userId).single(),
     ]);
     if (profRes.data) setProfile(profRes.data as Profile);
-    if (roleRes.data) setRole((roleRes.data as any).role as 'admin' | 'user');
+    if (roleRes.data) setRole((roleRes.data as any).role as 'super_admin' | 'admin' | 'user');
   }, []);
 
   const refreshProfile = useCallback(async () => {
