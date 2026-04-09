@@ -85,19 +85,29 @@ const Admin = () => {
   }, []);
 
   useEffect(() => {
-    if (role !== 'admin') return;
+    if (role !== 'admin' && role !== 'super_admin') return;
     setLoading(true);
     Promise.all([fetchUsers(), fetchLogs()]).then(() => setLoading(false));
   }, [role, fetchUsers, fetchLogs]);
 
-  const handleRoleChange = async (userId: string, newRole: string) => {
+  const canManageUser = (targetRole: string) => {
+    if (role === 'super_admin') return true;
+    if (role === 'admin' && targetRole === 'user') return true;
+    return false;
+  };
+
+  const handleRoleChange = async (userId: string, currentRole: string, newRoleVal: string) => {
+    if (!canManageUser(currentRole)) {
+      toast.error('คุณไม่มีสิทธิ์เปลี่ยน Role ของผู้ใช้นี้');
+      return;
+    }
     const { error } = await supabase
       .from('user_roles')
-      .update({ role: newRole as any })
+      .update({ role: newRoleVal as any })
       .eq('user_id', userId);
     if (error) { toast.error('เปลี่ยน Role ไม่สำเร็จ'); return; }
     toast.success('เปลี่ยน Role สำเร็จ');
-    await logActivity('เปลี่ยน Role ผู้ใช้', 'user_roles', userId, { new_role: newRole });
+    await logActivity('เปลี่ยน Role ผู้ใช้', 'user_roles', userId, { new_role: newRoleVal });
     fetchUsers();
   };
 
@@ -206,13 +216,13 @@ const Admin = () => {
     setShowPassword(false);
   };
 
-  if (role !== 'admin') {
+  if (role !== 'admin' && role !== 'super_admin') {
     return (
       <div className="min-h-screen bg-background flex items-center justify-center">
         <Card className="p-8 text-center space-y-4">
           <Shield className="w-12 h-12 text-destructive mx-auto" />
           <h2 className="text-xl font-bold">ไม่มีสิทธิ์เข้าถึง</h2>
-          <p className="text-muted-foreground">เฉพาะ Admin เท่านั้น</p>
+          <p className="text-muted-foreground">เฉพาะ Admin หรือ Super Admin เท่านั้น</p>
           <Button onClick={() => navigate('/')}>กลับหน้าหลัก</Button>
         </Card>
       </div>
