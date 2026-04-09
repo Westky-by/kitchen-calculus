@@ -371,13 +371,14 @@ const Admin = () => {
                       <TableCell>
                         <Select
                           value={u.role}
-                          onValueChange={(val) => handleRoleChange(u.id, val)}
-                          disabled={u.id === user?.id}
+                          onValueChange={(val) => handleRoleChange(u.id, u.role, val)}
+                          disabled={u.id === user?.id || !canManageUser(u.role)}
                         >
-                          <SelectTrigger className="w-28 h-8">
+                          <SelectTrigger className="w-32 h-8">
                             <SelectValue />
                           </SelectTrigger>
                           <SelectContent>
+                            {role === 'super_admin' && <SelectItem value="super_admin">Super Admin</SelectItem>}
                             <SelectItem value="admin">Admin</SelectItem>
                             <SelectItem value="user">User</SelectItem>
                           </SelectContent>
