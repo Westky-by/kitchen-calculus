@@ -85,19 +85,29 @@ const Admin = () => {
   }, []);
 
   useEffect(() => {
-    if (role !== 'admin') return;
+    if (role !== 'admin' && role !== 'super_admin') return;
     setLoading(true);
     Promise.all([fetchUsers(), fetchLogs()]).then(() => setLoading(false));
   }, [role, fetchUsers, fetchLogs]);
 
-  const handleRoleChange = async (userId: string, newRole: string) => {
+  const canManageUser = (targetRole: string) => {
+    if (role === 'super_admin') return true;
+    if (role === 'admin' && targetRole === 'user') return true;
+    return false;
+  };
+
+  const handleRoleChange = async (userId: string, currentRole: string, newRoleVal: string) => {
+    if (!canManageUser(currentRole)) {
+      toast.error('คุณไม่มีสิทธิ์เปลี่ยน Role ของผู้ใช้นี้');
+      return;
+    }
     const { error } = await supabase
       .from('user_roles')
-      .update({ role: newRole as any })
+      .update({ role: newRoleVal as any })
       .eq('user_id', userId);
     if (error) { toast.error('เปลี่ยน Role ไม่สำเร็จ'); return; }
     toast.success('เปลี่ยน Role สำเร็จ');
-    await logActivity('เปลี่ยน Role ผู้ใช้', 'user_roles', userId, { new_role: newRole });
+    await logActivity('เปลี่ยน Role ผู้ใช้', 'user_roles', userId, { new_role: newRoleVal });
     fetchUsers();
   };
 
@@ -206,13 +216,13 @@ const Admin = () => {
     setShowPassword(false);
   };
 
-  if (role !== 'admin') {
+  if (role !== 'admin' && role !== 'super_admin') {
     return (
       <div className="min-h-screen bg-background flex items-center justify-center">
         <Card className="p-8 text-center space-y-4">
           <Shield className="w-12 h-12 text-destructive mx-auto" />
           <h2 className="text-xl font-bold">ไม่มีสิทธิ์เข้าถึง</h2>
-          <p className="text-muted-foreground">เฉพาะ Admin เท่านั้น</p>
+          <p className="text-muted-foreground">เฉพาะ Admin หรือ Super Admin เท่านั้น</p>
           <Button onClick={() => navigate('/')}>กลับหน้าหลัก</Button>
         </Card>
       </div>
@@ -324,6 +334,7 @@ const Admin = () => {
                         <SelectContent>
                           <SelectItem value="user">User — ผู้ใช้ทั่วไป</SelectItem>
                           <SelectItem value="admin">Admin — ผู้ดูแลระบบ</SelectItem>
+                          {role === 'super_admin' && <SelectItem value="super_admin">Super Admin — ผู้ดูแลสูงสุด</SelectItem>}
                         </SelectContent>
                       </Select>
                     </div>
@@ -361,13 +372,14 @@ const Admin = () => {
                       <TableCell>
                         <Select
                           value={u.role}
-                          onValueChange={(val) => handleRoleChange(u.id, val)}
-                          disabled={u.id === user?.id}
+                          onValueChange={(val) => handleRoleChange(u.id, u.role, val)}
+                          disabled={u.id === user?.id || !canManageUser(u.role)}
                         >
-                          <SelectTrigger className="w-28 h-8">
+                          <SelectTrigger className="w-32 h-8">
                             <SelectValue />
                           </SelectTrigger>
                           <SelectContent>
+                            {role === 'super_admin' && <SelectItem value="super_admin">Super Admin</SelectItem>}
                             <SelectItem value="admin">Admin</SelectItem>
                             <SelectItem value="user">User</SelectItem>
                           </SelectContent>
@@ -382,7 +394,7 @@ const Admin = () => {
                         {new Date(u.created_at).toLocaleDateString('th-TH')}
                       </TableCell>
                       <TableCell>
-                        {u.id !== user?.id && (
+                        {u.id !== user?.id && canManageUser(u.role) && (
                           <div className="flex gap-1">
                             <Button
                               size="sm"
