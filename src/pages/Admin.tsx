@@ -334,6 +334,7 @@ const Admin = () => {
                         <SelectContent>
                           <SelectItem value="user">User — ผู้ใช้ทั่วไป</SelectItem>
                           <SelectItem value="admin">Admin — ผู้ดูแลระบบ</SelectItem>
+                          {role === 'super_admin' && <SelectItem value="super_admin">Super Admin — ผู้ดูแลสูงสุด</SelectItem>}
                         </SelectContent>
                       </Select>
                     </div>
@@ -393,7 +394,7 @@ const Admin = () => {
                         {new Date(u.created_at).toLocaleDateString('th-TH')}
                       </TableCell>
                       <TableCell>
-                        {u.id !== user?.id && (
+                        {u.id !== user?.id && canManageUser(u.role) && (
                           <div className="flex gap-1">
                             <Button
                               size="sm"
