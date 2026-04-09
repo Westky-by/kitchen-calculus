@@ -9,7 +9,7 @@ interface AppNavbarProps {
   activeTab: TabType;
   onTabChange: (tab: TabType) => void;
   profile?: Profile | null;
-  role?: 'admin' | 'user' | null;
+  role?: 'super_admin' | 'admin' | 'user' | null;
   onSignOut?: () => void;
   onAdmin?: () => void;
 }
