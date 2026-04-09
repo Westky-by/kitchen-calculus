@@ -77,7 +77,7 @@ const AppNavbar = ({ activeTab, onTabChange, profile, role, onSignOut, onAdmin }
                 <DropdownMenuItem className="text-xs text-muted-foreground" disabled>
                   <User className="w-3 h-3 mr-2" /> {profile.username}
                 </DropdownMenuItem>
-                {role === 'admin' && onAdmin && (
+                {(role === 'admin' || role === 'super_admin') && onAdmin && (
                   <DropdownMenuItem onClick={onAdmin}>
                     <Shield className="w-4 h-4 mr-2" /> จัดการระบบ (Admin)
                   </DropdownMenuItem>
