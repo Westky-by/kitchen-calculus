@@ -111,15 +111,15 @@ const CalculatorView = ({ ingredients, onSaveRecipe, loadedRecipe, onClearLoaded
     [recipeIngredients]
   );
 
-  const qFactorAmount = rawMaterialCost * (Q_FACTOR_PERCENT / 100);
+  const qFactorAmount = rawMaterialCost * (qFactorRate / 100);
   const totalOverhead = overhead.packaging + overhead.labor + overhead.utilities + overhead.misc;
   const totalProductCost = rawMaterialCost + qFactorAmount + totalOverhead;
   const portions = parseInt(portionSize) || 1;
   const costPerPortion = totalProductCost / portions;
   const suggestedPrice = targetFC > 0 ? costPerPortion / (targetFC / 100) : 0;
-  const serviceChargeAmt = sellingPrice * (SERVICE_CHARGE_PERCENT / 100);
+  const serviceChargeAmt = sellingPrice * (serviceChargeRate / 100);
   const baseWithSvc = sellingPrice + serviceChargeAmt;
-  const vatAmt = baseWithSvc * (VAT_PERCENT / 100);
+  const vatAmt = baseWithSvc * (vatRate / 100);
   const grandTotal = baseWithSvc + vatAmt;
   const realFC = sellingPrice > 0 ? (costPerPortion / sellingPrice) * 100 : 0;
   const profitPercent = sellingPrice > 0 ? ((sellingPrice - costPerPortion) / sellingPrice) * 100 : 0;
