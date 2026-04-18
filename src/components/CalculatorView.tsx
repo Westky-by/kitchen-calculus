@@ -346,8 +346,24 @@ const CalculatorView = ({ ingredients, onSaveRecipe, loadedRecipe, onClearLoaded
                 <span>วัตถุดิบรวม (Raw Material):</span>
                 <span className="font-semibold">{rawMaterialCost.toFixed(2)}</span>
               </div>
-              <div className="flex justify-between">
-                <span>+ Q-Factor ({Q_FACTOR_PERCENT}%):</span>
+              <div className="flex justify-between items-center gap-2">
+                <span className="flex items-center gap-1">
+                  + Q-Factor (
+                  {isAdmin ? (
+                    <Input
+                      type="number"
+                      min={0}
+                      max={100}
+                      step={0.5}
+                      value={qFactorRate}
+                      onChange={(e) => setQFactorRate(parseFloat(e.target.value) || 0)}
+                      className="h-6 w-14 px-1 py-0 text-xs text-right inline-block"
+                    />
+                  ) : (
+                    <span>{qFactorRate}</span>
+                  )}
+                  %):
+                </span>
                 <span className="font-semibold">{qFactorAmount.toFixed(2)}</span>
               </div>
               <div className="flex justify-between border-t pt-2 font-bold">
