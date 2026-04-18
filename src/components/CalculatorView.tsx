@@ -449,12 +449,44 @@ const CalculatorView = ({ ingredients, onSaveRecipe, loadedRecipe, onClearLoaded
               </div>
 
               <div className="space-y-1 text-sm border-t pt-3">
-                <div className="flex justify-between">
-                  <span>Service Charge ({SERVICE_CHARGE_PERCENT}%):</span>
+                <div className="flex justify-between items-center gap-2">
+                  <span className="flex items-center gap-1">
+                    Service Charge (
+                    {isAdmin ? (
+                      <Input
+                        type="number"
+                        min={0}
+                        max={100}
+                        step={0.5}
+                        value={serviceChargeRate}
+                        onChange={(e) => setServiceChargeRate(parseFloat(e.target.value) || 0)}
+                        className="h-6 w-14 px-1 py-0 text-xs text-right inline-block"
+                      />
+                    ) : (
+                      <span>{serviceChargeRate}</span>
+                    )}
+                    %):
+                  </span>
                   <span>{serviceChargeAmt.toFixed(2)}</span>
                 </div>
-                <div className="flex justify-between">
-                  <span>VAT Include ({VAT_PERCENT}%):</span>
+                <div className="flex justify-between items-center gap-2">
+                  <span className="flex items-center gap-1">
+                    VAT Include (
+                    {isAdmin ? (
+                      <Input
+                        type="number"
+                        min={0}
+                        max={100}
+                        step={0.5}
+                        value={vatRate}
+                        onChange={(e) => setVatRate(parseFloat(e.target.value) || 0)}
+                        className="h-6 w-14 px-1 py-0 text-xs text-right inline-block"
+                      />
+                    ) : (
+                      <span>{vatRate}</span>
+                    )}
+                    %):
+                  </span>
                   <span>{vatAmt.toFixed(2)}</span>
                 </div>
                 <div className="flex justify-between font-bold border-t pt-2">
