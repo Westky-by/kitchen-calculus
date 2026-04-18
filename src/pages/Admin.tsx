@@ -440,6 +440,20 @@ const Admin = () => {
               </Table>
             </div>
           </Card>
+        ) : tab === 'categories' ? (
+          <Card className="p-4">
+            <CategoriesView
+              categories={categories}
+              recipes={recipes}
+              onSave={saveCategory}
+              onDelete={deleteCategory}
+              onReorder={reorderCategories}
+              isAdmin={role === 'admin' || role === 'super_admin'}
+              onNavigateToRecipes={(catValue) =>
+                navigate('/', { state: { tab: 'recipes', category: catValue } })
+              }
+            />
+          </Card>
         ) : (
           <Card className="p-4">
             <h2 className="text-lg font-bold mb-4 flex items-center gap-2">
