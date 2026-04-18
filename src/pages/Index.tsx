@@ -81,6 +81,7 @@ const Index = () => {
             loadedRecipe={loadedRecipe}
             onClearLoaded={() => setLoadedRecipe(null)}
             categories={categories}
+            isAdmin={role === 'admin' || role === 'super_admin'}
           />
         )}
         {activeTab === 'ingredients' && (
