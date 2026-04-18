@@ -17,9 +17,10 @@ interface CalculatorViewProps {
   loadedRecipe?: Recipe | null;
   onClearLoaded: () => void;
   categories: RecipeCategory[];
+  isAdmin?: boolean;
 }
 
-const CalculatorView = ({ ingredients, onSaveRecipe, loadedRecipe, onClearLoaded, categories }: CalculatorViewProps) => {
+const CalculatorView = ({ ingredients, onSaveRecipe, loadedRecipe, onClearLoaded, categories, isAdmin = false }: CalculatorViewProps) => {
   const [menuName, setMenuName] = useState('');
   const [category, setCategory] = useState('general');
   const [menuCode, setMenuCode] = useState('');
@@ -28,6 +29,10 @@ const CalculatorView = ({ ingredients, onSaveRecipe, loadedRecipe, onClearLoaded
   const [overhead, setOverhead] = useState<OverheadCosts>({ packaging: 0, labor: 0, utilities: 0, misc: 0 });
   const [targetFC, setTargetFC] = useState(30);
   const [sellingPrice, setSellingPrice] = useState(90);
+  // Admin-editable rates (default จาก constants)
+  const [qFactorRate, setQFactorRate] = useState<number>(Q_FACTOR_PERCENT);
+  const [serviceChargeRate, setServiceChargeRate] = useState<number>(SERVICE_CHARGE_PERCENT);
+  const [vatRate, setVatRate] = useState<number>(VAT_PERCENT);
   const [searchTerm, setSearchTerm] = useState('');
   const [showDropdown, setShowDropdown] = useState(false);
   const [showSuccessDialog, setShowSuccessDialog] = useState(false);
@@ -106,15 +111,15 @@ const CalculatorView = ({ ingredients, onSaveRecipe, loadedRecipe, onClearLoaded
     [recipeIngredients]
   );
 
-  const qFactorAmount = rawMaterialCost * (Q_FACTOR_PERCENT / 100);
+  const qFactorAmount = rawMaterialCost * (qFactorRate / 100);
   const totalOverhead = overhead.packaging + overhead.labor + overhead.utilities + overhead.misc;
   const totalProductCost = rawMaterialCost + qFactorAmount + totalOverhead;
   const portions = parseInt(portionSize) || 1;
   const costPerPortion = totalProductCost / portions;
   const suggestedPrice = targetFC > 0 ? costPerPortion / (targetFC / 100) : 0;
-  const serviceChargeAmt = sellingPrice * (SERVICE_CHARGE_PERCENT / 100);
+  const serviceChargeAmt = sellingPrice * (serviceChargeRate / 100);
   const baseWithSvc = sellingPrice + serviceChargeAmt;
-  const vatAmt = baseWithSvc * (VAT_PERCENT / 100);
+  const vatAmt = baseWithSvc * (vatRate / 100);
   const grandTotal = baseWithSvc + vatAmt;
   const realFC = sellingPrice > 0 ? (costPerPortion / sellingPrice) * 100 : 0;
   const profitPercent = sellingPrice > 0 ? ((sellingPrice - costPerPortion) / sellingPrice) * 100 : 0;
@@ -341,8 +346,24 @@ const CalculatorView = ({ ingredients, onSaveRecipe, loadedRecipe, onClearLoaded
                 <span>วัตถุดิบรวม (Raw Material):</span>
                 <span className="font-semibold">{rawMaterialCost.toFixed(2)}</span>
               </div>
-              <div className="flex justify-between">
-                <span>+ Q-Factor ({Q_FACTOR_PERCENT}%):</span>
+              <div className="flex justify-between items-center gap-2">
+                <span className="flex items-center gap-1">
+                  + Q-Factor (
+                  {isAdmin ? (
+                    <Input
+                      type="number"
+                      min={0}
+                      max={100}
+                      step={0.5}
+                      value={qFactorRate}
+                      onChange={(e) => setQFactorRate(parseFloat(e.target.value) || 0)}
+                      className="h-6 w-14 px-1 py-0 text-xs text-right inline-block"
+                    />
+                  ) : (
+                    <span>{qFactorRate}</span>
+                  )}
+                  %):
+                </span>
                 <span className="font-semibold">{qFactorAmount.toFixed(2)}</span>
               </div>
               <div className="flex justify-between border-t pt-2 font-bold">
@@ -428,12 +449,44 @@ const CalculatorView = ({ ingredients, onSaveRecipe, loadedRecipe, onClearLoaded
               </div>
 
               <div className="space-y-1 text-sm border-t pt-3">
-                <div className="flex justify-between">
-                  <span>Service Charge ({SERVICE_CHARGE_PERCENT}%):</span>
+                <div className="flex justify-between items-center gap-2">
+                  <span className="flex items-center gap-1">
+                    Service Charge (
+                    {isAdmin ? (
+                      <Input
+                        type="number"
+                        min={0}
+                        max={100}
+                        step={0.5}
+                        value={serviceChargeRate}
+                        onChange={(e) => setServiceChargeRate(parseFloat(e.target.value) || 0)}
+                        className="h-6 w-14 px-1 py-0 text-xs text-right inline-block"
+                      />
+                    ) : (
+                      <span>{serviceChargeRate}</span>
+                    )}
+                    %):
+                  </span>
                   <span>{serviceChargeAmt.toFixed(2)}</span>
                 </div>
-                <div className="flex justify-between">
-                  <span>VAT Include ({VAT_PERCENT}%):</span>
+                <div className="flex justify-between items-center gap-2">
+                  <span className="flex items-center gap-1">
+                    VAT Include (
+                    {isAdmin ? (
+                      <Input
+                        type="number"
+                        min={0}
+                        max={100}
+                        step={0.5}
+                        value={vatRate}
+                        onChange={(e) => setVatRate(parseFloat(e.target.value) || 0)}
+                        className="h-6 w-14 px-1 py-0 text-xs text-right inline-block"
+                      />
+                    ) : (
+                      <span>{vatRate}</span>
+                    )}
+                    %):
+                  </span>
                   <span>{vatAmt.toFixed(2)}</span>
                 </div>
                 <div className="flex justify-between font-bold border-t pt-2">
