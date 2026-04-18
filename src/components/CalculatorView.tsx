@@ -17,9 +17,10 @@ interface CalculatorViewProps {
   loadedRecipe?: Recipe | null;
   onClearLoaded: () => void;
   categories: RecipeCategory[];
+  isAdmin?: boolean;
 }
 
-const CalculatorView = ({ ingredients, onSaveRecipe, loadedRecipe, onClearLoaded, categories }: CalculatorViewProps) => {
+const CalculatorView = ({ ingredients, onSaveRecipe, loadedRecipe, onClearLoaded, categories, isAdmin = false }: CalculatorViewProps) => {
   const [menuName, setMenuName] = useState('');
   const [category, setCategory] = useState('general');
   const [menuCode, setMenuCode] = useState('');
@@ -28,6 +29,10 @@ const CalculatorView = ({ ingredients, onSaveRecipe, loadedRecipe, onClearLoaded
   const [overhead, setOverhead] = useState<OverheadCosts>({ packaging: 0, labor: 0, utilities: 0, misc: 0 });
   const [targetFC, setTargetFC] = useState(30);
   const [sellingPrice, setSellingPrice] = useState(90);
+  // Admin-editable rates (default จาก constants)
+  const [qFactorRate, setQFactorRate] = useState<number>(Q_FACTOR_PERCENT);
+  const [serviceChargeRate, setServiceChargeRate] = useState<number>(SERVICE_CHARGE_PERCENT);
+  const [vatRate, setVatRate] = useState<number>(VAT_PERCENT);
   const [searchTerm, setSearchTerm] = useState('');
   const [showDropdown, setShowDropdown] = useState(false);
   const [showSuccessDialog, setShowSuccessDialog] = useState(false);
