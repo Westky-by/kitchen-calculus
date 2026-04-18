@@ -255,6 +255,12 @@ const Admin = () => {
               <Users className="w-4 h-4" /> จัดการผู้ใช้
             </button>
             <button
+              onClick={() => setTab('categories')}
+              className={`flex items-center gap-2 px-4 py-2 text-sm border-b-[3px] ${tab === 'categories' ? 'tab-active' : 'tab-inactive border-transparent'}`}
+            >
+              <FolderOpen className="w-4 h-4" /> หมวดหมู่สูตร
+            </button>
+            <button
               onClick={() => { setTab('logs'); fetchLogs(); }}
               className={`flex items-center gap-2 px-4 py-2 text-sm border-b-[3px] ${tab === 'logs' ? 'tab-active' : 'tab-inactive border-transparent'}`}
             >
