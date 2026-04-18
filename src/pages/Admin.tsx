@@ -9,12 +9,10 @@ import { Label } from '@/components/ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger, DialogFooter, DialogClose } from '@/components/ui/dialog';
-import { ArrowLeft, Users, Shield, Activity, UserX, UserCheck, UserPlus, Eye, EyeOff, KeyRound, FolderOpen } from 'lucide-react';
+import { ArrowLeft, Users, Shield, Activity, UserX, UserCheck, UserPlus, Eye, EyeOff, KeyRound } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import { toast } from 'sonner';
 import { logActivity } from '@/hooks/useActivityLog';
-import CategoriesView from '@/components/CategoriesView';
-import { useSupabaseData } from '@/hooks/useSupabaseData';
 
 interface UserRow {
   id: string;
@@ -39,15 +37,10 @@ interface LogRow {
 const Admin = () => {
   const { role, user } = useAuth();
   const navigate = useNavigate();
-  const [tab, setTab] = useState<'users' | 'logs' | 'categories'>('users');
+  const [tab, setTab] = useState<'users' | 'logs'>('users');
   const [users, setUsers] = useState<UserRow[]>([]);
   const [logs, setLogs] = useState<LogRow[]>([]);
   const [loading, setLoading] = useState(true);
-
-  const {
-    categories, recipes,
-    saveCategory, deleteCategory, reorderCategories,
-  } = useSupabaseData();
 
   // Add user form
   const [addOpen, setAddOpen] = useState(false);
@@ -255,12 +248,6 @@ const Admin = () => {
               <Users className="w-4 h-4" /> จัดการผู้ใช้
             </button>
             <button
-              onClick={() => setTab('categories')}
-              className={`flex items-center gap-2 px-4 py-2 text-sm border-b-[3px] ${tab === 'categories' ? 'tab-active' : 'tab-inactive border-transparent'}`}
-            >
-              <FolderOpen className="w-4 h-4" /> หมวดหมู่สูตร
-            </button>
-            <button
               onClick={() => { setTab('logs'); fetchLogs(); }}
               className={`flex items-center gap-2 px-4 py-2 text-sm border-b-[3px] ${tab === 'logs' ? 'tab-active' : 'tab-inactive border-transparent'}`}
             >
@@ -439,20 +426,6 @@ const Admin = () => {
                 </TableBody>
               </Table>
             </div>
-          </Card>
-        ) : tab === 'categories' ? (
-          <Card className="p-4">
-            <CategoriesView
-              categories={categories}
-              recipes={recipes}
-              onSave={saveCategory}
-              onDelete={deleteCategory}
-              onReorder={reorderCategories}
-              isAdmin={role === 'admin' || role === 'super_admin'}
-              onNavigateToRecipes={(catValue) =>
-                navigate('/', { state: { tab: 'recipes', category: catValue } })
-              }
-            />
           </Card>
         ) : (
           <Card className="p-4">

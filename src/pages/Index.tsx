@@ -6,6 +6,7 @@ import type { TabType } from '@/components/AppNavbar';
 import CalculatorView from '@/components/CalculatorView';
 import IngredientsView from '@/components/IngredientsView';
 import RecipesView from '@/components/RecipesView';
+import CategoriesView from '@/components/CategoriesView';
 import PurchaseOrderView from '@/components/PurchaseOrderView';
 import { useSupabaseData } from '@/hooks/useSupabaseData';
 import AiChatBubble from '@/components/AiChatBubble';
@@ -24,6 +25,7 @@ const Index = () => {
     ingredients, recipes, categories, loading,
     saveIngredient, deleteIngredient, bulkImportIngredients,
     saveRecipe, deleteRecipe,
+    saveCategory, deleteCategory, reorderCategories,
   } = useSupabaseData();
 
   // Support deep-link from Admin > Categories: navigate('/', { state: { tab: 'recipes', category } })
@@ -106,6 +108,20 @@ const Index = () => {
             onDelete={deleteRecipe}
             categories={categories}
             initialCategory={filterCategory}
+          />
+        )}
+        {activeTab === 'categories' && (
+          <CategoriesView
+            categories={categories}
+            recipes={recipes}
+            onSave={saveCategory}
+            onDelete={deleteCategory}
+            onReorder={reorderCategories}
+            isAdmin={role === 'admin' || role === 'super_admin'}
+            onNavigateToRecipes={(catValue) => {
+              setFilterCategory(catValue);
+              setActiveTab('recipes');
+            }}
           />
         )}
         {activeTab === 'orders' && (
