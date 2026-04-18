@@ -15,6 +15,7 @@ import { toast } from 'sonner';
 const Index = () => {
   const { user, profile, role, loading: authLoading, signOut } = useAuth();
   const navigate = useNavigate();
+  const location = useLocation();
   const [activeTab, setActiveTab] = useState<TabType>('calculator');
   const [loadedRecipe, setLoadedRecipe] = useState<Recipe | null>(null);
   const [filterCategory, setFilterCategory] = useState<string>('all');
@@ -23,8 +24,15 @@ const Index = () => {
     ingredients, recipes, categories, loading,
     saveIngredient, deleteIngredient, bulkImportIngredients,
     saveRecipe, deleteRecipe,
-    saveCategory, deleteCategory, reorderCategories,
   } = useSupabaseData();
+
+  // Support deep-link from Admin > Categories: navigate('/', { state: { tab: 'recipes', category } })
+  useEffect(() => {
+    const state = location.state as { tab?: TabType; category?: string } | null;
+    if (state?.tab) setActiveTab(state.tab);
+    if (state?.category) setFilterCategory(state.category);
+    if (state) navigate('/', { replace: true, state: null });
+  }, [location.state, navigate]);
 
   const handleLoadRecipe = useCallback((recipe: Recipe) => {
     setLoadedRecipe(recipe);
@@ -98,20 +106,6 @@ const Index = () => {
             onDelete={deleteRecipe}
             categories={categories}
             initialCategory={filterCategory}
-          />
-        )}
-        {activeTab === 'categories' && (
-          <CategoriesView
-            categories={categories}
-            recipes={recipes}
-            onSave={saveCategory}
-            onDelete={deleteCategory}
-            onReorder={reorderCategories}
-            isAdmin={role === 'admin' || role === 'super_admin'}
-            onNavigateToRecipes={(catValue) => {
-              setFilterCategory(catValue);
-              setActiveTab('recipes');
-            }}
           />
         )}
         {activeTab === 'orders' && (
