@@ -1,8 +1,18 @@
+export interface IngredientBase {
+  id: string;
+  value: string;
+  label: string;
+  icon: string;
+  color: string;
+  isDefault?: boolean;
+}
+
 export interface Ingredient {
   id: string;
   code: string;
   name: string;
   category: string;
+  baseValue: string;
   purchasePrice: number;
   purchaseQty: number;
   purchaseUnit: string;
