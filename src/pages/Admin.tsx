@@ -72,6 +72,12 @@ const Admin = () => {
   const [showResetPassword, setShowResetPassword] = useState(false);
   const [resetting, setResetting] = useState(false);
 
+  // Version updates
+  const [verVersion, setVerVersion] = useState('');
+  const [verTitle, setVerTitle] = useState('');
+  const [verNotes, setVerNotes] = useState('');
+  const [savingVersion, setSavingVersion] = useState(false);
+
   const fetchUsers = useCallback(async () => {
     const [profRes, roleRes] = await Promise.all([
       supabase.from('profiles').select('*').order('created_at'),
@@ -92,15 +98,60 @@ const Admin = () => {
       .from('activity_logs')
       .select('*')
       .order('created_at', { ascending: false })
-      .limit(200);
+      .limit(500);
     if (data) setLogs(data as LogRow[]);
   }, []);
+
+  const fetchVersions = useCallback(async () => {
+    const { data } = await supabase
+      .from('version_updates')
+      .select('*')
+      .order('created_at', { ascending: false });
+    if (data) setVersions(data as VersionRow[]);
+  }, []);
+
+  const handleAddVersion = async () => {
+    if (!verVersion.trim() || !verTitle.trim()) {
+      toast.error('กรุณากรอกเลขเวอร์ชัน และหัวข้อ');
+      return;
+    }
+    setSavingVersion(true);
+    try {
+      const profRes = await supabase.from('profiles').select('username').eq('id', user!.id).single();
+      const username = (profRes.data as any)?.username || '';
+      const { data, error } = await supabase.from('version_updates').insert({
+        version: verVersion.trim(),
+        title: verTitle.trim(),
+        notes: verNotes.trim(),
+        created_by: user!.id,
+        created_by_username: username,
+      }).select().single();
+      if (error) { toast.error('บันทึกไม่สำเร็จ: ' + error.message); return; }
+      toast.success('บันทึกการอัพเดทเวอร์ชันเรียบร้อย');
+      await logActivity('อัพเดทเวอร์ชัน Public', 'version_updates', (data as any).id, {
+        version: verVersion.trim(), title: verTitle.trim(),
+      });
+      setVerVersion(''); setVerTitle(''); setVerNotes('');
+      fetchVersions();
+    } finally {
+      setSavingVersion(false);
+    }
+  };
+
+  const handleDeleteVersion = async (v: VersionRow) => {
+    if (!confirm(`ลบเวอร์ชัน ${v.version} หรือไม่?`)) return;
+    const { error } = await supabase.from('version_updates').delete().eq('id', v.id);
+    if (error) { toast.error('ลบไม่สำเร็จ'); return; }
+    toast.success('ลบเรียบร้อย');
+    await logActivity('ลบประวัติเวอร์ชัน', 'version_updates', v.id, { version: v.version });
+    fetchVersions();
+  };
 
   useEffect(() => {
     if (role !== 'admin' && role !== 'super_admin') return;
     setLoading(true);
-    Promise.all([fetchUsers(), fetchLogs()]).then(() => setLoading(false));
-  }, [role, fetchUsers, fetchLogs]);
+    Promise.all([fetchUsers(), fetchLogs(), fetchVersions()]).then(() => setLoading(false));
+  }, [role, fetchUsers, fetchLogs, fetchVersions]);
 
   const canManageUser = (targetRole: string) => {
     if (role === 'super_admin') return true;
