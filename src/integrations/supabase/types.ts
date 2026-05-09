@@ -411,6 +411,7 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
+      current_user_is_active: { Args: never; Returns: boolean }
       has_role: {
         Args: {
           _role: Database["public"]["Enums"]["app_role"]
