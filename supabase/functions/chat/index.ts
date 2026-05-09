@@ -51,8 +51,7 @@ serve(async (req) => {
     if (!LOVABLE_API_KEY) throw new Error("LOVABLE_API_KEY is not configured");
 
     // Fetch app data for context (service role for read-only context)
-    const supabaseKey = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!;
-    const supabase = createClient(supabaseUrl, supabaseKey);
+    const supabase = adminClient;
 
     const [ingredientsRes, recipesRes, categoriesRes] = await Promise.all([
       supabase.from("ingredients").select("name, category, cost_per_unit, usage_unit, purchase_price, purchase_unit").limit(200),
