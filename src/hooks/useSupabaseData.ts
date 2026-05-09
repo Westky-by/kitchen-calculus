@@ -235,6 +235,7 @@ export function useSupabaseData() {
     for (const u of updates) {
       await supabase.from('recipe_categories').upsert(u);
     }
+    logActivity('จัดเรียงหมวดหมู่', 'recipe_categories', '', { count: newCategories.length });
   }, []);
 
   // --- Ingredient Bases ---
