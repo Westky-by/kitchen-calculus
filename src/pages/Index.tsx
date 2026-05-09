@@ -22,10 +22,11 @@ const Index = () => {
   const [filterCategory, setFilterCategory] = useState<string>('all');
 
   const {
-    ingredients, recipes, categories, loading,
+    ingredients, recipes, categories, ingredientBases, loading,
     saveIngredient, deleteIngredient, bulkImportIngredients,
     saveRecipe, deleteRecipe,
     saveCategory, deleteCategory, reorderCategories,
+    saveIngredientBase, deleteIngredientBase,
   } = useSupabaseData();
 
   // Support deep-link from Admin > Categories: navigate('/', { state: { tab: 'recipes', category } })
@@ -99,6 +100,10 @@ const Index = () => {
             onSave={saveIngredient}
             onDelete={deleteIngredient}
             onBulkImport={bulkImportIngredients}
+            bases={ingredientBases}
+            isAdmin={role === 'admin' || role === 'super_admin'}
+            onSaveBase={saveIngredientBase}
+            onDeleteBase={deleteIngredientBase}
           />
         )}
         {activeTab === 'recipes' && (
