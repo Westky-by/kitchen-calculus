@@ -316,6 +316,12 @@ const Admin = () => {
             >
               <Activity className="w-4 h-4" /> Activity Log
             </button>
+            <button
+              onClick={() => { setTab('versions'); fetchVersions(); }}
+              className={`flex items-center gap-2 px-4 py-2 text-sm border-b-[3px] ${tab === 'versions' ? 'tab-active' : 'tab-inactive border-transparent'}`}
+            >
+              <Rocket className="w-4 h-4" /> อัพเดทเวอร์ชัน Public
+            </button>
           </div>
         </div>
       </div>
