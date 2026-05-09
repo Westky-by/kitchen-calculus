@@ -99,6 +99,19 @@ const IngredientModal = ({ open, onClose, onSave, editingIngredient, bases = [],
         </DialogHeader>
 
         <div className="space-y-6">
+          {bases.length > 0 && (
+            <div>
+              <Label>ฐานข้อมูลวัตถุดิบ</Label>
+              <Select value={form.baseValue} onValueChange={(v) => setForm({ ...form, baseValue: v })}>
+                <SelectTrigger><SelectValue /></SelectTrigger>
+                <SelectContent>
+                  {bases.map((b) => (
+                    <SelectItem key={b.id} value={b.value}>{b.icon} {b.label}</SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
+          )}
           {/* Basic Info */}
           <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
             <div>
