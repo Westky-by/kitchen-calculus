@@ -230,13 +230,19 @@ const AssetsView = () => {
     const svgData = new XMLSerializer().serializeToString(svgEl);
     const win = window.open('', '_blank');
     if (!win) return;
+    const esc = (s: string) =>
+      s.replace(/[<>&"']/g, (c) =>
+        ({ '<': '&lt;', '>': '&gt;', '&': '&amp;', '"': '&quot;', "'": '&#39;' }[c]!),
+      );
+    const safeName = esc(qrAsset?.name || '');
+    const safeCode = qrAsset?.code ? `รหัส: ${esc(qrAsset.code)}` : '';
     win.document.write(`
-      <!DOCTYPE html><html><head><title>QR - ${qrAsset?.name}</title>
+      <!DOCTYPE html><html><head><title>QR - ${safeName}</title>
       <style>body{display:flex;flex-direction:column;align-items:center;justify-content:center;min-height:100vh;font-family:sans-serif;}
       h2{margin-bottom:8px;} p{color:#666;margin:4px 0;}</style></head>
       <body>
-        <h2>${qrAsset?.name || ''}</h2>
-        <p>${qrAsset?.code ? `รหัส: ${qrAsset.code}` : ''}</p>
+        <h2>${safeName}</h2>
+        <p>${safeCode}</p>
         ${svgData}
         <p style="margin-top:12px;font-size:12px;">Scan QR เพื่อดูรายละเอียด</p>
         <script>setTimeout(()=>{ window.print(); },500);</script>
