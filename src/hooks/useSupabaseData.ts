@@ -1,6 +1,6 @@
 import { useState, useEffect, useCallback } from 'react';
 import { supabase } from '@/integrations/supabase/client';
-import type { Ingredient, Recipe, RecipeCategory, RecipeIngredient, OverheadCosts } from '@/types/recipe';
+import type { Ingredient, IngredientBase, Recipe, RecipeCategory, RecipeIngredient, OverheadCosts } from '@/types/recipe';
 import { toast } from 'sonner';
 import { logActivity } from '@/hooks/useActivityLog';
 
@@ -12,6 +12,7 @@ function dbToIngredient(row: any): Ingredient {
     code: row.code,
     name: row.name,
     category: row.category,
+    baseValue: row.base_value || 'general',
     purchasePrice: Number(row.purchase_price),
     purchaseQty: Number(row.purchase_qty),
     purchaseUnit: row.purchase_unit,
@@ -28,6 +29,7 @@ function ingredientToDb(ing: Ingredient) {
     code: ing.code,
     name: ing.name,
     category: ing.category,
+    base_value: ing.baseValue || 'general',
     purchase_price: ing.purchasePrice,
     purchase_qty: ing.purchaseQty,
     purchase_unit: ing.purchaseUnit,
