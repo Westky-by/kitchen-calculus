@@ -20,21 +20,24 @@ serve(async (req) => {
     }
     const supabaseUrl = Deno.env.get("SUPABASE_URL")!;
     const anonKey = Deno.env.get("SUPABASE_ANON_KEY")!;
-    const callerClient = createClient(supabaseUrl, anonKey, {
-      global: { headers: { Authorization: authHeader } },
-    });
-    const { data: userData, error: userErr } = await callerClient.auth.getUser();
-    if (userErr || !userData?.user) {
+    const token = authHeader.replace("Bearer ", "");
+    const callerClient = createClient(supabaseUrl, anonKey);
+    const { data: claimsData, error: claimsErr } = await callerClient.auth.getClaims(token);
+    if (claimsErr || !claimsData?.claims?.sub) {
+      console.error("Auth failed:", claimsErr);
       return new Response(JSON.stringify({ error: "Unauthorized" }), {
         status: 401,
         headers: { ...corsHeaders, "Content-Type": "application/json" },
       });
     }
-    // Verify user is active
-    const { data: profile } = await callerClient
+    const userId = claimsData.claims.sub as string;
+    // Verify user is active (use service role to bypass RLS)
+    const serviceKey = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!;
+    const adminClient = createClient(supabaseUrl, serviceKey);
+    const { data: profile } = await adminClient
       .from("profiles")
       .select("is_active")
-      .eq("id", userData.user.id)
+      .eq("id", userId)
       .single();
     if (!profile?.is_active) {
       return new Response(JSON.stringify({ error: "Account disabled" }), {
