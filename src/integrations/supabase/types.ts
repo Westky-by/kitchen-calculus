@@ -136,8 +136,42 @@ export type Database = {
           },
         ]
       }
+      ingredient_bases: {
+        Row: {
+          color: string
+          created_at: string
+          icon: string
+          id: string
+          is_default: boolean
+          label: string
+          sort_order: number
+          value: string
+        }
+        Insert: {
+          color?: string
+          created_at?: string
+          icon?: string
+          id?: string
+          is_default?: boolean
+          label: string
+          sort_order?: number
+          value: string
+        }
+        Update: {
+          color?: string
+          created_at?: string
+          icon?: string
+          id?: string
+          is_default?: boolean
+          label?: string
+          sort_order?: number
+          value?: string
+        }
+        Relationships: []
+      }
       ingredients: {
         Row: {
+          base_value: string
           category: string
           code: string
           cost_per_unit: number
@@ -153,6 +187,7 @@ export type Database = {
           yield_qty: number
         }
         Insert: {
+          base_value?: string
           category?: string
           code?: string
           cost_per_unit?: number
@@ -168,6 +203,7 @@ export type Database = {
           yield_qty?: number
         }
         Update: {
+          base_value?: string
           category?: string
           code?: string
           cost_per_unit?: number
