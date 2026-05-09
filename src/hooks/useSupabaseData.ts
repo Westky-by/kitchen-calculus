@@ -123,20 +123,25 @@ export function useSupabaseData() {
   const [ingredients, setIngredients] = useState<Ingredient[]>([]);
   const [recipes, setRecipes] = useState<Recipe[]>([]);
   const [categories, setCategories] = useState<RecipeCategory[]>([]);
+  const [ingredientBases, setIngredientBases] = useState<IngredientBase[]>([]);
   const [loading, setLoading] = useState(true);
 
   // Fetch all data on mount
   useEffect(() => {
     const fetchAll = async () => {
       setLoading(true);
-      const [ingRes, recRes, catRes] = await Promise.all([
+      const [ingRes, recRes, catRes, baseRes] = await Promise.all([
         supabase.from('ingredients').select('*').order('created_at'),
         supabase.from('recipes').select('*').order('created_at'),
         supabase.from('recipe_categories').select('*').order('sort_order'),
+        supabase.from('ingredient_bases').select('*').order('sort_order'),
       ]);
       if (ingRes.data) setIngredients(ingRes.data.map(dbToIngredient));
       if (recRes.data) setRecipes(recRes.data.map(dbToRecipe));
       if (catRes.data) setCategories(catRes.data.map(dbToCategory));
+      if (baseRes.data) setIngredientBases(baseRes.data.map((r: any) => ({
+        id: r.id, value: r.value, label: r.label, icon: r.icon, color: r.color, isDefault: r.is_default,
+      })));
       setLoading(false);
     };
     fetchAll();
@@ -232,10 +237,40 @@ export function useSupabaseData() {
     }
   }, []);
 
+  // --- Ingredient Bases ---
+  const saveIngredientBase = useCallback(async (base: IngredientBase) => {
+    const dbData = {
+      id: base.id, value: base.value, label: base.label, icon: base.icon,
+      color: base.color, is_default: base.isDefault ?? false,
+      sort_order: ingredientBases.findIndex(b => b.id === base.id),
+    };
+    if (dbData.sort_order < 0) dbData.sort_order = ingredientBases.length;
+    const { error } = await supabase.from('ingredient_bases').upsert(dbData);
+    if (error) { toast.error('บันทึกฐานวัตถุดิบไม่สำเร็จ: ' + error.message); return; }
+    setIngredientBases((prev) => {
+      const idx = prev.findIndex((b) => b.id === base.id);
+      if (idx >= 0) { const u = [...prev]; u[idx] = base; return u; }
+      return [...prev, base];
+    });
+    toast.success('บันทึกฐานวัตถุดิบเรียบร้อย');
+    logActivity('บันทึกฐานวัตถุดิบ', 'ingredient_bases', base.id, { label: base.label });
+  }, [ingredientBases]);
+
+  const deleteIngredientBase = useCallback(async (id: string) => {
+    const base = ingredientBases.find(b => b.id === id);
+    if (base?.value === 'general') { toast.error('ไม่สามารถลบฐาน "ทั่วไป" ได้'); return; }
+    const { error } = await supabase.from('ingredient_bases').delete().eq('id', id);
+    if (error) { toast.error('ลบฐานไม่สำเร็จ'); return; }
+    setIngredientBases((prev) => prev.filter((b) => b.id !== id));
+    toast.success('ลบฐานวัตถุดิบเรียบร้อย');
+    logActivity('ลบฐานวัตถุดิบ', 'ingredient_bases', id, { label: base?.label });
+  }, [ingredientBases]);
+
   return {
-    ingredients, recipes, categories, loading,
+    ingredients, recipes, categories, ingredientBases, loading,
     saveIngredient, deleteIngredient, bulkImportIngredients,
     saveRecipe, deleteRecipe,
     saveCategory, deleteCategory, reorderCategories,
+    saveIngredientBase, deleteIngredientBase,
   };
 }
