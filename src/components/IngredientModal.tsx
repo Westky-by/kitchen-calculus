@@ -4,7 +4,7 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import type { Ingredient } from '@/types/recipe';
+import type { Ingredient, IngredientBase } from '@/types/recipe';
 import { INGREDIENT_CATEGORIES, UNITS } from '@/types/recipe';
 import { Save } from 'lucide-react';
 
@@ -13,13 +13,16 @@ interface IngredientModalProps {
   onClose: () => void;
   onSave: (ingredient: Ingredient) => void;
   editingIngredient?: Ingredient | null;
+  bases?: IngredientBase[];
+  defaultBaseValue?: string;
 }
 
-const IngredientModal = ({ open, onClose, onSave, editingIngredient }: IngredientModalProps) => {
+const IngredientModal = ({ open, onClose, onSave, editingIngredient, bases = [], defaultBaseValue = 'general' }: IngredientModalProps) => {
   const [form, setForm] = useState({
     code: '',
     name: '',
     category: 'เครื่องปรุง',
+    baseValue: defaultBaseValue,
     purchasePrice: 0,
     purchaseQty: 1,
     purchaseUnit: 'Kg',
@@ -33,6 +36,7 @@ const IngredientModal = ({ open, onClose, onSave, editingIngredient }: Ingredien
         code: editingIngredient.code,
         name: editingIngredient.name,
         category: editingIngredient.category,
+        baseValue: editingIngredient.baseValue || 'general',
         purchasePrice: editingIngredient.purchasePrice,
         purchaseQty: editingIngredient.purchaseQty,
         purchaseUnit: editingIngredient.purchaseUnit,
@@ -44,6 +48,7 @@ const IngredientModal = ({ open, onClose, onSave, editingIngredient }: Ingredien
         code: '',
         name: '',
         category: 'เครื่องปรุง',
+        baseValue: defaultBaseValue,
         purchasePrice: 0,
         purchaseQty: 1,
         purchaseUnit: 'Kg',
@@ -51,7 +56,7 @@ const IngredientModal = ({ open, onClose, onSave, editingIngredient }: Ingredien
         usageUnit: 'G',
       });
     }
-  }, [editingIngredient, open]);
+  }, [editingIngredient, open, defaultBaseValue]);
 
   const calculateCostPerUnit = () => {
     if (form.purchaseQty === 0 || form.yieldPercent === 0) return 0;
@@ -71,6 +76,7 @@ const IngredientModal = ({ open, onClose, onSave, editingIngredient }: Ingredien
       code: form.code || `ING-${Date.now().toString(36).toUpperCase()}`,
       name: form.name,
       category: form.category,
+      baseValue: form.baseValue || 'general',
       purchasePrice: form.purchasePrice,
       purchaseQty: form.purchaseQty,
       purchaseUnit: form.purchaseUnit,
