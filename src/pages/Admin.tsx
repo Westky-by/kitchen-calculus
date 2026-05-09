@@ -36,12 +36,22 @@ interface LogRow {
   created_at: string;
 }
 
+interface VersionRow {
+  id: string;
+  version: string;
+  title: string;
+  notes: string;
+  created_by_username: string;
+  created_at: string;
+}
+
 const Admin = () => {
   const { role, user } = useAuth();
   const navigate = useNavigate();
-  const [tab, setTab] = useState<'users' | 'logs'>('users');
+  const [tab, setTab] = useState<'users' | 'logs' | 'versions'>('users');
   const [users, setUsers] = useState<UserRow[]>([]);
   const [logs, setLogs] = useState<LogRow[]>([]);
+  const [versions, setVersions] = useState<VersionRow[]>([]);
   const [loading, setLoading] = useState(true);
 
   // Add user form
