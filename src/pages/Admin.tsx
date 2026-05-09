@@ -9,7 +9,9 @@ import { Label } from '@/components/ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger, DialogFooter, DialogClose } from '@/components/ui/dialog';
-import { ArrowLeft, Users, Shield, Activity, UserX, UserCheck, UserPlus, Eye, EyeOff, KeyRound } from 'lucide-react';
+import { ArrowLeft, Users, Shield, Activity, UserX, UserCheck, UserPlus, Eye, EyeOff, KeyRound, Info, Rocket, Plus, Trash2 } from 'lucide-react';
+import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
+import { Textarea } from '@/components/ui/textarea';
 import { useNavigate } from 'react-router-dom';
 import { toast } from 'sonner';
 import { logActivity } from '@/hooks/useActivityLog';
@@ -34,12 +36,22 @@ interface LogRow {
   created_at: string;
 }
 
+interface VersionRow {
+  id: string;
+  version: string;
+  title: string;
+  notes: string;
+  created_by_username: string;
+  created_at: string;
+}
+
 const Admin = () => {
   const { role, user } = useAuth();
   const navigate = useNavigate();
-  const [tab, setTab] = useState<'users' | 'logs'>('users');
+  const [tab, setTab] = useState<'users' | 'logs' | 'versions'>('users');
   const [users, setUsers] = useState<UserRow[]>([]);
   const [logs, setLogs] = useState<LogRow[]>([]);
+  const [versions, setVersions] = useState<VersionRow[]>([]);
   const [loading, setLoading] = useState(true);
 
   // Add user form
@@ -59,6 +71,12 @@ const Admin = () => {
   const [resetPassword, setResetPassword] = useState('');
   const [showResetPassword, setShowResetPassword] = useState(false);
   const [resetting, setResetting] = useState(false);
+
+  // Version updates
+  const [verVersion, setVerVersion] = useState('');
+  const [verTitle, setVerTitle] = useState('');
+  const [verNotes, setVerNotes] = useState('');
+  const [savingVersion, setSavingVersion] = useState(false);
 
   const fetchUsers = useCallback(async () => {
     const [profRes, roleRes] = await Promise.all([
@@ -80,15 +98,60 @@ const Admin = () => {
       .from('activity_logs')
       .select('*')
       .order('created_at', { ascending: false })
-      .limit(200);
+      .limit(500);
     if (data) setLogs(data as LogRow[]);
   }, []);
+
+  const fetchVersions = useCallback(async () => {
+    const { data } = await supabase
+      .from('version_updates')
+      .select('*')
+      .order('created_at', { ascending: false });
+    if (data) setVersions(data as VersionRow[]);
+  }, []);
+
+  const handleAddVersion = async () => {
+    if (!verVersion.trim() || !verTitle.trim()) {
+      toast.error('กรุณากรอกเลขเวอร์ชัน และหัวข้อ');
+      return;
+    }
+    setSavingVersion(true);
+    try {
+      const profRes = await supabase.from('profiles').select('username').eq('id', user!.id).single();
+      const username = (profRes.data as any)?.username || '';
+      const { data, error } = await supabase.from('version_updates').insert({
+        version: verVersion.trim(),
+        title: verTitle.trim(),
+        notes: verNotes.trim(),
+        created_by: user!.id,
+        created_by_username: username,
+      }).select().single();
+      if (error) { toast.error('บันทึกไม่สำเร็จ: ' + error.message); return; }
+      toast.success('บันทึกการอัพเดทเวอร์ชันเรียบร้อย');
+      await logActivity('อัพเดทเวอร์ชัน Public', 'version_updates', (data as any).id, {
+        version: verVersion.trim(), title: verTitle.trim(),
+      });
+      setVerVersion(''); setVerTitle(''); setVerNotes('');
+      fetchVersions();
+    } finally {
+      setSavingVersion(false);
+    }
+  };
+
+  const handleDeleteVersion = async (v: VersionRow) => {
+    if (!confirm(`ลบเวอร์ชัน ${v.version} หรือไม่?`)) return;
+    const { error } = await supabase.from('version_updates').delete().eq('id', v.id);
+    if (error) { toast.error('ลบไม่สำเร็จ'); return; }
+    toast.success('ลบเรียบร้อย');
+    await logActivity('ลบประวัติเวอร์ชัน', 'version_updates', v.id, { version: v.version });
+    fetchVersions();
+  };
 
   useEffect(() => {
     if (role !== 'admin' && role !== 'super_admin') return;
     setLoading(true);
-    Promise.all([fetchUsers(), fetchLogs()]).then(() => setLoading(false));
-  }, [role, fetchUsers, fetchLogs]);
+    Promise.all([fetchUsers(), fetchLogs(), fetchVersions()]).then(() => setLoading(false));
+  }, [role, fetchUsers, fetchLogs, fetchVersions]);
 
   const canManageUser = (targetRole: string) => {
     if (role === 'super_admin') return true;
@@ -252,6 +315,12 @@ const Admin = () => {
               className={`flex items-center gap-2 px-4 py-2 text-sm border-b-[3px] ${tab === 'logs' ? 'tab-active' : 'tab-inactive border-transparent'}`}
             >
               <Activity className="w-4 h-4" /> Activity Log
+            </button>
+            <button
+              onClick={() => { setTab('versions'); fetchVersions(); }}
+              className={`flex items-center gap-2 px-4 py-2 text-sm border-b-[3px] ${tab === 'versions' ? 'tab-active' : 'tab-inactive border-transparent'}`}
+            >
+              <Rocket className="w-4 h-4" /> อัพเดทเวอร์ชัน Public
             </button>
           </div>
         </div>
@@ -427,44 +496,155 @@ const Admin = () => {
               </Table>
             </div>
           </Card>
+        ) : tab === 'logs' ? (
+          <div className="space-y-4">
+            <Alert>
+              <Info className="h-4 w-4" />
+              <AlertTitle>เกี่ยวกับ Activity Log</AlertTitle>
+              <AlertDescription className="text-sm">
+                ระบบบันทึกทุกการเคลื่อนไหวของผู้ใช้โดยอัตโนมัติ ได้แก่ การเข้า/ออกระบบ, การเพิ่ม-แก้ไข-ลบ
+                วัตถุดิบ สูตรอาหาร หมวดหมู่ ฐานวัตถุดิบ ทรัพย์สิน รวมถึงการจัดเรียงลำดับ และการจัดการผู้ใช้
+                (สร้าง / เปลี่ยน Role / ปิด-เปิดบัญชี / รีเซ็ตรหัสผ่าน) ส่วนการอัพเดทเวอร์ชัน Public
+                จะถูกแยกแสดงในแท็บ "อัพเดทเวอร์ชัน Public"
+              </AlertDescription>
+            </Alert>
+            {(() => {
+              const filteredLogs = logs.filter(l => l.table_name !== 'version_updates');
+              return (
+                <Card className="p-4">
+                  <h2 className="text-lg font-bold mb-4 flex items-center gap-2">
+                    <Activity className="w-5 h-5" /> Activity Log ({filteredLogs.length})
+                  </h2>
+                  <div className="overflow-auto max-h-[70vh]">
+                    <Table>
+                      <TableHeader>
+                        <TableRow>
+                          <TableHead className="w-40">เวลา</TableHead>
+                          <TableHead>ผู้ใช้</TableHead>
+                          <TableHead>การกระทำ</TableHead>
+                          <TableHead>ตาราง</TableHead>
+                          <TableHead>รายละเอียด</TableHead>
+                        </TableRow>
+                      </TableHeader>
+                      <TableBody>
+                        {filteredLogs.map((log) => (
+                          <TableRow key={log.id}>
+                            <TableCell className="text-xs text-muted-foreground whitespace-nowrap">
+                              {new Date(log.created_at).toLocaleString('th-TH')}
+                            </TableCell>
+                            <TableCell className="font-medium">{log.username}</TableCell>
+                            <TableCell>{log.action}</TableCell>
+                            <TableCell>
+                              {log.table_name && <Badge variant="outline">{log.table_name}</Badge>}
+                            </TableCell>
+                            <TableCell className="text-xs max-w-xs truncate">
+                              {log.details && Object.keys(log.details).length > 0
+                                ? JSON.stringify(log.details)
+                                : '-'}
+                            </TableCell>
+                          </TableRow>
+                        ))}
+                      </TableBody>
+                    </Table>
+                  </div>
+                </Card>
+              );
+            })()}
+          </div>
         ) : (
-          <Card className="p-4">
-            <h2 className="text-lg font-bold mb-4 flex items-center gap-2">
-              <Activity className="w-5 h-5" /> Activity Log ({logs.length})
-            </h2>
-            <div className="overflow-auto max-h-[70vh]">
-              <Table>
-                <TableHeader>
-                  <TableRow>
-                    <TableHead className="w-40">เวลา</TableHead>
-                    <TableHead>ผู้ใช้</TableHead>
-                    <TableHead>การกระทำ</TableHead>
-                    <TableHead>ตาราง</TableHead>
-                    <TableHead>รายละเอียด</TableHead>
-                  </TableRow>
-                </TableHeader>
-                <TableBody>
-                  {logs.map((log) => (
-                    <TableRow key={log.id}>
-                      <TableCell className="text-xs text-muted-foreground whitespace-nowrap">
-                        {new Date(log.created_at).toLocaleString('th-TH')}
-                      </TableCell>
-                      <TableCell className="font-medium">{log.username}</TableCell>
-                      <TableCell>{log.action}</TableCell>
-                      <TableCell>
-                        {log.table_name && <Badge variant="outline">{log.table_name}</Badge>}
-                      </TableCell>
-                      <TableCell className="text-xs max-w-xs truncate">
-                        {log.details && Object.keys(log.details).length > 0
-                          ? JSON.stringify(log.details)
-                          : '-'}
-                      </TableCell>
+          <div className="space-y-4">
+            <Alert>
+              <Rocket className="h-4 w-4" />
+              <AlertTitle>อัพเดทเวอร์ชัน Public</AlertTitle>
+              <AlertDescription className="text-sm">
+                บันทึกการเผยแพร่ (Publish) เวอร์ชันใหม่ของระบบเพื่อให้ผู้ใช้ทราบถึงความเปลี่ยนแปลง —
+                เฉพาะ Admin / Super Admin เท่านั้นที่สามารถเพิ่ม / ลบประวัติได้
+              </AlertDescription>
+            </Alert>
+            <Card className="p-4">
+              <h2 className="text-lg font-bold mb-4 flex items-center gap-2">
+                <Plus className="w-5 h-5" /> เพิ่มบันทึกเวอร์ชันใหม่
+              </h2>
+              <div className="grid gap-3 md:grid-cols-[160px_1fr]">
+                <div className="space-y-1">
+                  <Label>เวอร์ชัน *</Label>
+                  <Input
+                    placeholder="เช่น 1.2.0"
+                    value={verVersion}
+                    onChange={(e) => setVerVersion(e.target.value)}
+                  />
+                </div>
+                <div className="space-y-1">
+                  <Label>หัวข้อ *</Label>
+                  <Input
+                    placeholder="สรุปสั้นๆ ของเวอร์ชันนี้"
+                    value={verTitle}
+                    onChange={(e) => setVerTitle(e.target.value)}
+                  />
+                </div>
+              </div>
+              <div className="space-y-1 mt-3">
+                <Label>รายละเอียดการเปลี่ยนแปลง</Label>
+                <Textarea
+                  placeholder="ลิสต์การเปลี่ยนแปลง / Bug fixes / ฟีเจอร์ใหม่"
+                  value={verNotes}
+                  onChange={(e) => setVerNotes(e.target.value)}
+                  rows={4}
+                />
+              </div>
+              <div className="flex justify-end mt-3">
+                <Button onClick={handleAddVersion} disabled={savingVersion} className="gap-1">
+                  <Plus className="w-4 h-4" /> {savingVersion ? 'กำลังบันทึก...' : 'บันทึกเวอร์ชัน'}
+                </Button>
+              </div>
+            </Card>
+            <Card className="p-4">
+              <h2 className="text-lg font-bold mb-4 flex items-center gap-2">
+                <Rocket className="w-5 h-5" /> ประวัติเวอร์ชัน ({versions.length})
+              </h2>
+              <div className="overflow-auto max-h-[60vh]">
+                <Table>
+                  <TableHeader>
+                    <TableRow>
+                      <TableHead className="w-40">เวลา</TableHead>
+                      <TableHead className="w-28">เวอร์ชัน</TableHead>
+                      <TableHead>หัวข้อ</TableHead>
+                      <TableHead>รายละเอียด</TableHead>
+                      <TableHead>โดย</TableHead>
+                      <TableHead className="w-16"></TableHead>
                     </TableRow>
-                  ))}
-                </TableBody>
-              </Table>
-            </div>
-          </Card>
+                  </TableHeader>
+                  <TableBody>
+                    {versions.length === 0 && (
+                      <TableRow>
+                        <TableCell colSpan={6} className="text-center text-muted-foreground py-8">
+                          ยังไม่มีบันทึกการอัพเดทเวอร์ชัน
+                        </TableCell>
+                      </TableRow>
+                    )}
+                    {versions.map((v) => (
+                      <TableRow key={v.id}>
+                        <TableCell className="text-xs text-muted-foreground whitespace-nowrap">
+                          {new Date(v.created_at).toLocaleString('th-TH')}
+                        </TableCell>
+                        <TableCell>
+                          <Badge>{v.version}</Badge>
+                        </TableCell>
+                        <TableCell className="font-medium">{v.title}</TableCell>
+                        <TableCell className="text-xs whitespace-pre-wrap max-w-md">{v.notes || '-'}</TableCell>
+                        <TableCell className="text-xs">{v.created_by_username}</TableCell>
+                        <TableCell>
+                          <Button size="icon" variant="ghost" onClick={() => handleDeleteVersion(v)}>
+                            <Trash2 className="w-4 h-4 text-destructive" />
+                          </Button>
+                        </TableCell>
+                      </TableRow>
+                    ))}
+                  </TableBody>
+                </Table>
+              </div>
+            </Card>
+          </div>
         )}
       </main>
 
