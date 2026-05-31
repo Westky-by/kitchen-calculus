@@ -54,7 +54,7 @@ Deno.serve(async (req) => {
       });
     }
 
-    const { username, password, full_name, position, role } = await req.json();
+    const { username, password, full_name, position, creator_code, role } = await req.json();
 
     // Validate inputs
     if (!username || !password) {
