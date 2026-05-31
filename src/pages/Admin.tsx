@@ -416,6 +416,16 @@ const Admin = () => {
                       />
                     </div>
                     <div className="space-y-2">
+                      <Label>รหัสผู้สร้าง (Creator Code)</Label>
+                      <Input
+                        value={newCreatorCode}
+                        onChange={e => setNewCreatorCode(e.target.value)}
+                        placeholder="เช่น 01, 02, AB"
+                        maxLength={6}
+                      />
+                      <p className="text-xs text-muted-foreground">รหัส 2 หลักผูกกับบัญชี (default: 00)</p>
+                    </div>
+                    <div className="space-y-2">
                       <Label>สิทธิ์การใช้งาน</Label>
                       <Select value={newRole} onValueChange={setNewRole}>
                         <SelectTrigger>
