@@ -400,7 +400,7 @@ const TaxInvoicePage = () => {
 
   const previewNumber = useMemo(() => {
     if (data.doc_number) return data.doc_number;
-    return buildDocNumber(creatorCode, data.doc_date, 1) + ' (ตัวอย่าง)';
+    return buildDocNumber(creatorCode, data.doc_date, 1);
   }, [creatorCode, data.doc_date, data.doc_number]);
 
   if (authLoading) return <div className="p-8">กำลังโหลด...</div>;
@@ -508,7 +508,7 @@ const TaxInvoicePage = () => {
                       />
                     </div>
                     <div>
-                      <Label className="text-xs">เลขที่ (ตัวอย่าง)</Label>
+                      <Label className="text-xs">เลขที่เอกสาร</Label>
                       <Input value={previewNumber} readOnly className="font-mono text-xs" />
                     </div>
                   </div>
