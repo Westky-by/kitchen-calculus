@@ -12,9 +12,10 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@
 import { Tabs, TabsList, TabsTrigger, TabsContent } from '@/components/ui/tabs';
 import { Badge } from '@/components/ui/badge';
 import { Checkbox } from '@/components/ui/checkbox';
-import { ArrowLeft, Plus, Printer, Upload, Trash2, FileText, Eye, Sparkles, Save } from 'lucide-react';
+import { ArrowLeft, Plus, Upload, Trash2, FileText, Eye, Sparkles, Save } from 'lucide-react';
 import { toast } from 'sonner';
 import TaxInvoiceDoc, { type InvoiceData, type InvoiceItem } from '@/components/TaxInvoiceDoc';
+import PrintActions from '@/components/PrintActions';
 import { bahtText } from '@/lib/bahtText';
 import { logActivity } from '@/hooks/useActivityLog';
 import '@/styles/tax-invoice.css';
@@ -435,10 +436,6 @@ const TaxInvoicePage = () => {
     fetchList();
   };
 
-  const handlePrint = () => {
-    window.print();
-  };
-
   const previewNumber = useMemo(() => {
     if (data.doc_number) return data.doc_number;
     return buildDocNumber(creatorCode, data.doc_date, 1);
@@ -746,7 +743,7 @@ const TaxInvoicePage = () => {
           <DialogHeader className="print:hidden">
             <DialogTitle className="flex items-center justify-between">
               <span>ตัวอย่างเอกสาร 3 ชุด (A4 ต่อหน้า)</span>
-              <Button onClick={handlePrint} size="sm"><Printer className="w-4 h-4 mr-1" />พิมพ์ / Save PDF</Button>
+              <PrintActions printAreaId="tax-invoice-print-area" title={`Tax-Invoice-${printData?.doc_number || 'preview'}`} />
             </DialogTitle>
           </DialogHeader>
           {printSourceImage && (
@@ -758,7 +755,7 @@ const TaxInvoicePage = () => {
             </div>
           )}
           {printData && (
-            <div className="ti-print-area" ref={printRef}>
+            <div id="tax-invoice-print-area" className="ti-print-area" ref={printRef}>
               <div className="ti-print-root">
                 <TaxInvoiceDoc data={printData} copy="original" />
                 <TaxInvoiceDoc data={printData} copy="company" />
