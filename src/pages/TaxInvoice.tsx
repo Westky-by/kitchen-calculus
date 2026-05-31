@@ -98,6 +98,7 @@ const TaxInvoicePage = () => {
   const [loading, setLoading] = useState(true);
   const [creatorCode, setCreatorCode] = useState('00');
   const [tab, setTab] = useState<'list' | 'new'>('list');
+  const [search, setSearch] = useState('');
 
   // Form
   const [data, setData] = useState<InvoiceData>(emptyInvoice(todayISO()));
@@ -441,6 +442,26 @@ const TaxInvoicePage = () => {
     return buildDocNumber(creatorCode, data.doc_date, 1);
   }, [creatorCode, data.doc_date, data.doc_number]);
 
+  const filteredList = useMemo(() => {
+    const q = search.trim().toLowerCase();
+    if (!q) return list;
+    return list.filter(r => {
+      const dateStr = new Date(r.doc_date).toLocaleDateString('th-TH');
+      const status = r.is_backdated ? 'ย้อนหลัง backdated' : 'ปกติ normal';
+      const amount = Number(r.grand_total || 0).toLocaleString('en-US', { minimumFractionDigits: 2 });
+      return [
+        r.doc_number,
+        r.doc_date,
+        dateStr,
+        r.customer_name,
+        amount,
+        String(r.grand_total ?? ''),
+        r.created_by_username,
+        status,
+      ].some(v => String(v || '').toLowerCase().includes(q));
+    });
+  }, [list, search]);
+
   if (authLoading) return <div className="p-8">กำลังโหลด...</div>;
   if (!user) { navigate('/login'); return null; }
 
@@ -465,14 +486,25 @@ const TaxInvoicePage = () => {
         <Tabs value={tab} onValueChange={(v: any) => setTab(v)}>
           <div className="flex items-center justify-between mb-3">
             <TabsList>
-              <TabsTrigger value="list"><FileText className="w-4 h-4 mr-1" /> เอกสารทั้งหมด ({list.length})</TabsTrigger>
+              <TabsTrigger value="list"><FileText className="w-4 h-4 mr-1" /> เอกสารทั้งหมด ({filteredList.length}{search ? `/${list.length}` : ''})</TabsTrigger>
               <TabsTrigger value="new"><Plus className="w-4 h-4 mr-1" /> สร้างใหม่</TabsTrigger>
             </TabsList>
             {tab === 'list' && <Button onClick={startNew}><Plus className="w-4 h-4 mr-1" />สร้างใหม่</Button>}
           </div>
 
           <TabsContent value="list">
-            <Card className="p-4">
+            <Card className="p-4 space-y-3">
+              <div className="flex items-center gap-2">
+                <Input
+                  placeholder="ค้นหา: เลขที่ / วันที่ / ลูกค้า / ยอดสุทธิ / ผู้สร้าง / สถานะ"
+                  value={search}
+                  onChange={e => setSearch(e.target.value)}
+                  className="max-w-md"
+                />
+                {search && (
+                  <Button variant="ghost" size="sm" onClick={() => setSearch('')}>ล้าง</Button>
+                )}
+              </div>
               {loading ? <p className="text-muted-foreground">กำลังโหลด...</p> : (
                 <div className="overflow-auto">
                   <Table>
@@ -488,10 +520,10 @@ const TaxInvoicePage = () => {
                       </TableRow>
                     </TableHeader>
                     <TableBody>
-                      {list.length === 0 && (
-                        <TableRow><TableCell colSpan={7} className="text-center text-muted-foreground py-8">ยังไม่มีเอกสาร</TableCell></TableRow>
+                      {filteredList.length === 0 && (
+                        <TableRow><TableCell colSpan={7} className="text-center text-muted-foreground py-8">{search ? 'ไม่พบเอกสารตามที่ค้นหา' : 'ยังไม่มีเอกสาร'}</TableCell></TableRow>
                       )}
-                      {list.map(r => (
+                      {filteredList.map(r => (
                         <TableRow key={r.id}>
                           <TableCell className="font-mono font-medium">{r.doc_number}</TableCell>
                           <TableCell>{new Date(r.doc_date).toLocaleDateString('th-TH')}</TableCell>
