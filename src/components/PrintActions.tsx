@@ -10,6 +10,7 @@ interface PrintActionsProps {
 
 async function captureNode(node: HTMLElement, width: number) {
   const { default: html2canvas } = await import('html2canvas');
+  const isTaxInvoiceDoc = node.classList.contains('ti-doc');
 
   const sandbox = document.createElement('div');
   sandbox.style.position = 'fixed';
@@ -17,13 +18,6 @@ async function captureNode(node: HTMLElement, width: number) {
   sandbox.style.top = '0';
   sandbox.style.zIndex = '-1';
   sandbox.style.background = 'white';
-
-  const frame = document.createElement('div');
-  const maxHeight = width * Math.SQRT2;
-  frame.style.width = `${width}px`;
-  frame.style.height = `${maxHeight}px`;
-  frame.style.overflow = 'hidden';
-  frame.style.background = 'white';
 
   const clone = node.cloneNode(true) as HTMLElement;
   clone.style.width = `${width}px`;
@@ -46,30 +40,52 @@ async function captureNode(node: HTMLElement, width: number) {
     n.style.display = 'none';
   });
 
-  frame.appendChild(clone);
-  sandbox.appendChild(frame);
+  const frame = document.createElement('div');
+  const maxHeight = width * Math.SQRT2;
+  if (isTaxInvoiceDoc) {
+    frame.style.width = `${width}px`;
+    frame.style.height = `${maxHeight}px`;
+    frame.style.overflow = 'hidden';
+    frame.style.background = 'white';
+    frame.appendChild(clone);
+    sandbox.appendChild(frame);
+  } else {
+    sandbox.appendChild(clone);
+  }
   document.body.appendChild(sandbox);
 
-  const naturalHeight = Math.max(clone.scrollHeight, clone.offsetHeight);
-  const fitScale = Math.min(1, maxHeight / Math.max(1, naturalHeight));
-  if (fitScale < 1) {
-    clone.style.transform = `scale(${fitScale})`;
-    clone.style.setProperty('--ti-fit-scale', `${fitScale}`);
+  try {
+    if (isTaxInvoiceDoc) {
+      const naturalHeight = Math.max(clone.scrollHeight, clone.offsetHeight);
+      const fitScale = Math.min(1, maxHeight / Math.max(1, naturalHeight));
+      if (fitScale < 1) {
+        clone.style.transform = `scale(${fitScale})`;
+        clone.style.setProperty('--ti-fit-scale', `${fitScale}`);
+      }
+
+      return await html2canvas(frame, {
+        scale: 2,
+        useCORS: true,
+        logging: false,
+        backgroundColor: '#ffffff',
+        width,
+        height: maxHeight,
+        windowWidth: width,
+        windowHeight: maxHeight,
+      });
+    }
+
+    return await html2canvas(clone, {
+      scale: 2,
+      useCORS: true,
+      logging: false,
+      backgroundColor: '#ffffff',
+      windowWidth: clone.scrollWidth,
+      windowHeight: clone.scrollHeight,
+    });
+  } finally {
+    document.body.removeChild(sandbox);
   }
-
-  const canvas = await html2canvas(frame, {
-    scale: 2,
-    useCORS: true,
-    logging: false,
-    backgroundColor: '#ffffff',
-    width,
-    height: maxHeight,
-    windowWidth: width,
-    windowHeight: maxHeight,
-  });
-
-  document.body.removeChild(sandbox);
-  return canvas;
 }
 
 // 210mm at 96dpi ≈ 794px
