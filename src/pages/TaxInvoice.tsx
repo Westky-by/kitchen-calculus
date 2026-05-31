@@ -173,6 +173,7 @@ const TaxInvoicePage = () => {
     setBackdateNote('');
     setSavingId(null);
     setSavedAt('');
+    setSourceImageUrl('');
     setTab('new');
   };
 
