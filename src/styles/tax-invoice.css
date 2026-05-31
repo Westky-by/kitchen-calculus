@@ -24,10 +24,10 @@
   height: 145px;
   object-fit: contain;
 }
-.ti-company { padding-top: 6px; }
-.ti-company-th { font-size: 20pt; font-weight: 700; line-height: 1.1; text-align: center; }
-.ti-company-en { font-size: 16pt; font-weight: 700; line-height: 1.1; text-align: center; margin-bottom: 6px; }
-.ti-company-addr { font-size: 9pt; color: #111; line-height: 1.35; text-align: center; }
+.ti-company { padding-top: 6px; text-align: left; }
+.ti-company-th { font-size: 20pt; font-weight: 700; line-height: 1.1; text-align: left; }
+.ti-company-en { font-size: 16pt; font-weight: 700; line-height: 1.1; text-align: left; margin-bottom: 6px; }
+.ti-company-addr { font-size: 9pt; color: #111; line-height: 1.35; text-align: left; }
 
 /* Top-right small bordered box */
 .ti-corner-box {
