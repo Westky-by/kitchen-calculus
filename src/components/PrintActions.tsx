@@ -21,67 +21,43 @@ async function captureNode(node: HTMLElement, width: number) {
 
   const clone = node.cloneNode(true) as HTMLElement;
   clone.style.width = `${width}px`;
-  clone.style.minHeight = '0';
-  clone.style.maxHeight = 'none';
-  clone.style.height = 'auto';
-  clone.style.overflow = 'visible';
-  clone.style.transform = 'none';
   clone.style.margin = '0';
   clone.style.boxShadow = 'none';
+  clone.style.transform = 'none';
   clone.style.transformOrigin = 'top left';
   clone.style.setProperty('--ti-fit-scale', '1');
 
-  clone.querySelectorAll<HTMLElement>('[class*="overflow"], [class*="max-h-"]').forEach((n) => {
-    n.style.overflow = 'visible';
-    n.style.maxHeight = 'none';
-    n.style.height = 'auto';
-  });
+  if (isTaxInvoiceDoc) {
+    // Render at exact A4 size — no auto-scale, matches the on-screen layout 1:1
+    const A4_PX_HEIGHT = Math.round(width * Math.SQRT2);
+    clone.style.height = `${A4_PX_HEIGHT}px`;
+    clone.style.minHeight = `${A4_PX_HEIGHT}px`;
+    clone.style.maxHeight = `${A4_PX_HEIGHT}px`;
+    clone.style.overflow = 'hidden';
+  } else {
+    clone.style.minHeight = '0';
+    clone.style.maxHeight = 'none';
+    clone.style.height = 'auto';
+    clone.style.overflow = 'visible';
+  }
+
   clone.querySelectorAll<HTMLElement>('.print\\:hidden, [class*="print:hidden"], [data-print-hide="true"]').forEach((n) => {
     n.style.display = 'none';
   });
 
-  const frame = document.createElement('div');
-  const maxHeight = width * Math.SQRT2;
-  if (isTaxInvoiceDoc) {
-    frame.style.width = `${width}px`;
-    frame.style.height = `${maxHeight}px`;
-    frame.style.overflow = 'hidden';
-    frame.style.background = 'white';
-    frame.appendChild(clone);
-    sandbox.appendChild(frame);
-  } else {
-    sandbox.appendChild(clone);
-  }
+  sandbox.appendChild(clone);
   document.body.appendChild(sandbox);
 
   try {
-    if (isTaxInvoiceDoc) {
-      const naturalHeight = Math.max(clone.scrollHeight, clone.offsetHeight);
-      const fitScale = Math.min(1, maxHeight / Math.max(1, naturalHeight));
-      if (fitScale < 1) {
-        clone.style.transform = `scale(${fitScale})`;
-        clone.style.setProperty('--ti-fit-scale', `${fitScale}`);
-      }
-
-      return await html2canvas(frame, {
-        scale: 2,
-        useCORS: true,
-        logging: false,
-        backgroundColor: '#ffffff',
-        width,
-        height: maxHeight,
-        windowWidth: width,
-        windowHeight: maxHeight,
-      });
-    }
-
     return await html2canvas(clone, {
       scale: 2,
       useCORS: true,
       logging: false,
       backgroundColor: '#ffffff',
-      windowWidth: clone.scrollWidth,
-      windowHeight: clone.scrollHeight,
+      width: clone.offsetWidth,
+      height: clone.offsetHeight,
+      windowWidth: clone.offsetWidth,
+      windowHeight: clone.offsetHeight,
     });
   } finally {
     document.body.removeChild(sandbox);
@@ -145,9 +121,9 @@ const PrintActions = ({ printAreaId, title, size = 'sm' }: PrintActionsProps) =>
           <style>
             @page { margin: 0; size: A4; }
             html, body { margin: 0; padding: 0; background: white; }
-            .page { width: 210mm; height: 297mm; padding: 4mm; box-sizing: border-box; overflow: hidden; page-break-after: always; display: flex; align-items: center; justify-content: center; }
+            .page { width: 210mm; height: 297mm; overflow: hidden; page-break-after: always; }
             .page:last-child { page-break-after: auto; }
-            .page img { width: 100%; height: 100%; object-fit: contain; display: block; }
+            .page img { width: 210mm; height: 297mm; display: block; }
           </style>
         </head>
         <body>${pages}</body>
@@ -194,13 +170,8 @@ const PrintActions = ({ printAreaId, title, size = 'sm' }: PrintActionsProps) =>
 
       canvases.forEach((canvas, idx) => {
         if (idx > 0) pdf.addPage();
-        // Fit each captured doc onto a single A4 page, preserving aspect ratio
-        const ratio = Math.min(pageW / canvas.width, pageH / canvas.height);
-        const w = canvas.width * ratio;
-        const h = canvas.height * ratio;
-        const x = (pageW - w) / 2;
-        const y = (pageH - h) / 2;
-        pdf.addImage(canvas.toDataURL('image/png'), 'PNG', x, y, w, h);
+        // Fill full A4 — doc already includes its own A4 margins
+        pdf.addImage(canvas.toDataURL('image/png'), 'PNG', 0, 0, pageW, pageH);
       });
 
       const filename = (title || 'document').replace(/[^a-zA-Z0-9ก-๙\s-]/g, '').trim();

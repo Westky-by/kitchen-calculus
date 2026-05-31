@@ -21,6 +21,7 @@ interface UserRow {
   username: string;
   full_name: string;
   position: string;
+  creator_code: string;
   is_active: boolean;
   created_at: string;
   role: string;
@@ -60,9 +61,14 @@ const Admin = () => {
   const [newPassword, setNewPassword] = useState('');
   const [newFullName, setNewFullName] = useState('');
   const [newPosition, setNewPosition] = useState('');
+  const [newCreatorCode, setNewCreatorCode] = useState('');
   const [newRole, setNewRole] = useState('user');
   const [showPassword, setShowPassword] = useState(false);
   const [creating, setCreating] = useState(false);
+
+  // Inline creator_code edit
+  const [editingCodeId, setEditingCodeId] = useState<string>('');
+  const [editingCodeVal, setEditingCodeVal] = useState('');
 
   // Reset password
   const [resetOpen, setResetOpen] = useState(false);
@@ -205,6 +211,7 @@ const Admin = () => {
             password: newPassword,
             full_name: newFullName.trim(),
             position: newPosition.trim(),
+            creator_code: newCreatorCode.trim(),
             role: newRole,
           }),
         }
@@ -275,8 +282,22 @@ const Admin = () => {
     setNewPassword('');
     setNewFullName('');
     setNewPosition('');
+    setNewCreatorCode('');
     setNewRole('user');
     setShowPassword(false);
+  };
+
+  const handleSaveCreatorCode = async (userId: string) => {
+    const code = editingCodeVal.trim() || '00';
+    const { error } = await supabase
+      .from('profiles')
+      .update({ creator_code: code })
+      .eq('id', userId);
+    if (error) { toast.error('บันทึกรหัสผู้สร้างไม่สำเร็จ'); return; }
+    toast.success('บันทึกรหัสผู้สร้างเรียบร้อย');
+    await logActivity('แก้ไขรหัสผู้สร้าง', 'profiles', userId, { creator_code: code });
+    setEditingCodeId('');
+    fetchUsers();
   };
 
   if (role !== 'admin' && role !== 'super_admin') {
@@ -395,6 +416,16 @@ const Admin = () => {
                       />
                     </div>
                     <div className="space-y-2">
+                      <Label>รหัสผู้สร้าง (Creator Code)</Label>
+                      <Input
+                        value={newCreatorCode}
+                        onChange={e => setNewCreatorCode(e.target.value)}
+                        placeholder="เช่น 01, 02, AB"
+                        maxLength={6}
+                      />
+                      <p className="text-xs text-muted-foreground">รหัส 2 หลักผูกกับบัญชี (default: 00)</p>
+                    </div>
+                    <div className="space-y-2">
                       <Label>สิทธิ์การใช้งาน</Label>
                       <Select value={newRole} onValueChange={setNewRole}>
                         <SelectTrigger>
@@ -426,6 +457,7 @@ const Admin = () => {
                     <TableHead>ชื่อผู้ใช้</TableHead>
                     <TableHead>ชื่อ-นามสกุล</TableHead>
                     <TableHead>ตำแหน่ง</TableHead>
+                    <TableHead>รหัสผู้สร้าง</TableHead>
                     <TableHead>Role</TableHead>
                     <TableHead>สถานะ</TableHead>
                     <TableHead>สมัครเมื่อ</TableHead>
@@ -438,6 +470,33 @@ const Admin = () => {
                       <TableCell className="font-medium">{u.username}</TableCell>
                       <TableCell>{u.full_name}</TableCell>
                       <TableCell>{u.position || '-'}</TableCell>
+                      <TableCell>
+                        {editingCodeId === u.id ? (
+                          <div className="flex gap-1 items-center">
+                            <Input
+                              value={editingCodeVal}
+                              onChange={(e) => setEditingCodeVal(e.target.value)}
+                              className="w-20 h-8 text-xs"
+                              maxLength={6}
+                              autoFocus
+                              onKeyDown={(e) => {
+                                if (e.key === 'Enter') handleSaveCreatorCode(u.id);
+                                if (e.key === 'Escape') setEditingCodeId('');
+                              }}
+                            />
+                            <Button size="sm" variant="default" className="h-8 px-2 text-xs" onClick={() => handleSaveCreatorCode(u.id)}>OK</Button>
+                            <Button size="sm" variant="ghost" className="h-8 px-2 text-xs" onClick={() => setEditingCodeId('')}>×</Button>
+                          </div>
+                        ) : (
+                          <button
+                            type="button"
+                            onClick={() => { setEditingCodeId(u.id); setEditingCodeVal(u.creator_code || ''); }}
+                            className="font-mono text-sm px-2 py-1 rounded hover:bg-muted border border-dashed border-border"
+                          >
+                            {u.creator_code || '00'}
+                          </button>
+                        )}
+                      </TableCell>
                       <TableCell>
                         <Select
                           value={u.role}

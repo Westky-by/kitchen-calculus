@@ -54,7 +54,7 @@ Deno.serve(async (req) => {
       });
     }
 
-    const { username, password, full_name, position, role } = await req.json();
+    const { username, password, full_name, position, creator_code, role } = await req.json();
 
     // Validate inputs
     if (!username || !password) {
@@ -112,6 +112,14 @@ Deno.serve(async (req) => {
         .from("user_roles")
         .update({ role: "admin" })
         .eq("user_id", newUser.user.id);
+    }
+
+    // Apply creator_code if provided
+    if (creator_code && newUser.user) {
+      await adminClient
+        .from("profiles")
+        .update({ creator_code: String(creator_code).trim() })
+        .eq("id", newUser.user.id);
     }
 
     return new Response(
