@@ -589,6 +589,30 @@ const TaxInvoicePage = () => {
                   </div>
                 </Card>
 
+                <Card className="p-3 space-y-2">
+                  <h3 className="text-sm font-bold">ผู้ส่ง / ผู้รับสินค้า</h3>
+                  <div className="grid grid-cols-2 gap-2">
+                    <div>
+                      <Label className="text-xs">ชื่อผู้ส่งสินค้า</Label>
+                      <Input value={data.signer_name} onChange={e => setData(p => ({ ...p, signer_name: e.target.value }))} />
+                    </div>
+                    <div>
+                      <Label className="text-xs">เลขที่ใบอนุญาต (License)</Label>
+                      <Input value={data.signer_license} onChange={e => setData(p => ({ ...p, signer_license: e.target.value }))} />
+                    </div>
+                  </div>
+                  <div className="grid grid-cols-2 gap-2">
+                    <div>
+                      <Label className="text-xs">ชื่อผู้รับสินค้า</Label>
+                      <Input value={data.receiver_name} onChange={e => setData(p => ({ ...p, receiver_name: e.target.value }))} />
+                    </div>
+                    <div>
+                      <Label className="text-xs">วันที่ผู้รับ</Label>
+                      <Input type="date" value={data.receiver_date} onChange={e => setData(p => ({ ...p, receiver_date: e.target.value }))} />
+                    </div>
+                  </div>
+                </Card>
+
                 <div className="flex gap-2 sticky bottom-2">
                   <Button className="flex-1" onClick={handleSave} disabled={!!savingId}>
                     <Save className="w-4 h-4 mr-1" />{savingId ? 'บันทึกแล้ว' : 'บันทึกเอกสาร'}
