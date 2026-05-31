@@ -73,25 +73,25 @@
 /* ===== Customer + doc no ===== */
 .ti-customer {
   display: grid;
-  grid-template-columns: minmax(0, 1fr) 225px;
+  grid-template-columns: 1fr 230px;
   gap: 10px;
-  margin: 0 0 7px;
+  margin: 0 0 4px;
 }
-.ti-cust-left { display: flex; flex-direction: column; gap: 5px; min-width: 0; }
-.ti-cust-row { display: flex; align-items: flex-start; gap: 6px; font-size: 9.2pt; line-height: 1.35; flex-wrap: nowrap; min-width: 0; }
+.ti-cust-left { display: flex; flex-direction: column; gap: 3px; min-width: 0; }
+.ti-cust-row { display: flex; align-items: baseline; gap: 6px; font-size: 10pt; line-height: 1.25; flex-wrap: nowrap; min-width: 0; }
 .ti-cust-lbl { white-space: nowrap; }
 .ti-cust-val {
   flex: 1;
   border-bottom: 1px dotted #94a3b8;
-  min-height: 18px;
-  padding: 1px 4px 2px;
+  min-height: 16px;
+  padding: 0 4px 1px;
   font-weight: 500;
   white-space: normal;
   overflow-wrap: anywhere;
   word-break: normal;
 }
 .ti-cust-taxid { flex: 0 1 210px; }
-.ti-cb { display: inline-flex; align-items: center; gap: 4px; font-size: 9.2pt; line-height: 1.25; }
+.ti-cb { display: inline-flex; align-items: center; gap: 4px; font-size: 10pt; line-height: 1.2; }
 .ti-cb-mark {
   display: inline-block;
   width: 11px; height: 11px;
@@ -102,13 +102,13 @@
 .ti-cb-mark.on::after {
   content: '✓';
   position: absolute;
-  inset: -3px 0 0 1px;
-  font-size: 11pt;
+  inset: -4px 0 0 1px;
+  font-size: 12pt;
   line-height: 1;
   font-weight: 900;
 }
 .ti-cust-right { display: flex; flex-direction: column; gap: 4px; padding-top: 2px; }
-.ti-docno { display: flex; gap: 6px; font-size: 9.5pt; line-height: 1.35; align-items: baseline; }
+.ti-docno { display: flex; gap: 6px; font-size: 10pt; line-height: 1.25; align-items: baseline; }
 .ti-docno-lbl { font-weight: 600; min-width: 36px; }
 .ti-docno-val { color: #1e40af; font-weight: 700; flex: 1; text-align: left; }
 
