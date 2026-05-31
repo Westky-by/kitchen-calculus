@@ -108,10 +108,12 @@ const TaxInvoicePage = () => {
   // OCR
   const [ocrBusy, setOcrBusy] = useState(false);
   const fileRef = useRef<HTMLInputElement>(null);
+  const [sourceImageUrl, setSourceImageUrl] = useState<string>('');
 
   // View / Print
   const [printOpen, setPrintOpen] = useState(false);
   const [printData, setPrintData] = useState<InvoiceData | null>(null);
+  const [printSourceImage, setPrintSourceImage] = useState<string>('');
   const printRef = useRef<HTMLDivElement>(null);
 
   const isAdmin = role === 'admin' || role === 'super_admin';
