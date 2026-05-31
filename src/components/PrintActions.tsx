@@ -145,9 +145,9 @@ const PrintActions = ({ printAreaId, title, size = 'sm' }: PrintActionsProps) =>
           <style>
             @page { margin: 0; size: A4; }
             html, body { margin: 0; padding: 0; background: white; }
-            .page { width: 210mm; height: 297mm; overflow: hidden; page-break-after: always; display: flex; align-items: center; justify-content: center; }
+            .page { width: 210mm; height: 297mm; padding: 4mm; box-sizing: border-box; overflow: hidden; page-break-after: always; display: flex; align-items: center; justify-content: center; }
             .page:last-child { page-break-after: auto; }
-            .page img { width: 210mm; height: 297mm; object-fit: contain; display: block; }
+            .page img { width: 100%; height: 100%; object-fit: contain; display: block; }
           </style>
         </head>
         <body>${pages}</body>
