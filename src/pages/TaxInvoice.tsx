@@ -1,0 +1,634 @@
+import { useState, useEffect, useCallback, useMemo, useRef } from 'react';
+import { useNavigate } from 'react-router-dom';
+import { supabase } from '@/integrations/supabase/client';
+import { useAuth } from '@/hooks/useAuth';
+import { Button } from '@/components/ui/button';
+import { Card } from '@/components/ui/card';
+import { Input } from '@/components/ui/input';
+import { Label } from '@/components/ui/label';
+import { Textarea } from '@/components/ui/textarea';
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from '@/components/ui/dialog';
+import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
+import { Tabs, TabsList, TabsTrigger, TabsContent } from '@/components/ui/tabs';
+import { Badge } from '@/components/ui/badge';
+import { Checkbox } from '@/components/ui/checkbox';
+import { ArrowLeft, Plus, Printer, Upload, Trash2, FileText, Eye, Sparkles, Save } from 'lucide-react';
+import { toast } from 'sonner';
+import TaxInvoiceDoc, { type InvoiceData, type InvoiceItem } from '@/components/TaxInvoiceDoc';
+import { bahtText } from '@/lib/bahtText';
+import { logActivity } from '@/hooks/useActivityLog';
+import '@/styles/tax-invoice.css';
+
+interface InvoiceRow {
+  id: string;
+  doc_number: string;
+  doc_date: string;
+  customer_name: string;
+  grand_total: number;
+  is_backdated: boolean;
+  backdate_note: string;
+  created_by_username: string;
+  created_at: string;
+}
+
+const SAMPLE: Partial<InvoiceData> = {
+  customer_name: 'บริษัท ตัวอย่าง จำกัด',
+  customer_address: '123 ถนนสุขุมวิท แขวงคลองตัน เขตคลองเตย กรุงเทพฯ 10110',
+  customer_tax_id: '0105566001234',
+  branch_type: 'head',
+  branch_no: '',
+  items: [
+    { code: 'OY-67003', description: 'ค่าอาหารและเครื่องดื่ม', qty: 1, unit: 'รายการ', price: 2007.5 },
+  ],
+  notes: '',
+};
+
+function emptyInvoice(today: string): InvoiceData {
+  return {
+    doc_number: '',
+    doc_date: today,
+    customer_name: '',
+    customer_address: '',
+    customer_tax_id: '',
+    branch_type: 'head',
+    branch_no: '',
+    items: [{ code: '', description: '', qty: 1, unit: 'รายการ', price: 0 }],
+    total_amount: 0,
+    discount: 0,
+    amount_after_discount: 0,
+    vat: 0,
+    grand_total: 0,
+    amount_text: '',
+    payment_cash: false,
+    payment_transfer: false,
+    cheque_no: '',
+    cheque_bank: '',
+    cheque_date: '',
+    cheque_amount: 0,
+    notes: '',
+    signer_name: 'สัจจพร สมานิมงคล',
+    signer_date: today,
+  };
+}
+
+function todayISO() { return new Date().toISOString().slice(0, 10); }
+
+function buildDocNumber(creatorCode: string, dateStr: string, seq: number) {
+  const d = new Date(dateStr);
+  const buddhistYY = ((d.getFullYear() + 543) % 100).toString().padStart(2, '0');
+  const mm = (d.getMonth() + 1).toString().padStart(2, '0');
+  const dd = d.getDate().toString().padStart(2, '0');
+  const ss = seq.toString().padStart(3, '0');
+  // Example: 02 + 69 + 03 + 06 -> 02690306-001
+  return `${creatorCode}${buddhistYY}${mm}${dd}-${ss}`;
+}
+
+const TaxInvoicePage = () => {
+  const { user, profile, role, loading: authLoading, signOut } = useAuth();
+  const navigate = useNavigate();
+  const [list, setList] = useState<InvoiceRow[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [creatorCode, setCreatorCode] = useState('00');
+  const [tab, setTab] = useState<'list' | 'new'>('list');
+
+  // Form
+  const [data, setData] = useState<InvoiceData>(emptyInvoice(todayISO()));
+  const [isBackdated, setIsBackdated] = useState(false);
+  const [backdateNote, setBackdateNote] = useState('');
+  const [savingId, setSavingId] = useState<string | null>(null); // when viewing/printing an existing doc, this holds its id
+  const [savedAt, setSavedAt] = useState<string>('');
+
+  // OCR
+  const [ocrBusy, setOcrBusy] = useState(false);
+  const fileRef = useRef<HTMLInputElement>(null);
+
+  // View / Print
+  const [printOpen, setPrintOpen] = useState(false);
+  const [printData, setPrintData] = useState<InvoiceData | null>(null);
+  const printRef = useRef<HTMLDivElement>(null);
+
+  const isAdmin = role === 'admin' || role === 'super_admin';
+
+  // ---- Load profile creator_code + list ----
+  const fetchList = useCallback(async () => {
+    const { data: rows } = await supabase
+      .from('tax_invoices' as any)
+      .select('id,doc_number,doc_date,customer_name,grand_total,is_backdated,backdate_note,created_by_username,created_at')
+      .order('created_at', { ascending: false })
+      .limit(500);
+    setList((rows as any[]) || []);
+  }, []);
+
+  useEffect(() => {
+    if (!user) return;
+    setLoading(true);
+    (async () => {
+      const { data: prof } = await supabase
+        .from('profiles')
+        .select('creator_code' as any)
+        .eq('id', user.id)
+        .single();
+      setCreatorCode(((prof as any)?.creator_code as string) || '00');
+      await fetchList();
+      setLoading(false);
+    })();
+  }, [user, fetchList]);
+
+  // ---- Recalculate totals from items + discount ----
+  useEffect(() => {
+    const total = data.items.reduce((s, it) => s + (it.qty || 0) * (it.price || 0), 0);
+    const afterDiscount = Math.max(0, total - (data.discount || 0));
+    // user enters grand_total OR we compute it
+    // Here approach: total is sum of items (subtotal including everything user typed).
+    // afterDiscount is base for VAT-inclusive computation.
+    // VAT-inclusive: pre = after/1.07, vat = after - pre, grand = after
+    const grand = afterDiscount;
+    const pre = grand / 1.07;
+    const vat = grand - pre;
+    setData(prev => ({
+      ...prev,
+      total_amount: total,
+      amount_after_discount: afterDiscount,
+      vat,
+      grand_total: grand,
+      amount_text: bahtText(grand),
+    }));
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [JSON.stringify(data.items), data.discount]);
+
+  // ---- New invoice ----
+  const startNew = () => {
+    const t = todayISO();
+    setData(emptyInvoice(t));
+    setIsBackdated(false);
+    setBackdateNote('');
+    setSavingId(null);
+    setSavedAt('');
+    setTab('new');
+  };
+
+  const handleApplySample = () => {
+    setData(prev => ({ ...prev, ...SAMPLE } as InvoiceData));
+  };
+
+  const updateItem = (idx: number, patch: Partial<InvoiceItem>) => {
+    setData(prev => ({
+      ...prev,
+      items: prev.items.map((it, i) => i === idx ? { ...it, ...patch } : it),
+    }));
+  };
+  const addRow = () => setData(prev => ({ ...prev, items: [...prev.items, { code: '', description: '', qty: 1, unit: 'รายการ', price: 0 }] }));
+  const removeRow = (idx: number) => setData(prev => ({ ...prev, items: prev.items.filter((_, i) => i !== idx) }));
+
+  // ---- OCR ----
+  const onPickFile = () => fileRef.current?.click();
+  const handleFile = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const f = e.target.files?.[0];
+    if (!f) return;
+    if (f.size > 8 * 1024 * 1024) { toast.error('ไฟล์ใหญ่เกิน 8MB'); return; }
+    setOcrBusy(true);
+    try {
+      const dataUrl = await new Promise<string>((resolve, reject) => {
+        const r = new FileReader();
+        r.onload = () => resolve(r.result as string);
+        r.onerror = reject;
+        r.readAsDataURL(f);
+      });
+      const { data: sess } = await supabase.auth.getSession();
+      const res = await fetch(`${import.meta.env.VITE_SUPABASE_URL}/functions/v1/ocr-bill`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${sess.session?.access_token}`,
+        },
+        body: JSON.stringify({ image: dataUrl }),
+      });
+      const result = await res.json();
+      if (!res.ok) {
+        toast.error(result.error || 'OCR ไม่สำเร็จ');
+        return;
+      }
+      const r = result.data || {};
+      setData(prev => ({
+        ...prev,
+        doc_date: r.doc_date || prev.doc_date,
+        customer_name: r.customer_name || prev.customer_name,
+        customer_address: r.customer_address || prev.customer_address,
+        customer_tax_id: r.customer_tax_id || prev.customer_tax_id,
+        items: Array.isArray(r.items) && r.items.length > 0
+          ? r.items.map((x: any) => ({
+              code: String(x.code || ''),
+              description: String(x.description || ''),
+              qty: Number(x.qty) || 1,
+              unit: String(x.unit || 'รายการ'),
+              price: Number(x.price) || 0,
+            }))
+          : prev.items,
+      }));
+      toast.success('ดึงข้อมูลจากบิลเรียบร้อย กรุณาตรวจสอบก่อนบันทึก');
+    } catch (err: any) {
+      toast.error('เกิดข้อผิดพลาด: ' + (err?.message || ''));
+    } finally {
+      setOcrBusy(false);
+      if (fileRef.current) fileRef.current.value = '';
+    }
+  };
+
+  // ---- Save invoice ----
+  const handleSave = async () => {
+    if (!data.customer_name && !data.items.some(i => i.description)) {
+      toast.error('กรุณากรอกข้อมูลลูกค้าหรือรายการสินค้า');
+      return;
+    }
+    if (isBackdated && !backdateNote.trim()) {
+      toast.error('กรณีย้อนหลังต้องระบุ Note');
+      return;
+    }
+    if (!/^\d{2}$/.test(creatorCode)) {
+      toast.error('รหัสผู้สร้างของคุณยังไม่ได้ตั้งค่า (กรุณาให้ Admin ตั้ง 2 หลัก)');
+      return;
+    }
+
+    try {
+      // Get next sequence for the date
+      const { data: seqData, error: seqErr } = await supabase.rpc('next_tax_invoice_seq' as any, { _doc_date: data.doc_date });
+      if (seqErr) { toast.error('ขอเลขลำดับไม่สำเร็จ: ' + seqErr.message); return; }
+      const seq = Number(seqData) || 1;
+      const docNumber = buildDocNumber(creatorCode, data.doc_date, seq);
+
+      const payload = {
+        doc_number: docNumber,
+        creator_code: creatorCode,
+        doc_date: data.doc_date,
+        daily_seq: seq,
+        customer_name: data.customer_name,
+        customer_address: data.customer_address,
+        customer_tax_id: data.customer_tax_id,
+        branch_type: data.branch_type,
+        branch_no: data.branch_no,
+        items: data.items as any,
+        total_amount: data.total_amount,
+        discount: data.discount,
+        amount_after_discount: data.amount_after_discount,
+        vat: data.vat,
+        grand_total: data.grand_total,
+        amount_text: data.amount_text,
+        payment_method: {
+          cash: data.payment_cash,
+          transfer: data.payment_transfer,
+          cheque_no: data.cheque_no,
+          cheque_bank: data.cheque_bank,
+          cheque_date: data.cheque_date,
+          cheque_amount: data.cheque_amount,
+        } as any,
+        notes: data.notes,
+        is_backdated: isBackdated,
+        backdate_note: backdateNote,
+        created_by: user?.id,
+        created_by_username: profile?.username || '',
+      };
+
+      const { data: ins, error } = await supabase
+        .from('tax_invoices' as any)
+        .insert(payload as any)
+        .select('id,doc_number')
+        .single();
+      if (error) { toast.error('บันทึกไม่สำเร็จ: ' + error.message); return; }
+      setSavingId((ins as any).id);
+      setData(prev => ({ ...prev, doc_number: docNumber }));
+      setSavedAt(new Date().toLocaleString('th-TH'));
+      toast.success(`บันทึก ${docNumber} สำเร็จ`);
+      await logActivity('สร้างใบกำกับภาษี', 'tax_invoices', (ins as any).id, {
+        doc_number: docNumber,
+        grand_total: data.grand_total,
+        is_backdated: isBackdated,
+      });
+      fetchList();
+    } catch (err: any) {
+      toast.error('เกิดข้อผิดพลาด: ' + (err?.message || ''));
+    }
+  };
+
+  // ---- View existing ----
+  const handleView = async (row: InvoiceRow) => {
+    const { data: full, error } = await supabase
+      .from('tax_invoices' as any)
+      .select('*')
+      .eq('id', row.id)
+      .single();
+    if (error || !full) { toast.error('โหลดเอกสารไม่สำเร็จ'); return; }
+    const f: any = full;
+    const inv: InvoiceData = {
+      doc_number: f.doc_number,
+      doc_date: f.doc_date,
+      customer_name: f.customer_name,
+      customer_address: f.customer_address,
+      customer_tax_id: f.customer_tax_id,
+      branch_type: f.branch_type,
+      branch_no: f.branch_no,
+      items: f.items || [],
+      total_amount: Number(f.total_amount),
+      discount: Number(f.discount),
+      amount_after_discount: Number(f.amount_after_discount),
+      vat: Number(f.vat),
+      grand_total: Number(f.grand_total),
+      amount_text: f.amount_text,
+      payment_cash: !!f.payment_method?.cash,
+      payment_transfer: !!f.payment_method?.transfer,
+      cheque_no: f.payment_method?.cheque_no || '',
+      cheque_bank: f.payment_method?.cheque_bank || '',
+      cheque_date: f.payment_method?.cheque_date || '',
+      cheque_amount: Number(f.payment_method?.cheque_amount) || 0,
+      notes: f.notes,
+      signer_name: 'สัจจพร สมานิมงคล',
+      signer_date: f.doc_date,
+    };
+    setPrintData(inv);
+    setPrintOpen(true);
+  };
+
+  const handleDelete = async (row: InvoiceRow) => {
+    if (!isAdmin) { toast.error('เฉพาะ Admin เท่านั้น'); return; }
+    if (!confirm(`ลบเอกสาร ${row.doc_number}?`)) return;
+    const { error } = await supabase.from('tax_invoices' as any).delete().eq('id', row.id);
+    if (error) { toast.error('ลบไม่สำเร็จ'); return; }
+    toast.success('ลบเรียบร้อย');
+    await logActivity('ลบใบกำกับภาษี', 'tax_invoices', row.id, { doc_number: row.doc_number });
+    fetchList();
+  };
+
+  const handlePrint = () => {
+    window.print();
+  };
+
+  const previewNumber = useMemo(() => {
+    if (data.doc_number) return data.doc_number;
+    return buildDocNumber(creatorCode, data.doc_date, 1) + ' (ตัวอย่าง)';
+  }, [creatorCode, data.doc_date, data.doc_number]);
+
+  if (authLoading) return <div className="p-8">กำลังโหลด...</div>;
+  if (!user) { navigate('/login'); return null; }
+
+  return (
+    <div className="min-h-screen bg-background">
+      <div className="nav-bar shadow-lg print:hidden">
+        <div className="max-w-7xl mx-auto px-4 flex items-center justify-between h-16">
+          <div className="flex items-center gap-3">
+            <Button variant="ghost" size="icon" onClick={() => navigate('/')} className="text-primary-foreground">
+              <ArrowLeft className="w-5 h-5" />
+            </Button>
+            <FileText className="w-6 h-6 text-accent" />
+            <h1 className="text-lg font-bold text-primary-foreground">ใบกำกับภาษี / ใบเสร็จรับเงิน</h1>
+          </div>
+          <div className="text-xs text-primary-foreground/80">
+            รหัสผู้สร้าง: <span className="font-bold">{creatorCode}</span>
+          </div>
+        </div>
+      </div>
+
+      <main className="max-w-7xl mx-auto px-4 py-6 print:hidden">
+        <Tabs value={tab} onValueChange={(v: any) => setTab(v)}>
+          <div className="flex items-center justify-between mb-3">
+            <TabsList>
+              <TabsTrigger value="list"><FileText className="w-4 h-4 mr-1" /> เอกสารทั้งหมด ({list.length})</TabsTrigger>
+              <TabsTrigger value="new"><Plus className="w-4 h-4 mr-1" /> สร้างใหม่</TabsTrigger>
+            </TabsList>
+            {tab === 'list' && <Button onClick={startNew}><Plus className="w-4 h-4 mr-1" />สร้างใหม่</Button>}
+          </div>
+
+          <TabsContent value="list">
+            <Card className="p-4">
+              {loading ? <p className="text-muted-foreground">กำลังโหลด...</p> : (
+                <div className="overflow-auto">
+                  <Table>
+                    <TableHeader>
+                      <TableRow>
+                        <TableHead>เลขที่</TableHead>
+                        <TableHead>วันที่</TableHead>
+                        <TableHead>ลูกค้า</TableHead>
+                        <TableHead className="text-right">ยอดสุทธิ</TableHead>
+                        <TableHead>ผู้สร้าง</TableHead>
+                        <TableHead>สถานะ</TableHead>
+                        <TableHead className="w-32"></TableHead>
+                      </TableRow>
+                    </TableHeader>
+                    <TableBody>
+                      {list.length === 0 && (
+                        <TableRow><TableCell colSpan={7} className="text-center text-muted-foreground py-8">ยังไม่มีเอกสาร</TableCell></TableRow>
+                      )}
+                      {list.map(r => (
+                        <TableRow key={r.id}>
+                          <TableCell className="font-mono font-medium">{r.doc_number}</TableCell>
+                          <TableCell>{new Date(r.doc_date).toLocaleDateString('th-TH')}</TableCell>
+                          <TableCell>{r.customer_name || '-'}</TableCell>
+                          <TableCell className="text-right font-medium">{r.grand_total.toLocaleString('en-US', { minimumFractionDigits: 2 })}</TableCell>
+                          <TableCell className="text-xs">{r.created_by_username}</TableCell>
+                          <TableCell>
+                            {r.is_backdated && <Badge variant="outline" className="text-amber-700 border-amber-500">ย้อนหลัง</Badge>}
+                          </TableCell>
+                          <TableCell>
+                            <div className="flex gap-1">
+                              <Button size="icon" variant="ghost" onClick={() => handleView(r)} title="ดู / พิมพ์">
+                                <Eye className="w-4 h-4" />
+                              </Button>
+                              {isAdmin && (
+                                <Button size="icon" variant="ghost" onClick={() => handleDelete(r)} title="ลบ">
+                                  <Trash2 className="w-4 h-4 text-destructive" />
+                                </Button>
+                              )}
+                            </div>
+                          </TableCell>
+                        </TableRow>
+                      ))}
+                    </TableBody>
+                  </Table>
+                </div>
+              )}
+            </Card>
+          </TabsContent>
+
+          <TabsContent value="new">
+            <div className="grid lg:grid-cols-[420px_1fr] gap-4">
+              {/* Left: Form */}
+              <div className="space-y-3">
+                <Card className="p-3 space-y-3">
+                  <div className="flex items-center justify-between">
+                    <h3 className="text-sm font-bold">ข้อมูลเอกสาร</h3>
+                    <Button size="sm" variant="outline" onClick={handleApplySample}><Sparkles className="w-3 h-3 mr-1" />ใช้ค่าตัวอย่าง</Button>
+                  </div>
+                  <div className="grid grid-cols-2 gap-2">
+                    <div>
+                      <Label className="text-xs">วันที่เอกสาร</Label>
+                      <Input type="date" value={data.doc_date} onChange={e => setData(p => ({ ...p, doc_date: e.target.value, signer_date: e.target.value }))} />
+                    </div>
+                    <div>
+                      <Label className="text-xs">เลขที่ (ตัวอย่าง)</Label>
+                      <Input value={previewNumber} readOnly className="font-mono text-xs" />
+                    </div>
+                  </div>
+                  <div className="flex items-center gap-2 p-2 rounded bg-amber-50 dark:bg-amber-950/30 border border-amber-200">
+                    <Checkbox id="backdate" checked={isBackdated} onCheckedChange={(v) => setIsBackdated(!!v)} />
+                    <Label htmlFor="backdate" className="text-xs cursor-pointer">ออกย้อนหลัง (ต้องระบุเหตุผล)</Label>
+                  </div>
+                  {isBackdated && (
+                    <Textarea
+                      placeholder="เหตุผลการขอย้อนหลัง..."
+                      value={backdateNote}
+                      onChange={e => setBackdateNote(e.target.value)}
+                      rows={2}
+                    />
+                  )}
+                </Card>
+
+                <Card className="p-3 space-y-2">
+                  <div className="flex items-center justify-between">
+                    <h3 className="text-sm font-bold">อัปโหลดบิล (OCR)</h3>
+                    <Button size="sm" variant="outline" onClick={onPickFile} disabled={ocrBusy}>
+                      <Upload className="w-3 h-3 mr-1" />{ocrBusy ? 'กำลังอ่าน...' : 'เลือกรูป'}
+                    </Button>
+                  </div>
+                  <input ref={fileRef} type="file" accept="image/*" className="hidden" onChange={handleFile} />
+                  <p className="text-xs text-muted-foreground">รองรับ JPG/PNG ระบบจะดึง วันที่/ลูกค้า/รายการอัตโนมัติ</p>
+                </Card>
+
+                <Card className="p-3 space-y-2">
+                  <h3 className="text-sm font-bold">ข้อมูลลูกค้า</h3>
+                  <div>
+                    <Label className="text-xs">นามลูกค้า</Label>
+                    <Input value={data.customer_name} onChange={e => setData(p => ({ ...p, customer_name: e.target.value }))} />
+                  </div>
+                  <div>
+                    <Label className="text-xs">ที่อยู่</Label>
+                    <Textarea rows={2} value={data.customer_address} onChange={e => setData(p => ({ ...p, customer_address: e.target.value }))} />
+                  </div>
+                  <div className="grid grid-cols-2 gap-2">
+                    <div>
+                      <Label className="text-xs">เลขผู้เสียภาษี</Label>
+                      <Input value={data.customer_tax_id} onChange={e => setData(p => ({ ...p, customer_tax_id: e.target.value }))} />
+                    </div>
+                    <div>
+                      <Label className="text-xs">สาขา</Label>
+                      <div className="flex items-center gap-2 mt-1">
+                        <label className="text-xs flex items-center gap-1">
+                          <input type="radio" checked={data.branch_type === 'head'} onChange={() => setData(p => ({ ...p, branch_type: 'head' }))} /> สำนักงานใหญ่
+                        </label>
+                        <label className="text-xs flex items-center gap-1">
+                          <input type="radio" checked={data.branch_type === 'branch'} onChange={() => setData(p => ({ ...p, branch_type: 'branch' }))} /> สาขา
+                        </label>
+                        {data.branch_type === 'branch' && (
+                          <Input className="h-7 w-16" value={data.branch_no} onChange={e => setData(p => ({ ...p, branch_no: e.target.value }))} />
+                        )}
+                      </div>
+                    </div>
+                  </div>
+                </Card>
+
+                <Card className="p-3 space-y-2">
+                  <div className="flex items-center justify-between">
+                    <h3 className="text-sm font-bold">รายการสินค้า</h3>
+                    <Button size="sm" variant="outline" onClick={addRow}><Plus className="w-3 h-3 mr-1" />เพิ่มแถว</Button>
+                  </div>
+                  {data.items.map((it, i) => (
+                    <div key={i} className="grid grid-cols-[2fr_3fr_1fr_1fr_1.2fr_auto] gap-1 items-center">
+                      <Input className="h-8 text-xs" placeholder="รหัส" value={it.code} onChange={e => updateItem(i, { code: e.target.value })} />
+                      <Input className="h-8 text-xs" placeholder="รายละเอียด" value={it.description} onChange={e => updateItem(i, { description: e.target.value })} />
+                      <Input className="h-8 text-xs" type="number" placeholder="จำนวน" value={it.qty || 0} onChange={e => updateItem(i, { qty: Number(e.target.value) || 0 })} />
+                      <Input className="h-8 text-xs" placeholder="หน่วย" value={it.unit} onChange={e => updateItem(i, { unit: e.target.value })} />
+                      <Input className="h-8 text-xs" type="number" placeholder="ราคา/หน่วย" value={it.price || 0} onChange={e => updateItem(i, { price: Number(e.target.value) || 0 })} />
+                      <Button size="icon" variant="ghost" onClick={() => removeRow(i)} className="h-7 w-7"><Trash2 className="w-3 h-3 text-destructive" /></Button>
+                    </div>
+                  ))}
+                </Card>
+
+                <Card className="p-3 space-y-2">
+                  <h3 className="text-sm font-bold">การชำระเงิน / สรุปยอด</h3>
+                  <div className="grid grid-cols-2 gap-2">
+                    <label className="text-xs flex items-center gap-1">
+                      <Checkbox checked={data.payment_cash} onCheckedChange={(v) => setData(p => ({ ...p, payment_cash: !!v }))} /> เงินสด
+                    </label>
+                    <label className="text-xs flex items-center gap-1">
+                      <Checkbox checked={data.payment_transfer} onCheckedChange={(v) => setData(p => ({ ...p, payment_transfer: !!v }))} /> เงินโอน
+                    </label>
+                  </div>
+                  <div>
+                    <Label className="text-xs">ส่วนลด / เงินมัดจำ</Label>
+                    <Input type="number" value={data.discount || 0} onChange={e => setData(p => ({ ...p, discount: Number(e.target.value) || 0 }))} />
+                  </div>
+                  <div className="bg-muted/50 p-2 rounded text-xs space-y-1">
+                    <div className="flex justify-between"><span>รวมเงิน</span><span>{data.total_amount.toFixed(2)}</span></div>
+                    <div className="flex justify-between"><span>หลังหักส่วนลด</span><span>{data.amount_after_discount.toFixed(2)}</span></div>
+                    <div className="flex justify-between"><span>VAT 7% (รวมในยอด)</span><span>{data.vat.toFixed(2)}</span></div>
+                    <div className="flex justify-between font-bold text-sm"><span>ยอดสุทธิ</span><span>{data.grand_total.toFixed(2)}</span></div>
+                  </div>
+                  <div>
+                    <Label className="text-xs">หมายเหตุ (เว้นว่าง = ใช้ข้อความมาตรฐาน)</Label>
+                    <Textarea rows={2} value={data.notes} onChange={e => setData(p => ({ ...p, notes: e.target.value }))} />
+                  </div>
+                </Card>
+
+                <div className="flex gap-2 sticky bottom-2">
+                  <Button className="flex-1" onClick={handleSave} disabled={!!savingId}>
+                    <Save className="w-4 h-4 mr-1" />{savingId ? 'บันทึกแล้ว' : 'บันทึกเอกสาร'}
+                  </Button>
+                  <Button variant="outline" onClick={() => { setPrintData(data); setPrintOpen(true); }}>
+                    <Eye className="w-4 h-4 mr-1" />ดูตัวอย่าง
+                  </Button>
+                </div>
+                {savedAt && <p className="text-xs text-green-700">บันทึก: {savedAt} — กด "ดูตัวอย่าง" เพื่อพิมพ์</p>}
+              </div>
+
+              {/* Right: Live preview (single doc, scaled) */}
+              <div className="space-y-2">
+                <Card className="p-3">
+                  <p className="text-xs text-muted-foreground mb-2">ตัวอย่างใบกำกับ (ต้นฉบับ)</p>
+                  <div className="overflow-auto bg-gray-200 p-2 rounded" style={{ maxHeight: '80vh' }}>
+                    <div style={{ transform: 'scale(0.7)', transformOrigin: 'top left', width: '210mm' }}>
+                      <TaxInvoiceDoc data={{ ...data, doc_number: previewNumber }} copy="original" />
+                    </div>
+                  </div>
+                </Card>
+              </div>
+            </div>
+          </TabsContent>
+        </Tabs>
+      </main>
+
+      {/* Print Dialog: shows 3 copies */}
+      <Dialog open={printOpen} onOpenChange={setPrintOpen}>
+        <DialogContent className="max-w-[230mm] max-h-[95vh] overflow-auto p-2 print:hidden">
+          <DialogHeader className="print:hidden">
+            <DialogTitle className="flex items-center justify-between">
+              <span>ตัวอย่างเอกสาร 3 ชุด (A4 ต่อหน้า)</span>
+              <Button onClick={handlePrint} size="sm"><Printer className="w-4 h-4 mr-1" />พิมพ์ / Save PDF</Button>
+            </DialogTitle>
+          </DialogHeader>
+          {printData && (
+            <div className="ti-print-area" ref={printRef}>
+              <div className="ti-print-root">
+                <TaxInvoiceDoc data={printData} copy="original" />
+                <TaxInvoiceDoc data={printData} copy="company" />
+                <TaxInvoiceDoc data={printData} copy="accounting" />
+              </div>
+            </div>
+          )}
+          <DialogFooter className="print:hidden">
+            <Button variant="outline" onClick={() => setPrintOpen(false)}>ปิด</Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      {/* Always-rendered print area for window.print() */}
+      {printOpen && printData && (
+        <div className="ti-print-area hidden print:block">
+          <div className="ti-print-root">
+            <TaxInvoiceDoc data={printData} copy="original" />
+            <TaxInvoiceDoc data={printData} copy="company" />
+            <TaxInvoiceDoc data={printData} copy="accounting" />
+          </div>
+        </div>
+      )}
+    </div>
+  );
+};
+
+export default TaxInvoicePage;
