@@ -10,6 +10,7 @@ interface PrintActionsProps {
 
 async function captureNode(node: HTMLElement, width: number) {
   const { default: html2canvas } = await import('html2canvas');
+  const isTaxInvoiceDoc = node.classList.contains('ti-doc');
 
   const sandbox = document.createElement('div');
   sandbox.style.position = 'fixed';
@@ -20,12 +21,15 @@ async function captureNode(node: HTMLElement, width: number) {
 
   const clone = node.cloneNode(true) as HTMLElement;
   clone.style.width = `${width}px`;
+  clone.style.minHeight = '0';
   clone.style.maxHeight = 'none';
   clone.style.height = 'auto';
-  clone.style.overflow = 'hidden';
+  clone.style.overflow = 'visible';
   clone.style.transform = 'none';
   clone.style.margin = '0';
   clone.style.boxShadow = 'none';
+  clone.style.transformOrigin = 'top left';
+  clone.style.setProperty('--ti-fit-scale', '1');
 
   clone.querySelectorAll<HTMLElement>('[class*="overflow"], [class*="max-h-"]').forEach((n) => {
     n.style.overflow = 'visible';
@@ -36,20 +40,52 @@ async function captureNode(node: HTMLElement, width: number) {
     n.style.display = 'none';
   });
 
-  sandbox.appendChild(clone);
+  const frame = document.createElement('div');
+  const maxHeight = width * Math.SQRT2;
+  if (isTaxInvoiceDoc) {
+    frame.style.width = `${width}px`;
+    frame.style.height = `${maxHeight}px`;
+    frame.style.overflow = 'hidden';
+    frame.style.background = 'white';
+    frame.appendChild(clone);
+    sandbox.appendChild(frame);
+  } else {
+    sandbox.appendChild(clone);
+  }
   document.body.appendChild(sandbox);
 
-  const canvas = await html2canvas(clone, {
-    scale: 2,
-    useCORS: true,
-    logging: false,
-    backgroundColor: '#ffffff',
-    windowWidth: clone.scrollWidth,
-    windowHeight: clone.scrollHeight,
-  });
+  try {
+    if (isTaxInvoiceDoc) {
+      const naturalHeight = Math.max(clone.scrollHeight, clone.offsetHeight);
+      const fitScale = Math.min(1, maxHeight / Math.max(1, naturalHeight));
+      if (fitScale < 1) {
+        clone.style.transform = `scale(${fitScale})`;
+        clone.style.setProperty('--ti-fit-scale', `${fitScale}`);
+      }
 
-  document.body.removeChild(sandbox);
-  return canvas;
+      return await html2canvas(frame, {
+        scale: 2,
+        useCORS: true,
+        logging: false,
+        backgroundColor: '#ffffff',
+        width,
+        height: maxHeight,
+        windowWidth: width,
+        windowHeight: maxHeight,
+      });
+    }
+
+    return await html2canvas(clone, {
+      scale: 2,
+      useCORS: true,
+      logging: false,
+      backgroundColor: '#ffffff',
+      windowWidth: clone.scrollWidth,
+      windowHeight: clone.scrollHeight,
+    });
+  } finally {
+    document.body.removeChild(sandbox);
+  }
 }
 
 // 210mm at 96dpi ≈ 794px
@@ -109,9 +145,9 @@ const PrintActions = ({ printAreaId, title, size = 'sm' }: PrintActionsProps) =>
           <style>
             @page { margin: 0; size: A4; }
             html, body { margin: 0; padding: 0; background: white; }
-            .page { width: 210mm; height: 297mm; overflow: hidden; page-break-after: always; display: flex; align-items: center; justify-content: center; }
+            .page { width: 210mm; height: 297mm; padding: 4mm; box-sizing: border-box; overflow: hidden; page-break-after: always; display: flex; align-items: center; justify-content: center; }
             .page:last-child { page-break-after: auto; }
-            .page img { width: 210mm; height: 297mm; object-fit: contain; display: block; }
+            .page img { width: 100%; height: 100%; object-fit: contain; display: block; }
           </style>
         </head>
         <body>${pages}</body>
