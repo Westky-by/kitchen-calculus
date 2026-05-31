@@ -18,8 +18,14 @@ async function captureNode(node: HTMLElement, width: number) {
   sandbox.style.zIndex = '-1';
   sandbox.style.background = 'white';
 
+  const frame = document.createElement('div');
+  const maxHeight = width * Math.SQRT2;
+  frame.style.width = `${width}px`;
+  frame.style.height = `${maxHeight}px`;
+  frame.style.overflow = 'hidden';
+  frame.style.background = 'white';
+
   const clone = node.cloneNode(true) as HTMLElement;
-  const cloneWidth = width / 2;
   clone.style.width = `${width}px`;
   clone.style.minHeight = '0';
   clone.style.maxHeight = 'none';
@@ -40,27 +46,26 @@ async function captureNode(node: HTMLElement, width: number) {
     n.style.display = 'none';
   });
 
-  sandbox.appendChild(clone);
+  frame.appendChild(clone);
+  sandbox.appendChild(frame);
   document.body.appendChild(sandbox);
 
-  const maxHeight = width * Math.SQRT2;
   const naturalHeight = Math.max(clone.scrollHeight, clone.offsetHeight);
   const fitScale = Math.min(1, maxHeight / Math.max(1, naturalHeight));
   if (fitScale < 1) {
-    clone.style.width = `${cloneWidth}px`;
     clone.style.transform = `scale(${fitScale})`;
     clone.style.setProperty('--ti-fit-scale', `${fitScale}`);
   }
 
-  const canvas = await html2canvas(clone, {
+  const canvas = await html2canvas(frame, {
     scale: 2,
     useCORS: true,
     logging: false,
     backgroundColor: '#ffffff',
-    width: cloneWidth,
-    height: maxHeight / fitScale,
-    windowWidth: cloneWidth,
-    windowHeight: maxHeight / fitScale,
+    width,
+    height: maxHeight,
+    windowWidth: width,
+    windowHeight: maxHeight,
   });
 
   document.body.removeChild(sandbox);
