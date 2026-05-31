@@ -21,6 +21,7 @@ interface UserRow {
   username: string;
   full_name: string;
   position: string;
+  creator_code: string;
   is_active: boolean;
   created_at: string;
   role: string;
