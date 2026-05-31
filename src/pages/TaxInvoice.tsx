@@ -697,6 +697,14 @@ const TaxInvoicePage = () => {
               <Button onClick={handlePrint} size="sm"><Printer className="w-4 h-4 mr-1" />พิมพ์ / Save PDF</Button>
             </DialogTitle>
           </DialogHeader>
+          {printSourceImage && (
+            <div className="print:hidden mb-2 p-2 border rounded bg-muted/30">
+              <p className="text-xs font-bold mb-1">บิลต้นฉบับที่แนบ:</p>
+              <a href={printSourceImage} target="_blank" rel="noreferrer">
+                <img src={printSourceImage} alt="บิลต้นฉบับ" className="max-h-60 rounded border" />
+              </a>
+            </div>
+          )}
           {printData && (
             <div className="ti-print-area" ref={printRef}>
               <div className="ti-print-root">
