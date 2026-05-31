@@ -2,15 +2,18 @@
 .ti-doc {
   width: 210mm;
   min-height: 297mm;
-  padding: 10mm 9mm 8mm 9mm;
+  padding: 10mm 9mm 10mm 9mm;
   background: white;
   color: #000;
   font-family: 'Sarabun', 'TH SarabunPSK', sans-serif;
-  font-size: 10pt;
-  line-height: 1.25;
+  font-size: 9.5pt;
+  line-height: 1.3;
   box-sizing: border-box;
   position: relative;
+  -webkit-font-smoothing: antialiased;
+  text-rendering: geometricPrecision;
 }
+.ti-doc * { box-sizing: border-box; }
 
 /* ===== Header ===== */
 .ti-header {
@@ -24,11 +27,11 @@
   height: 145px;
   object-fit: contain;
 }
-.ti-company { padding-top: 6px; text-align: left; }
-.ti-company-th { font-size: 16pt; font-weight: 700; line-height: 1.1; text-align: left; }
-.ti-company-en { font-size: 13pt; font-weight: 700; line-height: 1.1; text-align: left; margin-bottom: 4px; }
-.ti-company-addr { font-size: 8.5pt; color: #111; line-height: 1.3; text-align: left; word-break: break-word; overflow-wrap: anywhere; }
-.ti-company-addr.ti-nowrap { white-space: nowrap; }
+.ti-company { padding-top: 6px; text-align: left; min-width: 0; }
+.ti-company-th { font-size: 15pt; font-weight: 700; line-height: 1.15; text-align: left; }
+.ti-company-en { font-size: 12pt; font-weight: 700; line-height: 1.15; text-align: left; margin-bottom: 4px; }
+.ti-company-addr { font-size: 8.5pt; color: #111; line-height: 1.35; text-align: left; word-break: break-word; overflow-wrap: anywhere; }
+.ti-company-addr.ti-nowrap { white-space: normal; }
 
 /* Top-right small bordered box */
 .ti-corner-box {
@@ -114,10 +117,12 @@
   background: #d2691e;
   color: #fff;
   border: 0.75pt solid #000;
-  padding: 5px 3px;
+  padding: 6px 4px;
   font-weight: 700;
-  font-size: 10pt;
+  font-size: 9.5pt;
+  line-height: 1.15;
   text-align: center;
+  vertical-align: middle;
 }
 .ti-doc:has(.ti-pill-company) .ti-table th { background: #15803d; }
 .ti-doc:has(.ti-pill-accounting) .ti-table th { background: #1e3a8a; }
@@ -125,10 +130,14 @@
   border-left: 0.75pt solid #000;
   border-right: 0.75pt solid #000;
   border-bottom: 0.4pt solid #cbd5e1;
-  padding: 3px 5px;
+  padding: 4px 6px;
   height: 22px;
   vertical-align: middle;
-  font-size: 10pt;
+  font-size: 9.5pt;
+  line-height: 1.2;
+  overflow: hidden;
+  white-space: nowrap;
+  text-overflow: ellipsis;
 }
 .ti-table tbody tr:last-child td { border-bottom: 0.75pt solid #000; }
 .ti-c { text-align: center; }
@@ -153,16 +162,17 @@
   border-right: 0.75pt solid #000;
   border-bottom: 0.75pt solid #000;
 }
-.ti-left-col { padding: 4px 6px; border-right: 0.75pt solid #000; }
+.ti-left-col { padding: 6px 8px; border-right: 0.75pt solid #000; }
 
 .ti-amount-text {
   background: #f3f4f6;
   border: 0.5pt solid #9ca3af;
-  padding: 4px 6px;
+  padding: 5px 8px;
   margin-bottom: 6px;
   font-size: 9.5pt;
-  min-height: 26px;
+  min-height: 28px;
   display: flex;
+  align-items: center;
   gap: 6px;
 }
 .ti-amount-lbl { color: #111; font-size: 9.5pt; min-width: 50px; }
@@ -182,21 +192,23 @@
 .ti-notes-val { color: #111; }
 
 /* Totals (right col) */
-.ti-totals { font-size: 9.5pt; }
+.ti-totals { font-size: 9.5pt; display: flex; flex-direction: column; }
 .ti-tot-cell {
   border-bottom: 0.5pt solid #000;
-  padding: 4px 6px;
+  padding: 6px 8px;
   display: flex;
   justify-content: space-between;
-  align-items: flex-end;
-  min-height: 30px;
+  align-items: center;
+  gap: 6px;
+  min-height: 34px;
 }
 .ti-tot-cell:last-child { border-bottom: none; }
-.ti-tot-left { display: flex; flex-direction: column; }
-.ti-tot-th { font-weight: 600; font-size: 9.5pt; line-height: 1.1; }
-.ti-tot-en { font-size: 7.5pt; color: #444; line-height: 1.1; }
-.ti-tot-amt { font-weight: 600; font-size: 10pt; text-align: right; }
-.ti-tot-grand .ti-tot-th { font-weight: 800; }
+.ti-tot-left { display: flex; flex-direction: column; min-width: 0; }
+.ti-tot-th { font-weight: 600; font-size: 9pt; line-height: 1.15; }
+.ti-tot-en { font-size: 7pt; color: #555; line-height: 1.15; letter-spacing: 0.2px; }
+.ti-tot-amt { font-weight: 600; font-size: 10pt; text-align: right; white-space: nowrap; }
+.ti-tot-grand { background: #fafafa; }
+.ti-tot-grand .ti-tot-th { font-weight: 800; font-size: 9.5pt; }
 .ti-tot-grand .ti-tot-amt { font-weight: 800; font-size: 11pt; }
 
 /* ===== Signatures (3 bordered boxes) ===== */
