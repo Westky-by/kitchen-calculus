@@ -66,7 +66,7 @@ export default function TaxInvoiceDoc({ data, copy = 'original' }: { data: Invoi
         <div className="ti-company">
           <div className="ti-company-th">บริษัท ดีรวยสุข จำกัด</div>
           <div className="ti-company-en">DEE RUAY SOOK CO.,LTD.</div>
-          <div className="ti-company-addr">
+          <div className="ti-company-addr ti-nowrap">
             สำนักงานใหญ่ : เลขที่ 166 ถนนพุทธมณฑลสาย 1 แขวงบางด้วน เขตภาษีเจริญ กรุงเทพฯ 10160
           </div>
           <div className="ti-company-addr">
