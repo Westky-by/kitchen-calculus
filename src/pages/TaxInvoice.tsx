@@ -108,10 +108,12 @@ const TaxInvoicePage = () => {
   // OCR
   const [ocrBusy, setOcrBusy] = useState(false);
   const fileRef = useRef<HTMLInputElement>(null);
+  const [sourceImageUrl, setSourceImageUrl] = useState<string>('');
 
   // View / Print
   const [printOpen, setPrintOpen] = useState(false);
   const [printData, setPrintData] = useState<InvoiceData | null>(null);
+  const [printSourceImage, setPrintSourceImage] = useState<string>('');
   const printRef = useRef<HTMLDivElement>(null);
 
   const isAdmin = role === 'admin' || role === 'super_admin';
@@ -171,6 +173,7 @@ const TaxInvoicePage = () => {
     setBackdateNote('');
     setSavingId(null);
     setSavedAt('');
+    setSourceImageUrl('');
     setTab('new');
   };
 
@@ -201,6 +204,21 @@ const TaxInvoicePage = () => {
         r.onerror = reject;
         r.readAsDataURL(f);
       });
+
+      // Upload bill image to storage so it stays attached to the invoice
+      try {
+        const ext = (f.name.split('.').pop() || 'jpg').toLowerCase();
+        const path = `${user?.id || 'anon'}/${Date.now()}-${Math.random().toString(36).slice(2, 8)}.${ext}`;
+        const { error: upErr } = await supabase.storage.from('bill-images').upload(path, f, {
+          contentType: f.type || 'image/jpeg',
+          upsert: false,
+        });
+        if (!upErr) {
+          const { data: pub } = supabase.storage.from('bill-images').getPublicUrl(path);
+          setSourceImageUrl(pub.publicUrl);
+        }
+      } catch { /* non-fatal */ }
+
       const { data: sess } = await supabase.auth.getSession();
       const res = await fetch(`${import.meta.env.VITE_SUPABASE_URL}/functions/v1/ocr-bill`, {
         method: 'POST',
@@ -318,6 +336,7 @@ const TaxInvoicePage = () => {
         notes: data.notes,
         is_backdated: isBackdated,
         backdate_note: backdateNote,
+        source_image_url: sourceImageUrl,
         created_by: user?.id,
         created_by_username: profile?.username || '',
       };
@@ -381,6 +400,7 @@ const TaxInvoicePage = () => {
       receiver_date: f.payment_method?.receiver_date || '',
     };
     setPrintData(inv);
+    setPrintSourceImage((f as any).source_image_url || '');
     setPrintOpen(true);
   };
 
@@ -534,7 +554,12 @@ const TaxInvoicePage = () => {
                     </Button>
                   </div>
                   <input ref={fileRef} type="file" accept="image/*" className="hidden" onChange={handleFile} />
-                  <p className="text-xs text-muted-foreground">รองรับ JPG/PNG ระบบจะดึง วันที่/ลูกค้า/รายการอัตโนมัติ</p>
+                  <p className="text-xs text-muted-foreground">รองรับ JPG/PNG ระบบจะดึง วันที่/ลูกค้า/รายการอัตโนมัติ และจะแนบเก็บรูปบิลไว้กับเอกสาร</p>
+                  {sourceImageUrl && (
+                    <a href={sourceImageUrl} target="_blank" rel="noreferrer" className="block">
+                      <img src={sourceImageUrl} alt="บิลต้นฉบับ" className="max-h-40 rounded border" />
+                    </a>
+                  )}
                 </Card>
 
                 <Card className="p-3 space-y-2">
@@ -640,7 +665,7 @@ const TaxInvoicePage = () => {
                   <Button className="flex-1" onClick={handleSave} disabled={!!savingId}>
                     <Save className="w-4 h-4 mr-1" />{savingId ? 'บันทึกแล้ว' : 'บันทึกเอกสาร'}
                   </Button>
-                  <Button variant="outline" onClick={() => { setPrintData({ ...data, doc_number: data.doc_number || previewNumber }); setPrintOpen(true); }}>
+                  <Button variant="outline" onClick={() => { setPrintData({ ...data, doc_number: data.doc_number || previewNumber }); setPrintSourceImage(sourceImageUrl); setPrintOpen(true); }}>
                     <Eye className="w-4 h-4 mr-1" />ดูตัวอย่าง
                   </Button>
                 </div>
@@ -672,6 +697,14 @@ const TaxInvoicePage = () => {
               <Button onClick={handlePrint} size="sm"><Printer className="w-4 h-4 mr-1" />พิมพ์ / Save PDF</Button>
             </DialogTitle>
           </DialogHeader>
+          {printSourceImage && (
+            <div className="print:hidden mb-2 p-2 border rounded bg-muted/30">
+              <p className="text-xs font-bold mb-1">บิลต้นฉบับที่แนบ:</p>
+              <a href={printSourceImage} target="_blank" rel="noreferrer">
+                <img src={printSourceImage} alt="บิลต้นฉบับ" className="max-h-60 rounded border" />
+              </a>
+            </div>
+          )}
           {printData && (
             <div className="ti-print-area" ref={printRef}>
               <div className="ti-print-root">
