@@ -54,21 +54,26 @@ Deno.serve(async (req) => {
   "items": [
     { "code": "", "description": "ชื่อรายการตามบิล", "qty": 2, "unit": "รายการ", "line_total": 840.00 }
   ],
-  "subtotal": 6680.00,
-  "service_charge": 668.00,
-  "pre_vat_amount": 7348.00,
-  "vat_amount": 514.36,
-  "grand_total": 7348.00
+  "subtotal": 2598.00,
+  "service_charge": 259.80,
+  "rounding": 0.20,
+  "grand_total": 2858.00,
+  "before_vat": 2670.84,
+  "vat_amount": 186.96,
+  "before_service_charge": 2428.04,
+  "pre_vat_amount": 2670.84
 }
 
 กฎสำคัญ:
 - "line_total" = จำนวนเงินรวมของรายการนั้นตามบิล (คอลัมน์ขวาสุด) — ใช้เลขในบิลตรงๆ ห้ามคำนวณ
 - "qty" = จำนวนหน่วยที่อยู่หน้ารายการ
-- "subtotal" = ยอดรวมรายการก่อนค่าบริการ (Subtotal) ถ้ามีในบิล
-- "service_charge" = ค่าบริการ (Service Charge 10%) ถ้ามีในบิล
-- "pre_vat_amount" = ยอดก่อน VAT (Net/Before VAT) ถ้ามีในบิล
-- "vat_amount" = "ยอด VAT 7% ที่ระบุในบิล" — ถ้าบิลมีบรรทัด VAT 7% ให้ใส่ตัวเลขนั้นตรงๆ ห้ามคำนวณใหม่
-- "grand_total" = ยอดสุทธิสุดท้ายที่ลูกค้าจ่าย (Total / รวมทั้งสิ้น)
+- "subtotal" = ยอดรวมรายการก่อนค่าบริการ (Subtotal)
+- "service_charge" = ค่าบริการ (Service Charge 10%)
+- "rounding" = ค่าปัดเศษ (Rounding) ถ้ามี
+- "grand_total" / "Total" = ยอดสุทธิรวมทั้งสิ้น (รวม Service Charge แล้ว)
+- "before_vat" / "pre_vat_amount" = ยอดก่อน VAT (Before VAT)
+- "vat_amount" = VAT 7% ที่ระบุในบิล
+- "before_service_charge" = ยอดก่อนค่าบริการ (Before Service Charge)
 - ทุกตัวเลขให้ใช้ค่าที่ปรากฏในบิลตรงๆ ห้ามคำนวณเอง ถ้าไม่มีให้ใส่ 0
 - ถ้าข้อมูลลูกค้าไม่มีในบิล ให้เว้นว่าง ห้ามเดา`;
 

@@ -110,6 +110,18 @@ const TaxInvoicePage = () => {
   const fileRef = useRef<HTMLInputElement>(null);
   const [sourceImageUrl, setSourceImageUrl] = useState<string>('');
 
+  // Bill reference (อ้างอิงตามใบเสร็จจริง — ไม่แสดงใน PDF)
+  const [useBillTotals, setUseBillTotals] = useState(false);
+  const [billRef, setBillRef] = useState({
+    subtotal: 0,
+    service_charge: 0,
+    rounding: 0,
+    before_service_charge: 0,
+    before_vat: 0,
+    vat_amount: 0,
+    total: 0,
+  });
+
   // View / Print
   const [printOpen, setPrintOpen] = useState(false);
   const [printData, setPrintData] = useState<InvoiceData | null>(null);
@@ -143,8 +155,22 @@ const TaxInvoicePage = () => {
     })();
   }, [user, fetchList]);
 
-  // ---- Recalculate totals from items + discount (VAT-exclusive: add 7% on top, no rounding) ----
+  // ---- Recalculate totals (VAT-exclusive add 7%) OR override from bill reference ----
   useEffect(() => {
+    if (useBillTotals) {
+      const pre = billRef.before_vat || 0;
+      const vat = billRef.vat_amount || 0;
+      const grand = billRef.total || (pre + vat);
+      setData(prev => ({
+        ...prev,
+        total_amount: pre,
+        amount_after_discount: pre,
+        vat,
+        grand_total: grand,
+        amount_text: bahtText(grand),
+      }));
+      return;
+    }
     const total = data.items.reduce((s, it) => s + (it.qty || 0) * (it.price || 0), 0);
     const afterDiscount = Math.max(0, total - (data.discount || 0));
     const vat = afterDiscount * 0.07;
@@ -158,7 +184,7 @@ const TaxInvoicePage = () => {
       amount_text: bahtText(grand),
     }));
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [JSON.stringify(data.items), data.discount]);
+  }, [JSON.stringify(data.items), data.discount, useBillTotals, JSON.stringify(billRef)]);
 
   // ---- New invoice ----
   const startNew = () => {
@@ -169,6 +195,8 @@ const TaxInvoicePage = () => {
     setSavingId(null);
     setSavedAt('');
     setSourceImageUrl('');
+    setUseBillTotals(false);
+    setBillRef({ subtotal: 0, service_charge: 0, rounding: 0, before_service_charge: 0, before_vat: 0, vat_amount: 0, total: 0 });
     setTab('new');
   };
 
@@ -255,6 +283,17 @@ const TaxInvoicePage = () => {
           items,
         };
       });
+      // Fill bill reference values (สำหรับอ้างอิงตามใบเสร็จ — ไม่แสดงใน PDF)
+      setBillRef({
+        subtotal: Number(r.subtotal) || 0,
+        service_charge: Number(r.service_charge) || 0,
+        rounding: Number(r.rounding) || 0,
+        before_service_charge: Number(r.before_service_charge) || 0,
+        before_vat: Number(r.pre_vat_amount) || 0,
+        vat_amount: Number(r.vat_amount) || 0,
+        total: Number(r.grand_total) || 0,
+      });
+      if (Number(r.grand_total) > 0) setUseBillTotals(true);
       toast.success('ดึงข้อมูลจากบิลเรียบร้อย กรุณาตรวจสอบก่อนบันทึก');
     } catch (err: any) {
       toast.error('เกิดข้อผิดพลาด: ' + (err?.message || ''));
@@ -591,6 +630,37 @@ const TaxInvoicePage = () => {
                       <Button size="icon" variant="ghost" onClick={() => removeRow(i)} className="h-7 w-7"><Trash2 className="w-3 h-3 text-destructive" /></Button>
                     </div>
                   ))}
+                </Card>
+
+                <Card className="p-3 space-y-2 border-blue-300 bg-blue-50/30 dark:bg-blue-950/10">
+                  <div className="flex items-center justify-between">
+                    <h3 className="text-sm font-bold">ค่าตามใบเสร็จ (อ้างอิง — ไม่แสดงใน PDF)</h3>
+                    <label className="text-xs flex items-center gap-1">
+                      <Checkbox checked={useBillTotals} onCheckedChange={(v) => setUseBillTotals(!!v)} />
+                      ใช้ยอดนี้แทนการคำนวณ
+                    </label>
+                  </div>
+                  <div className="grid grid-cols-2 gap-2">
+                    {[
+                      ['subtotal', 'Subtotal'],
+                      ['service_charge', 'Service Charge (10%)'],
+                      ['rounding', 'Rounding'],
+                      ['total', 'Total (รวมทั้งสิ้น)'],
+                      ['before_vat', 'Before VAT'],
+                      ['vat_amount', 'VAT 7%'],
+                      ['before_service_charge', 'Before Service Charge'],
+                    ].map(([key, label]) => (
+                      <div key={key}>
+                        <Label className="text-xs">{label}</Label>
+                        <Input
+                          type="number"
+                          className="h-8 text-xs"
+                          value={(billRef as any)[key] || 0}
+                          onChange={e => setBillRef(p => ({ ...p, [key]: Number(e.target.value) || 0 }))}
+                        />
+                      </div>
+                    ))}
+                  </div>
                 </Card>
 
                 <Card className="p-3 space-y-2">
