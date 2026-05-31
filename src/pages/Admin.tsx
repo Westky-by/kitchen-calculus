@@ -211,6 +211,7 @@ const Admin = () => {
             password: newPassword,
             full_name: newFullName.trim(),
             position: newPosition.trim(),
+            creator_code: newCreatorCode.trim(),
             role: newRole,
           }),
         }
