@@ -1,4 +1,5 @@
-import { Calculator, Database, BookOpen, FolderOpen, ShoppingCart, Shield, LogOut, User } from 'lucide-react';
+import { Calculator, Database, BookOpen, FolderOpen, ShoppingCart, Shield, LogOut, User, FileText } from 'lucide-react';
+import { useNavigate } from 'react-router-dom';
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from '@/components/ui/dropdown-menu';
 import { Avatar, AvatarFallback } from '@/components/ui/avatar';
 import type { Profile } from '@/hooks/useAuth';
@@ -15,6 +16,7 @@ interface AppNavbarProps {
 }
 
 const AppNavbar = ({ activeTab, onTabChange, profile, role, onSignOut, onAdmin }: AppNavbarProps) => {
+  const navigate = useNavigate();
   const tabs = [
     { id: 'calculator' as TabType, label: 'คำนวณสูตร', icon: Calculator },
     { id: 'ingredients' as TabType, label: 'ฐานข้อมูล', icon: Database },
@@ -58,6 +60,13 @@ const AppNavbar = ({ activeTab, onTabChange, profile, role, onSignOut, onAdmin }
                 <span className="hidden sm:inline">{tab.label}</span>
               </button>
             ))}
+            <button
+              onClick={() => navigate('/tax-invoice')}
+              className="flex items-center gap-2 px-4 py-2 text-sm transition-all border-b-[3px] tab-inactive border-transparent"
+            >
+              <FileText className="w-4 h-4" />
+              <span className="hidden sm:inline">ใบกำกับภาษี</span>
+            </button>
           </div>
 
           {profile ? (
