@@ -162,16 +162,17 @@
   border-right: 0.75pt solid #000;
   border-bottom: 0.75pt solid #000;
 }
-.ti-left-col { padding: 4px 6px; border-right: 0.75pt solid #000; }
+.ti-left-col { padding: 6px 8px; border-right: 0.75pt solid #000; }
 
 .ti-amount-text {
   background: #f3f4f6;
   border: 0.5pt solid #9ca3af;
-  padding: 4px 6px;
+  padding: 5px 8px;
   margin-bottom: 6px;
   font-size: 9.5pt;
-  min-height: 26px;
+  min-height: 28px;
   display: flex;
+  align-items: center;
   gap: 6px;
 }
 .ti-amount-lbl { color: #111; font-size: 9.5pt; min-width: 50px; }
