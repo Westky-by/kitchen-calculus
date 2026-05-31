@@ -151,8 +151,8 @@ export default function TaxInvoiceDoc({ data, copy = 'original' }: { data: Invoi
       <div className="ti-footer-grid">
         <div className="ti-left-col">
           <div className="ti-amount-text">
-            <div className="ti-amount-lbl">ตัวอักษร. (ศูนย์บาทถ้วน)</div>
-            <div className="ti-amount-val">{data.amount_text}</div>
+            <span className="ti-amount-lbl">ตัวอักษร.</span>{' '}
+            <span className="ti-amount-val">({data.amount_text || 'ศูนย์บาทถ้วน'})</span>
           </div>
           <div className="ti-pay">
             <div className="ti-pay-row"><span className="ti-cb"><span className={`ti-cb-mark ${data.payment_cash ? 'on' : ''}`} />เงินสด</span></div>
@@ -167,9 +167,9 @@ export default function TaxInvoiceDoc({ data, copy = 'original' }: { data: Invoi
                 <div className="whitespace-pre-wrap">{data.notes}</div>
               ) : (
                 <>
-                  <div>1. กรณีชำระเป็นเช็คบริษัทจะถือว่าได้ชำระเงินเรียบร้อยแล้ว เมื่อ "บริษัท สามารถ รับเงิน" ตามเช็คได้แล้วเท่านั้น</div>
-                  <div>2. สินค้าตามรายการข้างต้นได้ผ่านการตรวจรับและถือว่าเป็นไปตามข้อกำหนดการรับสินค้าโดยสมบูรณ์</div>
-                  <div>3. บริษัทฯ ขอสงวนสิทธิ์ในการเปลี่ยนคืนหรือยกเลิกการสั่งซื้อภายใน 7 วัน นับจากวันที่ระบุในใบกำกับภาษี (ฉ.ก. ฉบับนี้ ใช้เป็น E.&O.E.)</div>
+                  <div>1. กรณีชำระเงินโดยเช็คกรุณาสั่งจ่ายเช็คขีดคร่อมในนาม "บริษัท ดีรวยสุข จำกัด" เท่านั้น</div>
+                  <div>2. สินค้าตามรายการข้างต้นได้ให้บริการจนจบหลังจากผู้ใช้บริการจะได้ชำระเงินเรียบร้อยแล้ว</div>
+                  <div>3. บริษัทฯ ขอสงวนสิทธิ์ในการแก้ไขใบกำกับภาษีภายใน 7 วัน นับจากวันที่ระบุในใบกำกับภาษี (ผิด ตก ยกเว้น E. & OE.)</div>
                 </>
               )}
             </div>
@@ -179,7 +179,7 @@ export default function TaxInvoiceDoc({ data, copy = 'original' }: { data: Invoi
           <div className="ti-totals">
             <div className="ti-tot-row"><span>รวมเงิน</span><span>{fmt(data.total_amount)}</span></div>
             <div className="ti-tot-sub">TOTAL AMOUNT</div>
-            <div className="ti-tot-row"><span>หัก เงินมัดจำ / ส่วนลด</span><span>{fmt(data.discount)}</span></div>
+            <div className="ti-tot-row"><span>หัก เงินมัดจำ / ส่วนลด</span><span>{data.discount ? fmt(data.discount) : ''}</span></div>
             <div className="ti-tot-sub">DEPOSIT / DISCOUNT</div>
             <div className="ti-tot-row"><span>มูลค่าหลังหักเงินมัดจำ/ส่วนลด</span><span>{fmt(data.amount_after_discount)}</span></div>
             <div className="ti-tot-sub">TOTAL AMOUNT AFTER DEPOSIT / DISCOUNT</div>
@@ -194,14 +194,17 @@ export default function TaxInvoiceDoc({ data, copy = 'original' }: { data: Invoi
       {/* Signatures */}
       <div className="ti-sign-row">
         <div className="ti-sign-receipt">
-          ได้รับสินค้าตามรายการข้างบนนี้ไว้เรียบร้อยแล้ว
+          <div>ได้รับสินค้าตามรายการข้างบนนี้ไว้เรียบร้อยแล้ว</div>
           <div className="ti-sign-line">
-            <div>ผู้รับสินค้า ...........................................</div>
-            <div className="ti-sign-date">วันที่ ...................</div>
+            <div>ผู้รับสินค้า <span className="ti-sign-name">{data.receiver_name || '....................................'}</span></div>
+            <div className="ti-sign-date">วันที่ <span className="ti-sign-name">{data.receiver_date ? fmtThaiDate(data.receiver_date) : '...................'}</span></div>
           </div>
         </div>
         <div className="ti-sign-sender">
-          <div>ผู้ส่งสินค้า {data.signer_name || 'สัจจพร สมานิมงคล'}</div>
+          <div>ผู้ส่งสินค้า <span className="ti-sign-name">{data.signer_name || '....................................'}</span></div>
+          {data.signer_license && (
+            <div className="ti-sign-license">เลขที่ใบอนุญาต: {data.signer_license}</div>
+          )}
           <div className="ti-sign-date">วันที่ {fmtThaiDate(data.signer_date || data.doc_date)}</div>
         </div>
         <div className="ti-sign-auth">
