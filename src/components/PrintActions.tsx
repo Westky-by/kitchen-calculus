@@ -21,67 +21,43 @@ async function captureNode(node: HTMLElement, width: number) {
 
   const clone = node.cloneNode(true) as HTMLElement;
   clone.style.width = `${width}px`;
-  clone.style.minHeight = '0';
-  clone.style.maxHeight = 'none';
-  clone.style.height = 'auto';
-  clone.style.overflow = 'visible';
-  clone.style.transform = 'none';
   clone.style.margin = '0';
   clone.style.boxShadow = 'none';
+  clone.style.transform = 'none';
   clone.style.transformOrigin = 'top left';
   clone.style.setProperty('--ti-fit-scale', '1');
 
-  clone.querySelectorAll<HTMLElement>('[class*="overflow"], [class*="max-h-"]').forEach((n) => {
-    n.style.overflow = 'visible';
-    n.style.maxHeight = 'none';
-    n.style.height = 'auto';
-  });
+  if (isTaxInvoiceDoc) {
+    // Render at exact A4 size — no auto-scale, matches the on-screen layout 1:1
+    const A4_PX_HEIGHT = Math.round(width * Math.SQRT2);
+    clone.style.height = `${A4_PX_HEIGHT}px`;
+    clone.style.minHeight = `${A4_PX_HEIGHT}px`;
+    clone.style.maxHeight = `${A4_PX_HEIGHT}px`;
+    clone.style.overflow = 'hidden';
+  } else {
+    clone.style.minHeight = '0';
+    clone.style.maxHeight = 'none';
+    clone.style.height = 'auto';
+    clone.style.overflow = 'visible';
+  }
+
   clone.querySelectorAll<HTMLElement>('.print\\:hidden, [class*="print:hidden"], [data-print-hide="true"]').forEach((n) => {
     n.style.display = 'none';
   });
 
-  const frame = document.createElement('div');
-  const maxHeight = width * Math.SQRT2;
-  if (isTaxInvoiceDoc) {
-    frame.style.width = `${width}px`;
-    frame.style.height = `${maxHeight}px`;
-    frame.style.overflow = 'hidden';
-    frame.style.background = 'white';
-    frame.appendChild(clone);
-    sandbox.appendChild(frame);
-  } else {
-    sandbox.appendChild(clone);
-  }
+  sandbox.appendChild(clone);
   document.body.appendChild(sandbox);
 
   try {
-    if (isTaxInvoiceDoc) {
-      const naturalHeight = Math.max(clone.scrollHeight, clone.offsetHeight);
-      const fitScale = Math.min(1, maxHeight / Math.max(1, naturalHeight));
-      if (fitScale < 1) {
-        clone.style.transform = `scale(${fitScale})`;
-        clone.style.setProperty('--ti-fit-scale', `${fitScale}`);
-      }
-
-      return await html2canvas(frame, {
-        scale: 2,
-        useCORS: true,
-        logging: false,
-        backgroundColor: '#ffffff',
-        width,
-        height: maxHeight,
-        windowWidth: width,
-        windowHeight: maxHeight,
-      });
-    }
-
     return await html2canvas(clone, {
       scale: 2,
       useCORS: true,
       logging: false,
       backgroundColor: '#ffffff',
-      windowWidth: clone.scrollWidth,
-      windowHeight: clone.scrollHeight,
+      width: clone.offsetWidth,
+      height: clone.offsetHeight,
+      windowWidth: clone.offsetWidth,
+      windowHeight: clone.offsetHeight,
     });
   } finally {
     document.body.removeChild(sandbox);
