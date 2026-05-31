@@ -232,13 +232,15 @@ const TaxInvoicePage = () => {
           })
         : [];
       const grandFromBill = Number(r.grand_total) || 0;
+      const vatFromBill = Number(r.vat_amount) || 0;
+      const preFromBill = Number(r.pre_vat_amount) || 0;
       setData(prev => {
         const items = mappedItems.length > 0 ? mappedItems : prev.items;
         const itemsSum = items.reduce((s, it) => s + (it.qty || 0) * (it.price || 0), 0);
-        // ใช้ยอดรวมตามบิลถ้ามี ไม่งั้นใช้ผลรวมรายการ
         const grand = grandFromBill > 0 ? grandFromBill : itemsSum;
-        const pre = grand / 1.07;
-        const vat = grand - pre;
+        // ถ้าบิลมี VAT 7% ระบุไว้ใช้ตรงๆ ถ้าไม่ก็แยกแบบ VAT-inclusive (grand/1.07)
+        const vat = vatFromBill > 0 ? vatFromBill : (grand - grand / 1.07);
+        const pre = preFromBill > 0 ? preFromBill : (grand - vat);
         return {
           ...prev,
           doc_date: r.doc_date || prev.doc_date,
@@ -247,7 +249,7 @@ const TaxInvoicePage = () => {
           customer_tax_id: r.customer_tax_id || prev.customer_tax_id,
           items,
           total_amount: grand,
-          amount_after_discount: grand,
+          amount_after_discount: pre,
           vat,
           grand_total: grand,
           amount_text: bahtText(grand),
