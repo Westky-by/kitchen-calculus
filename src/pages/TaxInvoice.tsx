@@ -400,6 +400,7 @@ const TaxInvoicePage = () => {
       receiver_date: f.payment_method?.receiver_date || '',
     };
     setPrintData(inv);
+    setPrintSourceImage((f as any).source_image_url || '');
     setPrintOpen(true);
   };
 
