@@ -493,23 +493,6 @@ const TaxInvoicePage = () => {
           </div>
 
           <TabsContent value="list">
-            <Card className="p-4">
-              {loading ? <p className="text-muted-foreground">กำลังโหลด...</p> : (
-                <div className="overflow-auto">
-                  <Table>
-                    <TableHeader>
-                      <TableRow>
-                        <TableHead>เลขที่</TableHead>
-                        <TableHead>วันที่</TableHead>
-                        <TableHead>ลูกค้า</TableHead>
-                        <TableHead className="text-right">ยอดสุทธิ</TableHead>
-                        <TableHead>ผู้สร้าง</TableHead>
-                        <TableHead>สถานะ</TableHead>
-                        <TableHead className="w-32"></TableHead>
-                      </TableRow>
-                    </TableHeader>
-                    <TableBody>
-          <TabsContent value="list">
             <Card className="p-4 space-y-3">
               <div className="flex items-center gap-2">
                 <Input
