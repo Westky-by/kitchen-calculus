@@ -143,17 +143,12 @@ const TaxInvoicePage = () => {
     })();
   }, [user, fetchList]);
 
-  // ---- Recalculate totals from items + discount ----
+  // ---- Recalculate totals from items + discount (VAT-exclusive: add 7% on top, no rounding) ----
   useEffect(() => {
     const total = data.items.reduce((s, it) => s + (it.qty || 0) * (it.price || 0), 0);
     const afterDiscount = Math.max(0, total - (data.discount || 0));
-    // user enters grand_total OR we compute it
-    // Here approach: total is sum of items (subtotal including everything user typed).
-    // afterDiscount is base for VAT-inclusive computation.
-    // VAT-inclusive: pre = after/1.07, vat = after - pre, grand = after
-    const grand = afterDiscount;
-    const pre = grand / 1.07;
-    const vat = grand - pre;
+    const vat = afterDiscount * 0.07;
+    const grand = afterDiscount + vat;
     setData(prev => ({
       ...prev,
       total_amount: total,
