@@ -170,13 +170,8 @@ const PrintActions = ({ printAreaId, title, size = 'sm' }: PrintActionsProps) =>
 
       canvases.forEach((canvas, idx) => {
         if (idx > 0) pdf.addPage();
-        // Fit each captured doc onto a single A4 page, preserving aspect ratio
-        const ratio = Math.min(pageW / canvas.width, pageH / canvas.height);
-        const w = canvas.width * ratio;
-        const h = canvas.height * ratio;
-        const x = (pageW - w) / 2;
-        const y = (pageH - h) / 2;
-        pdf.addImage(canvas.toDataURL('image/png'), 'PNG', x, y, w, h);
+        // Fill full A4 — doc already includes its own A4 margins
+        pdf.addImage(canvas.toDataURL('image/png'), 'PNG', 0, 0, pageW, pageH);
       });
 
       const filename = (title || 'document').replace(/[^a-zA-Z0-9ก-๙\s-]/g, '').trim();
