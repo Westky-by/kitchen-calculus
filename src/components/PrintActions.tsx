@@ -19,13 +19,17 @@ async function captureNode(node: HTMLElement, width: number) {
   sandbox.style.background = 'white';
 
   const clone = node.cloneNode(true) as HTMLElement;
+  const cloneWidth = width / 2;
   clone.style.width = `${width}px`;
+  clone.style.minHeight = '0';
   clone.style.maxHeight = 'none';
   clone.style.height = 'auto';
-  clone.style.overflow = 'hidden';
+  clone.style.overflow = 'visible';
   clone.style.transform = 'none';
   clone.style.margin = '0';
   clone.style.boxShadow = 'none';
+  clone.style.transformOrigin = 'top left';
+  clone.style.setProperty('--ti-fit-scale', '1');
 
   clone.querySelectorAll<HTMLElement>('[class*="overflow"], [class*="max-h-"]').forEach((n) => {
     n.style.overflow = 'visible';
@@ -39,13 +43,24 @@ async function captureNode(node: HTMLElement, width: number) {
   sandbox.appendChild(clone);
   document.body.appendChild(sandbox);
 
+  const maxHeight = width * Math.SQRT2;
+  const naturalHeight = Math.max(clone.scrollHeight, clone.offsetHeight);
+  const fitScale = Math.min(1, maxHeight / Math.max(1, naturalHeight));
+  if (fitScale < 1) {
+    clone.style.width = `${cloneWidth}px`;
+    clone.style.transform = `scale(${fitScale})`;
+    clone.style.setProperty('--ti-fit-scale', `${fitScale}`);
+  }
+
   const canvas = await html2canvas(clone, {
     scale: 2,
     useCORS: true,
     logging: false,
     backgroundColor: '#ffffff',
-    windowWidth: clone.scrollWidth,
-    windowHeight: clone.scrollHeight,
+    width: cloneWidth,
+    height: maxHeight / fitScale,
+    windowWidth: cloneWidth,
+    windowHeight: maxHeight / fitScale,
   });
 
   document.body.removeChild(sandbox);
