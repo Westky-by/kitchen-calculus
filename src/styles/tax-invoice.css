@@ -2,15 +2,18 @@
 .ti-doc {
   width: 210mm;
   min-height: 297mm;
-  padding: 10mm 9mm 8mm 9mm;
+  padding: 10mm 9mm 10mm 9mm;
   background: white;
   color: #000;
   font-family: 'Sarabun', 'TH SarabunPSK', sans-serif;
-  font-size: 10pt;
-  line-height: 1.25;
+  font-size: 9.5pt;
+  line-height: 1.3;
   box-sizing: border-box;
   position: relative;
+  -webkit-font-smoothing: antialiased;
+  text-rendering: geometricPrecision;
 }
+.ti-doc * { box-sizing: border-box; }
 
 /* ===== Header ===== */
 .ti-header {
