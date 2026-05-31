@@ -717,7 +717,7 @@ const TaxInvoicePage = () => {
                   </div>
                   <div>
                     <Label className="text-xs">ส่วนลด / เงินมัดจำ</Label>
-                    <Input type="number" value={data.discount || 0} onChange={e => setData(p => ({ ...p, discount: Number(e.target.value) || 0 }))} />
+                    <Input type="number" value={data.discount || ''} onChange={e => setData(p => ({ ...p, discount: Number(e.target.value) || 0 }))} />
                   </div>
                   <div className="bg-muted/50 p-2 rounded text-xs space-y-1">
                     <div className="flex justify-between"><span>รวมเงิน</span><span>{data.total_amount.toFixed(2)}</span></div>
