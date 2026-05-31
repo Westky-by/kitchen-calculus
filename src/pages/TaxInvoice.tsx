@@ -216,22 +216,43 @@ const TaxInvoicePage = () => {
         return;
       }
       const r = result.data || {};
-      setData(prev => ({
-        ...prev,
-        doc_date: r.doc_date || prev.doc_date,
-        customer_name: r.customer_name || prev.customer_name,
-        customer_address: r.customer_address || prev.customer_address,
-        customer_tax_id: r.customer_tax_id || prev.customer_tax_id,
-        items: Array.isArray(r.items) && r.items.length > 0
-          ? r.items.map((x: any) => ({
+      const mappedItems: InvoiceItem[] = Array.isArray(r.items) && r.items.length > 0
+        ? r.items.map((x: any) => {
+            const qty = Number(x.qty) || 1;
+            // OCR returns line_total per row (จำนวนเงินจากบิล) — แยกเป็นราคาต่อหน่วยโดย / qty
+            const lineTotal = Number(x.line_total ?? x.price) || 0;
+            const unitPrice = qty > 0 ? lineTotal / qty : lineTotal;
+            return {
               code: String(x.code || ''),
               description: String(x.description || ''),
-              qty: Number(x.qty) || 1,
+              qty,
               unit: String(x.unit || 'รายการ'),
-              price: Number(x.price) || 0,
-            }))
-          : prev.items,
-      }));
+              price: unitPrice,
+            };
+          })
+        : [];
+      const grandFromBill = Number(r.grand_total) || 0;
+      setData(prev => {
+        const items = mappedItems.length > 0 ? mappedItems : prev.items;
+        const itemsSum = items.reduce((s, it) => s + (it.qty || 0) * (it.price || 0), 0);
+        // ใช้ยอดรวมตามบิลถ้ามี ไม่งั้นใช้ผลรวมรายการ
+        const grand = grandFromBill > 0 ? grandFromBill : itemsSum;
+        const pre = grand / 1.07;
+        const vat = grand - pre;
+        return {
+          ...prev,
+          doc_date: r.doc_date || prev.doc_date,
+          customer_name: r.customer_name || prev.customer_name,
+          customer_address: r.customer_address || prev.customer_address,
+          customer_tax_id: r.customer_tax_id || prev.customer_tax_id,
+          items,
+          total_amount: grand,
+          amount_after_discount: grand,
+          vat,
+          grand_total: grand,
+          amount_text: bahtText(grand),
+        };
+      });
       toast.success('ดึงข้อมูลจากบิลเรียบร้อย กรุณาตรวจสอบก่อนบันทึก');
     } catch (err: any) {
       toast.error('เกิดข้อผิดพลาด: ' + (err?.message || ''));

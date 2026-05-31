@@ -15,19 +15,19 @@
 /* ===== Header ===== */
 .ti-header {
   display: grid;
-  grid-template-columns: 110px 1fr 130px;
-  gap: 10px;
+  grid-template-columns: 150px 1fr 130px;
+  gap: 12px;
   align-items: start;
 }
 .ti-logo {
-  width: 105px;
-  height: 105px;
+  width: 145px;
+  height: 145px;
   object-fit: contain;
 }
-.ti-company { padding-top: 4px; }
-.ti-company-th { font-size: 18pt; font-weight: 700; line-height: 1.1; text-align: center; }
-.ti-company-en { font-size: 15pt; font-weight: 700; line-height: 1.1; text-align: center; margin-bottom: 6px; }
-.ti-company-addr { font-size: 8.5pt; color: #111; line-height: 1.35; }
+.ti-company { padding-top: 6px; }
+.ti-company-th { font-size: 20pt; font-weight: 700; line-height: 1.1; text-align: center; }
+.ti-company-en { font-size: 16pt; font-weight: 700; line-height: 1.1; text-align: center; margin-bottom: 6px; }
+.ti-company-addr { font-size: 9pt; color: #111; line-height: 1.35; text-align: center; }
 
 /* Top-right small bordered box */
 .ti-corner-box {
