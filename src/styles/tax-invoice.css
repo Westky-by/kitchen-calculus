@@ -1,10 +1,10 @@
-/* Tax Invoice Document Styles - A4 portrait, mimic Excel template */
+/* Tax Invoice Document Styles - A4 portrait, matches Tax_Inv-5.pdf template exactly */
 .ti-doc {
   width: 210mm;
   min-height: 297mm;
-  padding: 8mm 8mm 6mm 8mm;
+  padding: 10mm 9mm 8mm 9mm;
   background: white;
-  color: black;
+  color: #000;
   font-family: 'Sarabun', 'TH SarabunPSK', sans-serif;
   font-size: 10pt;
   line-height: 1.25;
@@ -12,60 +12,78 @@
   position: relative;
 }
 
-/* Header */
+/* ===== Header ===== */
 .ti-header {
   display: grid;
-  grid-template-columns: 70px 1fr 110px;
-  gap: 8px;
+  grid-template-columns: 110px 1fr 130px;
+  gap: 10px;
   align-items: start;
-  border-bottom: none;
 }
 .ti-logo {
-  width: 65px;
-  height: 65px;
+  width: 105px;
+  height: 105px;
   object-fit: contain;
 }
-.ti-company-th { font-size: 16pt; font-weight: 700; line-height: 1.1; }
-.ti-company-en { font-size: 14pt; font-weight: 700; line-height: 1.1; }
-.ti-company-addr { font-size: 8pt; color: #111; line-height: 1.25; }
-.ti-corner-box {
-  border: 1px solid #000;
-  padding: 4px 6px;
-  font-size: 9pt;
-  text-align: center;
-  font-weight: 700;
-  min-height: 50px;
-}
+.ti-company { padding-top: 4px; }
+.ti-company-th { font-size: 18pt; font-weight: 700; line-height: 1.1; text-align: center; }
+.ti-company-en { font-size: 15pt; font-weight: 700; line-height: 1.1; text-align: center; margin-bottom: 6px; }
+.ti-company-addr { font-size: 8.5pt; color: #111; line-height: 1.35; }
 
-/* Title pill */
-.ti-title-row { display: flex; justify-content: center; margin: 4px 0 4px; }
+/* Top-right small bordered box */
+.ti-corner-box {
+  margin-top: 2px;
+  text-align: center;
+  font-size: 9pt;
+}
+.ti-corner-box .ti-corner-pill {
+  border: 1pt solid #d2691e;
+  border-radius: 6px;
+  padding: 3px 10px;
+  font-weight: 700;
+  font-size: 10pt;
+  color: #000;
+  display: inline-block;
+  min-width: 90px;
+}
+.ti-corner-box .ti-corner-en { font-size: 8.5pt; margin-top: 2px; }
+.ti-corner-box .ti-corner-set { font-size: 8.5pt; }
+
+/* ===== Title pill (orange) ===== */
+.ti-title-row { display: flex; justify-content: center; margin: 6px 0 10px; }
 .ti-title-pill {
-  border: 1.5pt solid #1e3a8a;
-  border-radius: 18px;
-  padding: 4px 28px;
+  border: 1.25pt solid #d2691e;
+  border-radius: 10px;
+  padding: 5px 36px;
   text-align: center;
   background: white;
 }
-.ti-pill-company { border-color: #166534; }
+.ti-pill-company    { border-color: #166534; }
 .ti-pill-accounting { border-color: #1e3a8a; }
-.ti-title-th { font-size: 13pt; font-weight: 700; line-height: 1.1; }
-.ti-title-en { font-size: 10pt; font-weight: 700; line-height: 1.1; }
+.ti-title-th { font-size: 14pt; font-weight: 700; line-height: 1.1; }
+.ti-title-en { font-size: 10pt; font-weight: 700; line-height: 1.1; letter-spacing: 1px; }
 
-/* Customer */
+/* ===== Customer + doc no ===== */
 .ti-customer {
   display: grid;
-  grid-template-columns: 1fr 180px;
-  gap: 8px;
-  margin-top: 4px;
+  grid-template-columns: 1fr 230px;
+  gap: 10px;
+  margin: 0 0 6px;
 }
-.ti-cust-row { display: flex; align-items: baseline; gap: 6px; font-size: 9pt; flex-wrap: wrap; }
-.ti-cust-lbl { white-space: nowrap; font-weight: 500; }
-.ti-cust-val { flex: 1; border-bottom: 1px dotted #888; min-height: 14px; padding: 0 2px; }
-.ti-cust-taxid { flex: 0 1 180px; }
-.ti-cb { display: inline-flex; align-items: center; gap: 4px; font-size: 9pt; }
+.ti-cust-left { display: flex; flex-direction: column; gap: 4px; }
+.ti-cust-row { display: flex; align-items: baseline; gap: 6px; font-size: 10pt; flex-wrap: wrap; }
+.ti-cust-lbl { white-space: nowrap; }
+.ti-cust-val {
+  flex: 1;
+  border-bottom: 1px dotted #94a3b8;
+  min-height: 16px;
+  padding: 0 4px;
+  font-weight: 500;
+}
+.ti-cust-taxid { flex: 0 1 220px; }
+.ti-cb { display: inline-flex; align-items: center; gap: 4px; font-size: 10pt; }
 .ti-cb-mark {
   display: inline-block;
-  width: 10px; height: 10px;
+  width: 11px; height: 11px;
   border: 1px solid #000;
   background: white;
   position: relative;
@@ -73,121 +91,142 @@
 .ti-cb-mark.on::after {
   content: '✓';
   position: absolute;
-  inset: -3px 0 0 1px;
-  font-size: 11pt;
+  inset: -4px 0 0 1px;
+  font-size: 12pt;
   line-height: 1;
   font-weight: 900;
 }
-.ti-docno { display: flex; gap: 4px; font-size: 10pt; }
-.ti-docno-lbl { font-weight: 600; }
-.ti-docno-val { color: #1e3a8a; font-weight: 700; flex: 1; text-align: right; }
+.ti-cust-right { display: flex; flex-direction: column; gap: 4px; padding-top: 2px; }
+.ti-docno { display: flex; gap: 6px; font-size: 10pt; align-items: baseline; }
+.ti-docno-lbl { font-weight: 600; min-width: 36px; }
+.ti-docno-val { color: #1e40af; font-weight: 700; flex: 1; text-align: left; }
 
-/* Table */
-.ti-table-wrap { position: relative; margin-top: 4px; }
+/* ===== Table ===== */
+.ti-table-wrap { position: relative; }
 .ti-table {
   width: 100%;
   border-collapse: collapse;
-  font-size: 9pt;
+  font-size: 10pt;
   table-layout: fixed;
 }
 .ti-table th {
-  background: #f59e0b;
-  color: #111;
+  background: #d2691e;
+  color: #fff;
   border: 0.75pt solid #000;
-  padding: 4px 3px;
+  padding: 5px 3px;
   font-weight: 700;
-  font-size: 9pt;
+  font-size: 10pt;
   text-align: center;
 }
-.ti-pill-company ~ * .ti-table th,
-.ti-doc:has(.ti-pill-company) .ti-table th { background: #86efac; }
-.ti-doc:has(.ti-pill-accounting) .ti-table th { background: #93c5fd; }
+.ti-doc:has(.ti-pill-company) .ti-table th { background: #15803d; }
+.ti-doc:has(.ti-pill-accounting) .ti-table th { background: #1e3a8a; }
 .ti-table td {
   border-left: 0.75pt solid #000;
   border-right: 0.75pt solid #000;
-  border-bottom: 0.5pt solid #d1d5db;
-  padding: 3px 4px;
+  border-bottom: 0.4pt solid #cbd5e1;
+  padding: 3px 5px;
   height: 22px;
   vertical-align: middle;
-  font-size: 9pt;
+  font-size: 10pt;
 }
 .ti-table tbody tr:last-child td { border-bottom: 0.75pt solid #000; }
 .ti-c { text-align: center; }
 .ti-r { text-align: right; }
 .ti-stamp {
   position: absolute;
-  top: 60%;
-  right: 22%;
-  width: 90px;
+  top: 58%;
+  right: 16%;
+  width: 130px;
   height: auto;
-  opacity: 0.85;
+  opacity: 0.9;
   pointer-events: none;
-  transform: translateY(-50%) rotate(-8deg);
+  transform: translateY(-50%) rotate(-6deg);
   mix-blend-mode: multiply;
 }
 
-/* Footer grid */
+/* ===== Footer grid (bordered like template) ===== */
 .ti-footer-grid {
   display: grid;
-  grid-template-columns: 1fr 220px;
-  gap: 0;
+  grid-template-columns: 1fr 240px;
   border-left: 0.75pt solid #000;
   border-right: 0.75pt solid #000;
   border-bottom: 0.75pt solid #000;
 }
 .ti-left-col { padding: 4px 6px; border-right: 0.75pt solid #000; }
-.ti-right-col { }
+
 .ti-amount-text {
-  border-bottom: 0.5pt dashed #777;
-  padding-bottom: 2px;
-  margin-bottom: 4px;
-  font-size: 9pt;
-  min-height: 28px;
+  background: #f3f4f6;
+  border: 0.5pt solid #9ca3af;
+  padding: 4px 6px;
+  margin-bottom: 6px;
+  font-size: 9.5pt;
+  min-height: 26px;
+  display: flex;
+  gap: 6px;
 }
-.ti-amount-lbl { color: #6b7280; font-size: 8pt; }
-.ti-amount-val { font-weight: 600; }
-.ti-pay { font-size: 8.5pt; line-height: 1.5; }
+.ti-amount-lbl { color: #111; font-size: 9.5pt; min-width: 50px; }
+.ti-amount-val { font-weight: 500; }
+
+.ti-pay { font-size: 9pt; line-height: 1.6; }
 .ti-pay-row { margin-bottom: 1px; }
-.ti-line { display: inline-block; min-width: 60px; border-bottom: 0.5pt dotted #555; padding: 0 2px; }
-.ti-notes { margin-top: 4px; font-size: 7.5pt; line-height: 1.35; }
+.ti-line {
+  display: inline-block;
+  min-width: 80px;
+  border-bottom: 0.5pt dotted #555;
+  padding: 0 2px;
+}
+
+.ti-notes { margin-top: 6px; font-size: 8pt; line-height: 1.4; }
 .ti-notes-lbl { font-weight: 600; }
-.ti-notes-val { color: #1f2937; }
+.ti-notes-val { color: #111; }
 
-.ti-totals { font-size: 9pt; }
-.ti-tot-row {
-  display: flex; justify-content: space-between;
+/* Totals (right col) */
+.ti-totals { font-size: 9.5pt; }
+.ti-tot-cell {
   border-bottom: 0.5pt solid #000;
-  padding: 3px 6px 0;
-  font-weight: 600;
+  padding: 4px 6px;
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-end;
+  min-height: 30px;
 }
-.ti-tot-sub {
-  font-size: 7.5pt;
-  color: #555;
-  border-bottom: 0.5pt solid #d1d5db;
-  padding: 0 6px 3px;
-}
-.ti-tot-grand { font-weight: 800; font-size: 10pt; }
+.ti-tot-cell:last-child { border-bottom: none; }
+.ti-tot-left { display: flex; flex-direction: column; }
+.ti-tot-th { font-weight: 600; font-size: 9.5pt; line-height: 1.1; }
+.ti-tot-en { font-size: 7.5pt; color: #444; line-height: 1.1; }
+.ti-tot-amt { font-weight: 600; font-size: 10pt; text-align: right; }
+.ti-tot-grand .ti-tot-th { font-weight: 800; }
+.ti-tot-grand .ti-tot-amt { font-weight: 800; font-size: 11pt; }
 
-/* Signatures */
+/* ===== Signatures (3 bordered boxes) ===== */
 .ti-sign-row {
   display: grid;
-  grid-template-columns: 1fr 1fr 1fr;
-  gap: 8px;
-  margin-top: 6px;
-  font-size: 8.5pt;
+  grid-template-columns: 1.1fr 1fr 1fr;
+  border-left: 0.75pt solid #000;
+  border-right: 0.75pt solid #000;
+  border-bottom: 0.75pt solid #000;
+  font-size: 9pt;
 }
-.ti-sign-receipt { padding-right: 6px; }
-.ti-sign-line { margin-top: 18px; }
-.ti-sign-date { margin-top: 4px; }
-.ti-sign-sender { text-align: center; padding-top: 16px; }
-.ti-sign-auth { text-align: center; }
-.ti-sign-img-wrap { height: 32px; display: flex; align-items: center; justify-content: center; }
-.ti-sign-img { height: 40px; object-fit: contain; }
-.ti-sign-foot { border-top: 0.5pt dotted #000; padding-top: 2px; font-size: 8.5pt; }
+.ti-sign-cell {
+  padding: 5px 8px;
+  border-right: 0.75pt solid #000;
+  min-height: 90px;
+  position: relative;
+}
+.ti-sign-cell:last-child { border-right: none; }
+.ti-sign-head { font-size: 9pt; margin-bottom: 14px; }
+.ti-sign-line-row { display: flex; gap: 4px; margin-bottom: 4px; align-items: baseline; }
+.ti-sign-line-row .ti-line { flex: 1; min-width: 0; }
+.ti-sign-sender-c { text-align: left; }
+.ti-sign-auth-c { text-align: center; }
+.ti-sign-auth-name { font-weight: 600; margin-bottom: 2px; }
+.ti-sign-img-wrap { height: 36px; display: flex; align-items: center; justify-content: center; }
+.ti-sign-img { height: 44px; object-fit: contain; }
+.ti-sign-foot { font-size: 8.5pt; margin-top: 2px; }
 .ti-sign-name { font-weight: 600; }
-.ti-sign-license { font-size: 7.5pt; color: #555; margin-top: 2px; }
+.ti-sign-license { font-size: 8pt; color: #444; }
 
-/* Print page */
+/* ===== Print page ===== */
 @page { size: A4 portrait; margin: 0; }
 .ti-print-root { background: #e5e7eb; }
 .ti-print-root .ti-doc { page-break-after: always; box-shadow: 0 4px 20px rgba(0,0,0,0.1); margin: 8px auto; }
