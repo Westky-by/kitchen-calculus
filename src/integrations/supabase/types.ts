@@ -224,6 +224,7 @@ export type Database = {
         Row: {
           avatar_url: string | null
           created_at: string
+          creator_code: string
           full_name: string
           id: string
           is_active: boolean
@@ -234,6 +235,7 @@ export type Database = {
         Insert: {
           avatar_url?: string | null
           created_at?: string
+          creator_code?: string
           full_name?: string
           id: string
           is_active?: boolean
@@ -244,6 +246,7 @@ export type Database = {
         Update: {
           avatar_url?: string | null
           created_at?: string
+          creator_code?: string
           full_name?: string
           id?: string
           is_active?: boolean
@@ -358,6 +361,93 @@ export type Database = {
         }
         Relationships: []
       }
+      tax_invoices: {
+        Row: {
+          amount_after_discount: number
+          amount_text: string
+          backdate_note: string
+          branch_no: string
+          branch_type: string
+          created_at: string
+          created_by: string | null
+          created_by_username: string
+          creator_code: string
+          customer_address: string
+          customer_name: string
+          customer_tax_id: string
+          daily_seq: number
+          discount: number
+          doc_date: string
+          doc_number: string
+          grand_total: number
+          id: string
+          is_backdated: boolean
+          items: Json
+          notes: string
+          payment_method: Json
+          source_image_url: string
+          total_amount: number
+          updated_at: string
+          vat: number
+        }
+        Insert: {
+          amount_after_discount?: number
+          amount_text?: string
+          backdate_note?: string
+          branch_no?: string
+          branch_type?: string
+          created_at?: string
+          created_by?: string | null
+          created_by_username?: string
+          creator_code: string
+          customer_address?: string
+          customer_name?: string
+          customer_tax_id?: string
+          daily_seq: number
+          discount?: number
+          doc_date: string
+          doc_number: string
+          grand_total?: number
+          id?: string
+          is_backdated?: boolean
+          items?: Json
+          notes?: string
+          payment_method?: Json
+          source_image_url?: string
+          total_amount?: number
+          updated_at?: string
+          vat?: number
+        }
+        Update: {
+          amount_after_discount?: number
+          amount_text?: string
+          backdate_note?: string
+          branch_no?: string
+          branch_type?: string
+          created_at?: string
+          created_by?: string | null
+          created_by_username?: string
+          creator_code?: string
+          customer_address?: string
+          customer_name?: string
+          customer_tax_id?: string
+          daily_seq?: number
+          discount?: number
+          doc_date?: string
+          doc_number?: string
+          grand_total?: number
+          id?: string
+          is_backdated?: boolean
+          items?: Json
+          notes?: string
+          payment_method?: Json
+          source_image_url?: string
+          total_amount?: number
+          updated_at?: string
+          vat?: number
+        }
+        Relationships: []
+      }
       user_roles: {
         Row: {
           id: string
@@ -419,6 +509,7 @@ export type Database = {
         }
         Returns: boolean
       }
+      next_tax_invoice_seq: { Args: { _doc_date: string }; Returns: number }
     }
     Enums: {
       app_role: "admin" | "user" | "super_admin"
