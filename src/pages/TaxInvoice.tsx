@@ -195,6 +195,8 @@ const TaxInvoicePage = () => {
     setSavingId(null);
     setSavedAt('');
     setSourceImageUrl('');
+    setUseBillTotals(false);
+    setBillRef({ subtotal: 0, service_charge: 0, rounding: 0, before_service_charge: 0, before_vat: 0, vat_amount: 0, total: 0 });
     setTab('new');
   };
 
