@@ -150,27 +150,22 @@ const PrintActions = ({ printAreaId, title, size = 'sm' }: PrintActionsProps) =>
 
     try {
       const { jsPDF } = await import('jspdf');
-      const canvas = await captureElement(el);
-
-      const imgWidth = 190;
-      const pageHeight = 277;
-      const imgHeight = (canvas.height * imgWidth) / canvas.width;
+      const canvases = await capturePages(el);
 
       const pdf = new jsPDF('p', 'mm', 'a4');
-      const imgData = canvas.toDataURL('image/png');
+      const pageW = 210;
+      const pageH = 297;
 
-      let heightLeft = imgHeight;
-      let position = 10;
-
-      pdf.addImage(imgData, 'PNG', 10, position, imgWidth, imgHeight);
-      heightLeft -= pageHeight;
-
-      while (heightLeft > 0) {
-        position = heightLeft - imgHeight + 10;
-        pdf.addPage();
-        pdf.addImage(imgData, 'PNG', 10, position, imgWidth, imgHeight);
-        heightLeft -= pageHeight;
-      }
+      canvases.forEach((canvas, idx) => {
+        if (idx > 0) pdf.addPage();
+        // Fit each captured doc onto a single A4 page, preserving aspect ratio
+        const ratio = Math.min(pageW / canvas.width, pageH / canvas.height);
+        const w = canvas.width * ratio;
+        const h = canvas.height * ratio;
+        const x = (pageW - w) / 2;
+        const y = (pageH - h) / 2;
+        pdf.addImage(canvas.toDataURL('image/png'), 'PNG', x, y, w, h);
+      });
 
       const filename = (title || 'document').replace(/[^a-zA-Z0-9ก-๙\s-]/g, '').trim();
       pdf.save(`${filename}.pdf`);
