@@ -486,7 +486,7 @@ const TaxInvoicePage = () => {
         <Tabs value={tab} onValueChange={(v: any) => setTab(v)}>
           <div className="flex items-center justify-between mb-3">
             <TabsList>
-              <TabsTrigger value="list"><FileText className="w-4 h-4 mr-1" /> เอกสารทั้งหมด ({list.length})</TabsTrigger>
+              <TabsTrigger value="list"><FileText className="w-4 h-4 mr-1" /> เอกสารทั้งหมด ({filteredList.length}{search ? `/${list.length}` : ''})</TabsTrigger>
               <TabsTrigger value="new"><Plus className="w-4 h-4 mr-1" /> สร้างใหม่</TabsTrigger>
             </TabsList>
             {tab === 'list' && <Button onClick={startNew}><Plus className="w-4 h-4 mr-1" />สร้างใหม่</Button>}
