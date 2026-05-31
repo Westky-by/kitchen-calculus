@@ -336,6 +336,7 @@ const TaxInvoicePage = () => {
         notes: data.notes,
         is_backdated: isBackdated,
         backdate_note: backdateNote,
+        source_image_url: sourceImageUrl,
         created_by: user?.id,
         created_by_username: profile?.username || '',
       };
