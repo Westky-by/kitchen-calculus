@@ -283,6 +283,17 @@ const TaxInvoicePage = () => {
           items,
         };
       });
+      // Fill bill reference values (สำหรับอ้างอิงตามใบเสร็จ — ไม่แสดงใน PDF)
+      setBillRef({
+        subtotal: Number(r.subtotal) || 0,
+        service_charge: Number(r.service_charge) || 0,
+        rounding: Number(r.rounding) || 0,
+        before_service_charge: Number(r.before_service_charge) || 0,
+        before_vat: Number(r.pre_vat_amount) || 0,
+        vat_amount: Number(r.vat_amount) || 0,
+        total: Number(r.grand_total) || 0,
+      });
+      if (Number(r.grand_total) > 0) setUseBillTotals(true);
       toast.success('ดึงข้อมูลจากบิลเรียบร้อย กรุณาตรวจสอบก่อนบันทึก');
     } catch (err: any) {
       toast.error('เกิดข้อผิดพลาด: ' + (err?.message || ''));
