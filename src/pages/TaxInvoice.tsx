@@ -110,6 +110,18 @@ const TaxInvoicePage = () => {
   const fileRef = useRef<HTMLInputElement>(null);
   const [sourceImageUrl, setSourceImageUrl] = useState<string>('');
 
+  // Bill reference (อ้างอิงตามใบเสร็จจริง — ไม่แสดงใน PDF)
+  const [useBillTotals, setUseBillTotals] = useState(false);
+  const [billRef, setBillRef] = useState({
+    subtotal: 0,
+    service_charge: 0,
+    rounding: 0,
+    before_service_charge: 0,
+    before_vat: 0,
+    vat_amount: 0,
+    total: 0,
+  });
+
   // View / Print
   const [printOpen, setPrintOpen] = useState(false);
   const [printData, setPrintData] = useState<InvoiceData | null>(null);
