@@ -497,6 +497,7 @@ const Admin = () => {
                           </button>
                         )}
                       </TableCell>
+                      <TableCell>
                         <Select
                           value={u.role}
                           onValueChange={(val) => handleRoleChange(u.id, u.role, val)}
