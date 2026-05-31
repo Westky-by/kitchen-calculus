@@ -442,6 +442,26 @@ const TaxInvoicePage = () => {
     return buildDocNumber(creatorCode, data.doc_date, 1);
   }, [creatorCode, data.doc_date, data.doc_number]);
 
+  const filteredList = useMemo(() => {
+    const q = search.trim().toLowerCase();
+    if (!q) return list;
+    return list.filter(r => {
+      const dateStr = new Date(r.doc_date).toLocaleDateString('th-TH');
+      const status = r.is_backdated ? 'ย้อนหลัง backdated' : 'ปกติ normal';
+      const amount = Number(r.grand_total || 0).toLocaleString('en-US', { minimumFractionDigits: 2 });
+      return [
+        r.doc_number,
+        r.doc_date,
+        dateStr,
+        r.customer_name,
+        amount,
+        String(r.grand_total ?? ''),
+        r.created_by_username,
+        status,
+      ].some(v => String(v || '').toLowerCase().includes(q));
+    });
+  }, [list, search]);
+
   if (authLoading) return <div className="p-8">กำลังโหลด...</div>;
   if (!user) { navigate('/login'); return null; }
 
