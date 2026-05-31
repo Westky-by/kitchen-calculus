@@ -282,8 +282,22 @@ const Admin = () => {
     setNewPassword('');
     setNewFullName('');
     setNewPosition('');
+    setNewCreatorCode('');
     setNewRole('user');
     setShowPassword(false);
+  };
+
+  const handleSaveCreatorCode = async (userId: string) => {
+    const code = editingCodeVal.trim() || '00';
+    const { error } = await supabase
+      .from('profiles')
+      .update({ creator_code: code })
+      .eq('id', userId);
+    if (error) { toast.error('บันทึกรหัสผู้สร้างไม่สำเร็จ'); return; }
+    toast.success('บันทึกรหัสผู้สร้างเรียบร้อย');
+    await logActivity('แก้ไขรหัสผู้สร้าง', 'profiles', userId, { creator_code: code });
+    setEditingCodeId('');
+    fetchUsers();
   };
 
   if (role !== 'admin' && role !== 'super_admin') {
