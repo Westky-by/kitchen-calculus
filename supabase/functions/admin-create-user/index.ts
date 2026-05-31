@@ -114,6 +114,14 @@ Deno.serve(async (req) => {
         .eq("user_id", newUser.user.id);
     }
 
+    // Apply creator_code if provided
+    if (creator_code && newUser.user) {
+      await adminClient
+        .from("profiles")
+        .update({ creator_code: String(creator_code).trim() })
+        .eq("id", newUser.user.id);
+    }
+
     return new Response(
       JSON.stringify({
         success: true,
