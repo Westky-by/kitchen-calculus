@@ -41,31 +41,22 @@ export interface InvoiceData {
 
 type CopyType = 'original' | 'company' | 'accounting';
 
-const COPY_LABELS: Record<CopyType, { th: string; en: string; box: string }> = {
-  original: { th: 'ใบกำกับภาษี / ใบเสร็จรับเงิน', en: 'TAX INVOICE  /  RECEIPT', box: 'ต้นฉบับ\nORIGINAL\nเอกสารออกเป็นชุด' },
-  company:  { th: 'ใบกำกับภาษี / ใบเสร็จรับเงิน', en: 'TAX INVOICE  /  RECEIPT', box: 'สำหรับบริษัท' },
-  accounting:{ th: 'สำเนาใบกำกับภาษี / ใบเสร็จรับเงิน', en: 'COPY TAX INVOICE  /  RECEIPT', box: 'สำหรับบัญชี' },
+const COPY_LABELS: Record<CopyType, { th: string; en: string; box_th: string; box_en: string; box_set: string }> = {
+  original:   { th: 'ใบกำกับภาษี / ใบเสร็จรับเงิน',     en: 'TAX INVOICE  /  RECEIPT',     box_th: 'ต้นฉบับ',  box_en: 'ORIGINAL', box_set: 'เอกสารออกเป็นชุด' },
+  company:    { th: 'ใบกำกับภาษี / ใบเสร็จรับเงิน',     en: 'TAX INVOICE  /  RECEIPT',     box_th: 'สำหรับบริษัท', box_en: 'COMPANY COPY', box_set: 'เอกสารออกเป็นชุด' },
+  accounting: { th: 'สำเนาใบกำกับภาษี / ใบเสร็จรับเงิน', en: 'COPY TAX INVOICE  /  RECEIPT', box_th: 'สำหรับบัญชี',  box_en: 'ACCOUNTING COPY', box_set: 'เอกสารออกเป็นชุด' },
 };
 
 function fmt(n: number) { return n.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 }); }
-function fmtThaiDate(d: string): string {
-  if (!d) return '';
-  const dt = new Date(d);
-  if (isNaN(dt.getTime())) return d;
-  const day = dt.getDate();
-  const month = dt.getMonth() + 1;
-  const buddhistYear = (dt.getFullYear() + 543).toString().slice(-2);
-  return `${day}/${month}/${buddhistYear}`;
-}
 
 export default function TaxInvoiceDoc({ data, copy = 'original' }: { data: InvoiceData; copy?: CopyType }) {
   const label = COPY_LABELS[copy];
   const showStamp = copy !== 'accounting';
   const showSignature = copy === 'original';
 
-  // Pad to 10 rows for the table
+  // Pad to 18 rows for the table (matches PDF template)
   const rows: (InvoiceItem | null)[] = [];
-  for (let i = 0; i < 10; i++) rows.push(data.items[i] ?? null);
+  for (let i = 0; i < 18; i++) rows.push(data.items[i] ?? null);
 
   return (
     <div className="ti-doc">
@@ -82,11 +73,13 @@ export default function TaxInvoiceDoc({ data, copy = 'original' }: { data: Invoi
             Head Office : No.166 Phutthamonthon Sai 1 Road, Bang Duan Subdistrict, Phasi Charoen District, Bangkok 10160
           </div>
           <div className="ti-company-addr">
-            โทร. 094-694-1117 เลขประจำตัวผู้เสียภาษี 0105563140708
+            โทร. 094-694-1117 &nbsp; เลขประจำตัวผู้เสียภาษี 0105563140708
           </div>
         </div>
         <div className="ti-corner-box">
-          {label.box.split('\n').map((l, i) => <div key={i}>{l}</div>)}
+          <div className="ti-corner-pill">{label.box_th}</div>
+          <div className="ti-corner-en">{label.box_en}</div>
+          <div className="ti-corner-set">{label.box_set}</div>
         </div>
       </div>
 
@@ -112,7 +105,7 @@ export default function TaxInvoiceDoc({ data, copy = 'original' }: { data: Invoi
         </div>
         <div className="ti-cust-right">
           <div className="ti-docno"><span className="ti-docno-lbl">เลขที่</span><span className="ti-docno-val">{data.doc_number}</span></div>
-          <div className="ti-docno"><span className="ti-docno-lbl">วันที่</span><span className="ti-docno-val">{fmtThaiDate(data.doc_date)}</span></div>
+          <div className="ti-docno"><span className="ti-docno-lbl">วันที่</span><span className="ti-docno-val">{data.doc_date}</span></div>
         </div>
       </div>
 
@@ -121,13 +114,13 @@ export default function TaxInvoiceDoc({ data, copy = 'original' }: { data: Invoi
         <table className="ti-table">
           <thead>
             <tr>
-              <th style={{ width: '6%' }}>ลำดับ</th>
+              <th style={{ width: '7%' }}>ลำดับ</th>
               <th style={{ width: '14%' }}>รหัสสินค้า</th>
-              <th style={{ width: '44%' }}>รายละเอียด</th>
+              <th style={{ width: '40%' }}>รายละเอียด</th>
               <th style={{ width: '9%' }}>จำนวน</th>
               <th style={{ width: '9%' }}>หน่วย</th>
-              <th style={{ width: '9%' }}>ราคา/หน่วย</th>
-              <th style={{ width: '9%' }}>จำนวนเงิน</th>
+              <th style={{ width: '10%' }}>ราคา/หน่วย</th>
+              <th style={{ width: '11%' }}>จำนวนเงิน</th>
             </tr>
           </thead>
           <tbody>
@@ -147,68 +140,83 @@ export default function TaxInvoiceDoc({ data, copy = 'original' }: { data: Invoi
         {showStamp && <img src={stamp} alt="" className="ti-stamp" />}
       </div>
 
-      {/* Footer area: amount text (left) + totals (right) */}
+      {/* Footer area */}
       <div className="ti-footer-grid">
         <div className="ti-left-col">
           <div className="ti-amount-text">
-            <span className="ti-amount-lbl">ตัวอักษร.</span>{' '}
+            <span className="ti-amount-lbl">ตัวอักษร.</span>
             <span className="ti-amount-val">({data.amount_text || 'ศูนย์บาทถ้วน'})</span>
           </div>
           <div className="ti-pay">
             <div className="ti-pay-row"><span className="ti-cb"><span className={`ti-cb-mark ${data.payment_cash ? 'on' : ''}`} />เงินสด</span></div>
             <div className="ti-pay-row"><span className="ti-cb"><span className={`ti-cb-mark ${data.payment_transfer ? 'on' : ''}`} />เงินโอนเข้าบัญชี ธนาคารกสิกรไทย เลขที่ 076-8-98037-3 บริษัท ดีรวยสุข จำกัด</span></div>
             <div className="ti-pay-row"><span className="ti-cb"><span className={`ti-cb-mark ${data.cheque_no ? 'on' : ''}`} />เช็คเลขที่ <span className="ti-line">{data.cheque_no}</span> ธนาคาร <span className="ti-line">{data.cheque_bank}</span></span></div>
-            <div className="ti-pay-row">วันที่ <span className="ti-line">{fmtThaiDate(data.cheque_date)}</span> จำนวนเงิน <span className="ti-line">{data.cheque_amount ? fmt(data.cheque_amount) : ''}</span></div>
+            <div className="ti-pay-row">&nbsp;&nbsp;&nbsp;&nbsp;วันที่ <span className="ti-line">{data.cheque_date}</span> จำนวนเงิน <span className="ti-line">{data.cheque_amount ? fmt(data.cheque_amount) : ''}</span></div>
           </div>
           <div className="ti-notes">
-            <div className="ti-notes-lbl">หมายเหตุ:</div>
+            <div className="ti-notes-lbl">หมายเหตุ :</div>
             <div className="ti-notes-val">
-              {data.notes ? (
-                <div className="whitespace-pre-wrap">{data.notes}</div>
-              ) : (
-                <>
-                  <div>1. กรณีชำระเงินโดยเช็คกรุณาสั่งจ่ายเช็คขีดคร่อมในนาม "บริษัท ดีรวยสุข จำกัด" เท่านั้น</div>
-                  <div>2. สินค้าตามรายการข้างต้นได้ให้บริการจนจบหลังจากผู้ใช้บริการจะได้ชำระเงินเรียบร้อยแล้ว</div>
-                  <div>3. บริษัทฯ ขอสงวนสิทธิ์ในการแก้ไขใบกำกับภาษีภายใน 7 วัน นับจากวันที่ระบุในใบกำกับภาษี (ผิด ตก ยกเว้น E. & OE.)</div>
-                </>
-              )}
+              <div>1. กรณีชำระเงินโดยเช็คกรุณาสั่งจ่ายเช็คขีดคร่อมในนาม "บริษัท ดีรวยสุข จำกัด" เท่านั้น</div>
+              <div>2. สินค้าตามรายการข้างต้นได้ให้บริการจนจบหลังจากผู้ใช้บริการจะได้ชำระเงินเรียบร้อยแล้ว</div>
+              <div>3. บริษัทฯ ขอสงวนสิทธิ์ในการแก้ไขใบกำกับภาษีภายใน 7 วัน นับจากวันที่ระบุในใบกำกับภาษี (ผิด ตก ยกเว้น E. & OE.)</div>
+              {data.notes && <div className="whitespace-pre-wrap" style={{ marginTop: 2 }}>{data.notes}</div>}
             </div>
           </div>
         </div>
-        <div className="ti-right-col">
-          <div className="ti-totals">
-            <div className="ti-tot-row"><span>รวมเงิน</span><span>{fmt(data.total_amount)}</span></div>
-            <div className="ti-tot-sub">TOTAL AMOUNT</div>
-            <div className="ti-tot-row"><span>หัก เงินมัดจำ / ส่วนลด</span><span>{data.discount ? fmt(data.discount) : ''}</span></div>
-            <div className="ti-tot-sub">DEPOSIT / DISCOUNT</div>
-            <div className="ti-tot-row"><span>มูลค่าหลังหักเงินมัดจำ/ส่วนลด</span><span>{fmt(data.amount_after_discount)}</span></div>
-            <div className="ti-tot-sub">TOTAL AMOUNT AFTER DEPOSIT / DISCOUNT</div>
-            <div className="ti-tot-row"><span>ภาษีมูลค่าเพิ่ม 7%</span><span>{fmt(data.vat)}</span></div>
-            <div className="ti-tot-sub">VAT</div>
-            <div className="ti-tot-row ti-tot-grand"><span>ยอดเงินสุทธิ</span><span>{fmt(data.grand_total)}</span></div>
-            <div className="ti-tot-sub">GRAND TOTAL</div>
+        <div className="ti-totals">
+          <div className="ti-tot-cell">
+            <div className="ti-tot-left">
+              <div className="ti-tot-th">รวมเงิน</div>
+              <div className="ti-tot-en">TOTAL AMOUNT</div>
+            </div>
+            <div className="ti-tot-amt">{fmt(data.total_amount)}</div>
+          </div>
+          <div className="ti-tot-cell">
+            <div className="ti-tot-left">
+              <div className="ti-tot-th">หัก เงินมัดจำ / ส่วนลด</div>
+              <div className="ti-tot-en">DEPOSIT / DISCOUNT</div>
+            </div>
+            <div className="ti-tot-amt">{data.discount ? fmt(data.discount) : ''}</div>
+          </div>
+          <div className="ti-tot-cell">
+            <div className="ti-tot-left">
+              <div className="ti-tot-th">มูลค่าหลังหักเงินมัดจำ/ส่วนลด</div>
+              <div className="ti-tot-en">TOTAL AMOUNT AFTER DEPOSIT / DISCOUNT</div>
+            </div>
+            <div className="ti-tot-amt">{fmt(data.amount_after_discount)}</div>
+          </div>
+          <div className="ti-tot-cell">
+            <div className="ti-tot-left">
+              <div className="ti-tot-th">ภาษีมูลค่าเพิ่ม &nbsp; 7%</div>
+              <div className="ti-tot-en">VAT</div>
+            </div>
+            <div className="ti-tot-amt">{fmt(data.vat)}</div>
+          </div>
+          <div className="ti-tot-cell ti-tot-grand">
+            <div className="ti-tot-left">
+              <div className="ti-tot-th">ยอดเงินสุทธิ</div>
+              <div className="ti-tot-en">GRAND TOTAL</div>
+            </div>
+            <div className="ti-tot-amt">{fmt(data.grand_total)}</div>
           </div>
         </div>
       </div>
 
-      {/* Signatures */}
+      {/* Signatures - 3 bordered cells */}
       <div className="ti-sign-row">
-        <div className="ti-sign-receipt">
-          <div>ได้รับสินค้าตามรายการข้างบนนี้ไว้เรียบร้อยแล้ว</div>
-          <div className="ti-sign-line">
-            <div>ผู้รับสินค้า <span className="ti-sign-name">{data.receiver_name || '....................................'}</span></div>
-            <div className="ti-sign-date">วันที่ <span className="ti-sign-name">{data.receiver_date ? fmtThaiDate(data.receiver_date) : '...................'}</span></div>
-          </div>
+        <div className="ti-sign-cell">
+          <div className="ti-sign-head">ได้รับสินค้าตามรายการข้างบนนี้ไว้เรียบร้อยแล้ว</div>
+          <div className="ti-sign-line-row"><span>ผู้รับสินค้า</span><span className="ti-line">{data.receiver_name}</span></div>
+          <div className="ti-sign-line-row"><span>วันที่</span><span className="ti-line">{data.receiver_date}</span></div>
         </div>
-        <div className="ti-sign-sender">
-          <div>ผู้ส่งสินค้า <span className="ti-sign-name">{data.signer_name || '....................................'}</span></div>
-          {data.signer_license && (
-            <div className="ti-sign-license">เลขที่ใบอนุญาต: {data.signer_license}</div>
-          )}
-          <div className="ti-sign-date">วันที่ {fmtThaiDate(data.signer_date || data.doc_date)}</div>
+        <div className="ti-sign-cell ti-sign-sender-c">
+          <div style={{ height: 28 }} />
+          <div className="ti-sign-line-row"><span>ผู้ส่งสินค้า</span><span className="ti-line ti-sign-name">{data.signer_name}</span></div>
+          {data.signer_license && <div className="ti-sign-license">เลขที่ใบอนุญาต: {data.signer_license}</div>}
+          <div className="ti-sign-line-row"><span>วันที่</span><span className="ti-line">{data.signer_date || data.doc_date}</span></div>
         </div>
-        <div className="ti-sign-auth">
-          <div>ในนาม บริษัท ดีรวยสุข จำกัด</div>
+        <div className="ti-sign-cell ti-sign-auth-c">
+          <div className="ti-sign-auth-name">ในนาม บริษัท ดีรวยสุข จำกัด</div>
           <div className="ti-sign-img-wrap">
             {showSignature && <img src={signature} alt="" className="ti-sign-img" />}
           </div>
