@@ -347,8 +347,11 @@ const TaxInvoicePage = () => {
       cheque_date: f.payment_method?.cheque_date || '',
       cheque_amount: Number(f.payment_method?.cheque_amount) || 0,
       notes: f.notes,
-      signer_name: 'สัจจพร สมานิมงคล',
+      signer_name: f.payment_method?.signer_name || 'สัจจพร สมาธิมงคล',
+      signer_license: f.payment_method?.signer_license || '',
       signer_date: f.doc_date,
+      receiver_name: f.payment_method?.receiver_name || '',
+      receiver_date: f.payment_method?.receiver_date || '',
     };
     setPrintData(inv);
     setPrintOpen(true);
