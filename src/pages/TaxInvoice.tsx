@@ -32,14 +32,18 @@ interface InvoiceRow {
 }
 
 const SAMPLE: Partial<InvoiceData> = {
-  customer_name: 'บริษัท ตัวอย่าง จำกัด',
-  customer_address: '123 ถนนสุขุมวิท แขวงคลองตัน เขตคลองเตย กรุงเทพฯ 10110',
-  customer_tax_id: '0105566001234',
+  customer_name: '',
+  customer_address: '',
+  customer_tax_id: '',
   branch_type: 'head',
   branch_no: '',
+  // ตาม PDF: 1 บรรทัด รหัส OY-67003 รายละเอียด "ค่าอาหารและเครื่องดื่ม"
+  // ราคารวมจากใบเสร็จ OYARD BKK = 7,348.00 (Subtotal 6,680 + Service Charge 10% 668)
   items: [
-    { code: 'OY-67003', description: 'ค่าอาหารและเครื่องดื่ม', qty: 1, unit: 'รายการ', price: 2007.5 },
+    { code: 'OY-67003', description: 'ค่าอาหารและเครื่องดื่ม', qty: 1, unit: 'รายการ', price: 7348 },
   ],
+  payment_cash: false,
+  payment_transfer: true,
   notes: '',
 };
 
@@ -52,7 +56,7 @@ function emptyInvoice(today: string): InvoiceData {
     customer_tax_id: '',
     branch_type: 'head',
     branch_no: '',
-    items: [{ code: '', description: '', qty: 1, unit: 'รายการ', price: 0 }],
+    items: [{ code: 'OY-67003', description: 'ค่าอาหารและเครื่องดื่ม', qty: 1, unit: 'รายการ', price: 7348 }],
     total_amount: 0,
     discount: 0,
     amount_after_discount: 0,
@@ -60,14 +64,17 @@ function emptyInvoice(today: string): InvoiceData {
     grand_total: 0,
     amount_text: '',
     payment_cash: false,
-    payment_transfer: false,
+    payment_transfer: true,
     cheque_no: '',
     cheque_bank: '',
     cheque_date: '',
     cheque_amount: 0,
     notes: '',
-    signer_name: 'สัจจพร สมานิมงคล',
+    signer_name: 'สัจจพร สมาธิมงคล',
+    signer_license: '',
     signer_date: today,
+    receiver_name: '',
+    receiver_date: '',
   };
 }
 
@@ -280,6 +287,10 @@ const TaxInvoicePage = () => {
           cheque_bank: data.cheque_bank,
           cheque_date: data.cheque_date,
           cheque_amount: data.cheque_amount,
+          signer_name: data.signer_name,
+          signer_license: data.signer_license,
+          receiver_name: data.receiver_name,
+          receiver_date: data.receiver_date,
         } as any,
         notes: data.notes,
         is_backdated: isBackdated,
@@ -340,8 +351,11 @@ const TaxInvoicePage = () => {
       cheque_date: f.payment_method?.cheque_date || '',
       cheque_amount: Number(f.payment_method?.cheque_amount) || 0,
       notes: f.notes,
-      signer_name: 'สัจจพร สมานิมงคล',
+      signer_name: f.payment_method?.signer_name || 'สัจจพร สมาธิมงคล',
+      signer_license: f.payment_method?.signer_license || '',
       signer_date: f.doc_date,
+      receiver_name: f.payment_method?.receiver_name || '',
+      receiver_date: f.payment_method?.receiver_date || '',
     };
     setPrintData(inv);
     setPrintOpen(true);
@@ -456,10 +470,19 @@ const TaxInvoicePage = () => {
                     <h3 className="text-sm font-bold">ข้อมูลเอกสาร</h3>
                     <Button size="sm" variant="outline" onClick={handleApplySample}><Sparkles className="w-3 h-3 mr-1" />ใช้ค่าตัวอย่าง</Button>
                   </div>
-                  <div className="grid grid-cols-2 gap-2">
+                  <div className="grid grid-cols-3 gap-2">
                     <div>
                       <Label className="text-xs">วันที่เอกสาร</Label>
                       <Input type="date" value={data.doc_date} onChange={e => setData(p => ({ ...p, doc_date: e.target.value, signer_date: e.target.value }))} />
+                    </div>
+                    <div>
+                      <Label className="text-xs">รหัสผู้สร้าง (2 หลัก)</Label>
+                      <Input
+                        maxLength={2}
+                        value={creatorCode}
+                        onChange={e => setCreatorCode(e.target.value.replace(/\D/g, '').slice(0, 2).padStart(0, '0'))}
+                        className="font-mono"
+                      />
                     </div>
                     <div>
                       <Label className="text-xs">เลขที่ (ตัวอย่าง)</Label>
@@ -563,6 +586,30 @@ const TaxInvoicePage = () => {
                   <div>
                     <Label className="text-xs">หมายเหตุ (เว้นว่าง = ใช้ข้อความมาตรฐาน)</Label>
                     <Textarea rows={2} value={data.notes} onChange={e => setData(p => ({ ...p, notes: e.target.value }))} />
+                  </div>
+                </Card>
+
+                <Card className="p-3 space-y-2">
+                  <h3 className="text-sm font-bold">ผู้ส่ง / ผู้รับสินค้า</h3>
+                  <div className="grid grid-cols-2 gap-2">
+                    <div>
+                      <Label className="text-xs">ชื่อผู้ส่งสินค้า</Label>
+                      <Input value={data.signer_name} onChange={e => setData(p => ({ ...p, signer_name: e.target.value }))} />
+                    </div>
+                    <div>
+                      <Label className="text-xs">เลขที่ใบอนุญาต (License)</Label>
+                      <Input value={data.signer_license} onChange={e => setData(p => ({ ...p, signer_license: e.target.value }))} />
+                    </div>
+                  </div>
+                  <div className="grid grid-cols-2 gap-2">
+                    <div>
+                      <Label className="text-xs">ชื่อผู้รับสินค้า</Label>
+                      <Input value={data.receiver_name} onChange={e => setData(p => ({ ...p, receiver_name: e.target.value }))} />
+                    </div>
+                    <div>
+                      <Label className="text-xs">วันที่ผู้รับ</Label>
+                      <Input type="date" value={data.receiver_date} onChange={e => setData(p => ({ ...p, receiver_date: e.target.value }))} />
+                    </div>
                   </div>
                 </Card>
 
