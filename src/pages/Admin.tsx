@@ -61,9 +61,14 @@ const Admin = () => {
   const [newPassword, setNewPassword] = useState('');
   const [newFullName, setNewFullName] = useState('');
   const [newPosition, setNewPosition] = useState('');
+  const [newCreatorCode, setNewCreatorCode] = useState('');
   const [newRole, setNewRole] = useState('user');
   const [showPassword, setShowPassword] = useState(false);
   const [creating, setCreating] = useState(false);
+
+  // Inline creator_code edit
+  const [editingCodeId, setEditingCodeId] = useState<string>('');
+  const [editingCodeVal, setEditingCodeVal] = useState('');
 
   // Reset password
   const [resetOpen, setResetOpen] = useState(false);
