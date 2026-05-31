@@ -632,6 +632,37 @@ const TaxInvoicePage = () => {
                   ))}
                 </Card>
 
+                <Card className="p-3 space-y-2 border-blue-300 bg-blue-50/30 dark:bg-blue-950/10">
+                  <div className="flex items-center justify-between">
+                    <h3 className="text-sm font-bold">ค่าตามใบเสร็จ (อ้างอิง — ไม่แสดงใน PDF)</h3>
+                    <label className="text-xs flex items-center gap-1">
+                      <Checkbox checked={useBillTotals} onCheckedChange={(v) => setUseBillTotals(!!v)} />
+                      ใช้ยอดนี้แทนการคำนวณ
+                    </label>
+                  </div>
+                  <div className="grid grid-cols-2 gap-2">
+                    {[
+                      ['subtotal', 'Subtotal'],
+                      ['service_charge', 'Service Charge (10%)'],
+                      ['rounding', 'Rounding'],
+                      ['total', 'Total (รวมทั้งสิ้น)'],
+                      ['before_vat', 'Before VAT'],
+                      ['vat_amount', 'VAT 7%'],
+                      ['before_service_charge', 'Before Service Charge'],
+                    ].map(([key, label]) => (
+                      <div key={key}>
+                        <Label className="text-xs">{label}</Label>
+                        <Input
+                          type="number"
+                          className="h-8 text-xs"
+                          value={(billRef as any)[key] || 0}
+                          onChange={e => setBillRef(p => ({ ...p, [key]: Number(e.target.value) || 0 }))}
+                        />
+                      </div>
+                    ))}
+                  </div>
+                </Card>
+
                 <Card className="p-3 space-y-2">
                   <h3 className="text-sm font-bold">การชำระเงิน / สรุปยอด</h3>
                   <div className="grid grid-cols-2 gap-2">
