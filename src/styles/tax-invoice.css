@@ -184,6 +184,8 @@
 .ti-sign-img-wrap { height: 32px; display: flex; align-items: center; justify-content: center; }
 .ti-sign-img { height: 40px; object-fit: contain; }
 .ti-sign-foot { border-top: 0.5pt dotted #000; padding-top: 2px; font-size: 8.5pt; }
+.ti-sign-name { font-weight: 600; }
+.ti-sign-license { font-size: 7.5pt; color: #555; margin-top: 2px; }
 
 /* Print page */
 @page { size: A4 portrait; margin: 0; }
