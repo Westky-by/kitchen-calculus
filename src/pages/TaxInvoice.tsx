@@ -697,7 +697,7 @@ const TaxInvoicePage = () => {
                         <Input
                           type="number"
                           className="h-8 text-xs"
-                          value={(billRef as any)[key] || 0}
+                          value={(billRef as any)[key] || ''}
                           onChange={e => setBillRef(p => ({ ...p, [key]: Number(e.target.value) || 0 }))}
                         />
                       </div>
