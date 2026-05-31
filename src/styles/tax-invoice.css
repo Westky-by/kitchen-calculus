@@ -117,10 +117,12 @@
   background: #d2691e;
   color: #fff;
   border: 0.75pt solid #000;
-  padding: 5px 3px;
+  padding: 6px 4px;
   font-weight: 700;
-  font-size: 10pt;
+  font-size: 9.5pt;
+  line-height: 1.15;
   text-align: center;
+  vertical-align: middle;
 }
 .ti-doc:has(.ti-pill-company) .ti-table th { background: #15803d; }
 .ti-doc:has(.ti-pill-accounting) .ti-table th { background: #1e3a8a; }
@@ -128,10 +130,14 @@
   border-left: 0.75pt solid #000;
   border-right: 0.75pt solid #000;
   border-bottom: 0.4pt solid #cbd5e1;
-  padding: 3px 5px;
+  padding: 4px 6px;
   height: 22px;
   vertical-align: middle;
-  font-size: 10pt;
+  font-size: 9.5pt;
+  line-height: 1.2;
+  overflow: hidden;
+  white-space: nowrap;
+  text-overflow: ellipsis;
 }
 .ti-table tbody tr:last-child td { border-bottom: 0.75pt solid #000; }
 .ti-c { text-align: center; }
