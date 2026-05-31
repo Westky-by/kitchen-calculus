@@ -76,8 +76,8 @@ const PrintActions = ({ printAreaId, title, size = 'sm' }: PrintActionsProps) =>
     const toastId = toast.loading('กำลังเตรียมหน้าพิมพ์...');
 
     try {
-      const canvas = await captureElement(el);
-      const dataUrl = canvas.toDataURL('image/png');
+      const canvases = await capturePages(el);
+      const imgs = canvases.map((c) => c.toDataURL('image/png'));
 
       const iframe = document.createElement('iframe');
       iframe.style.position = 'fixed';
@@ -96,6 +96,10 @@ const PrintActions = ({ printAreaId, title, size = 'sm' }: PrintActionsProps) =>
         return;
       }
 
+      const pages = imgs
+        .map((src) => `<div class="page"><img src="${src}" /></div>`)
+        .join('');
+
       iframeDoc.open();
       iframeDoc.write(`
         <!DOCTYPE html>
@@ -103,31 +107,30 @@ const PrintActions = ({ printAreaId, title, size = 'sm' }: PrintActionsProps) =>
         <head>
           <title>${title || 'Print'}</title>
           <style>
-            @page { margin: 10mm; size: A4; }
-            body { margin: 0; padding: 0; }
-            img { width: 100%; height: auto; display: block; }
+            @page { margin: 0; size: A4; }
+            html, body { margin: 0; padding: 0; background: white; }
+            .page { width: 210mm; height: 297mm; overflow: hidden; page-break-after: always; display: flex; align-items: center; justify-content: center; }
+            .page:last-child { page-break-after: auto; }
+            .page img { width: 210mm; height: 297mm; object-fit: contain; display: block; }
           </style>
         </head>
-        <body>
-          <img src="${dataUrl}" />
-        </body>
+        <body>${pages}</body>
         </html>
       `);
       iframeDoc.close();
 
-      const img = iframeDoc.querySelector('img');
-      if (img) {
-        img.onload = () => {
-          toast.dismiss(toastId);
-          iframe.contentWindow?.focus();
-          iframe.contentWindow?.print();
-          setTimeout(() => document.body.removeChild(iframe), 1000);
-        };
-      } else {
+      const doPrint = () => {
         toast.dismiss(toastId);
         iframe.contentWindow?.focus();
         iframe.contentWindow?.print();
         setTimeout(() => document.body.removeChild(iframe), 1000);
+      };
+      const lastImg = iframeDoc.querySelectorAll('img');
+      if (lastImg.length > 0) {
+        const last = lastImg[lastImg.length - 1] as HTMLImageElement;
+        if (last.complete) doPrint(); else last.onload = doPrint;
+      } else {
+        doPrint();
       }
     } catch (err) {
       toast.dismiss(toastId);
