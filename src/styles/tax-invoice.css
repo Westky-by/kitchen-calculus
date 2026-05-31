@@ -39,36 +39,36 @@
 .ti-corner-box {
   margin-top: 2px;
   text-align: center;
-  font-size: 8.5pt;
+  font-size: 9pt;
 }
 .ti-corner-box .ti-corner-pill {
   border: 1pt solid #d2691e;
   border-radius: 6px;
-  padding: 3px 10px 4px;
+  padding: 3px 10px;
   font-weight: 700;
-  font-size: 9.2pt;
-  line-height: 1.15;
+  font-size: 10pt;
+  line-height: 1.1;
   color: #000;
   display: inline-block;
   min-width: 90px;
 }
-.ti-corner-box .ti-corner-en { font-size: 8pt; margin-top: 4px; line-height: 1.2; }
-.ti-corner-box .ti-corner-set { font-size: 8pt; line-height: 1.2; }
+.ti-corner-box .ti-corner-en { font-size: 8.5pt; margin-top: 2px; line-height: 1.15; }
+.ti-corner-box .ti-corner-set { font-size: 8.5pt; line-height: 1.15; }
 
 /* ===== Title pill (orange) ===== */
-.ti-title-row { display: flex; justify-content: center; margin: 6px 0 11px; }
+.ti-title-row { display: flex; justify-content: center; margin: 1px 0 7px; }
 .ti-title-pill {
   border: 1.25pt solid #d2691e;
   border-radius: 10px;
-  padding: 7px 36px 6px;
+  padding: 5px 36px 6px;
   text-align: center;
   background: white;
-  min-width: 290px;
+  min-width: 310px;
 }
 .ti-pill-company    { border-color: #166534; }
 .ti-pill-accounting { border-color: #1e3a8a; }
-.ti-title-th { font-size: 13pt; font-weight: 700; line-height: 1.18; }
-.ti-title-en { font-size: 9pt; font-weight: 700; line-height: 1.2; letter-spacing: 0; }
+.ti-title-th { font-size: 14pt; font-weight: 700; line-height: 1.15; }
+.ti-title-en { font-size: 10pt; font-weight: 700; line-height: 1.15; letter-spacing: 0; }
 
 /* ===== Customer + doc no ===== */
 .ti-customer {
