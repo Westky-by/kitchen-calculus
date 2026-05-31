@@ -1,36 +1,38 @@
 /* Tax Invoice Document Styles - A4 portrait, matches Tax_Inv-5.pdf template exactly */
 .ti-doc {
   width: 210mm;
+  height: 297mm;
   min-height: 297mm;
-  padding: 10mm 9mm 10mm 9mm;
+  padding: 11mm 9mm 8mm 9mm;
   background: white;
   color: #000;
   font-family: 'Sarabun', 'TH SarabunPSK', sans-serif;
-  font-size: 9.5pt;
-  line-height: 1.3;
+  font-size: 9pt;
+  line-height: 1.35;
   box-sizing: border-box;
   position: relative;
   -webkit-font-smoothing: antialiased;
   text-rendering: geometricPrecision;
+  overflow: hidden;
 }
 .ti-doc * { box-sizing: border-box; }
 
 /* ===== Header ===== */
 .ti-header {
   display: grid;
-  grid-template-columns: 150px 1fr 130px;
-  gap: 12px;
+  grid-template-columns: 138px 1fr 128px;
+  gap: 13px;
   align-items: start;
 }
 .ti-logo {
-  width: 145px;
-  height: 145px;
+  width: 132px;
+  height: 132px;
   object-fit: contain;
 }
-.ti-company { padding-top: 6px; text-align: left; min-width: 0; }
-.ti-company-th { font-size: 15pt; font-weight: 700; line-height: 1.15; text-align: left; }
-.ti-company-en { font-size: 12pt; font-weight: 700; line-height: 1.15; text-align: left; margin-bottom: 4px; }
-.ti-company-addr { font-size: 8.5pt; color: #111; line-height: 1.35; text-align: left; word-break: break-word; overflow-wrap: anywhere; }
+.ti-company { padding-top: 7px; text-align: left; min-width: 0; }
+.ti-company-th { font-size: 14pt; font-weight: 700; line-height: 1.18; text-align: left; }
+.ti-company-en { font-size: 11pt; font-weight: 700; line-height: 1.18; text-align: left; margin-bottom: 4px; }
+.ti-company-addr { font-size: 8.2pt; color: #111; line-height: 1.38; text-align: left; word-break: break-word; overflow-wrap: anywhere; }
 .ti-company-addr.ti-nowrap { white-space: normal; }
 
 /* Top-right small bordered box */
