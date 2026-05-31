@@ -226,23 +226,23 @@
   border-left: 0.75pt solid #000;
   border-right: 0.75pt solid #000;
   border-bottom: 0.75pt solid #000;
-  font-size: 8.5pt;
+  font-size: 8.6pt;
 }
 .ti-sign-cell {
-  padding: 5px 8px 4px;
+  padding: 4px 8px 3px;
   border-right: 0.75pt solid #000;
-  min-height: 72px;
+  min-height: 68px;
   position: relative;
 }
 .ti-sign-cell:last-child { border-right: none; }
-.ti-sign-head { font-size: 8.5pt; margin-bottom: 10px; line-height: 1.25; }
-.ti-sign-line-row { display: flex; gap: 4px; margin-bottom: 3px; align-items: baseline; line-height: 1.25; }
+.ti-sign-head { font-size: 8.6pt; margin-bottom: 8px; line-height: 1.2; }
+.ti-sign-line-row { display: flex; gap: 4px; margin-bottom: 2px; align-items: baseline; line-height: 1.2; }
 .ti-sign-line-row .ti-line { flex: 1; min-width: 0; }
 .ti-sign-sender-c { text-align: left; }
 .ti-sign-auth-c { text-align: center; }
 .ti-sign-auth-name { font-weight: 600; margin-bottom: 2px; }
-.ti-sign-img-wrap { height: 28px; display: flex; align-items: center; justify-content: center; }
-.ti-sign-img { height: 34px; object-fit: contain; }
+.ti-sign-img-wrap { height: 25px; display: flex; align-items: center; justify-content: center; }
+.ti-sign-img { height: 31px; object-fit: contain; }
 .ti-sign-foot { font-size: 8pt; margin-top: 1px; }
 .ti-sign-name { font-weight: 600; }
 .ti-sign-license { font-size: 7.5pt; color: #444; line-height: 1.2; }
