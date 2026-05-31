@@ -8,7 +8,7 @@ interface PrintActionsProps {
   size?: 'sm' | 'default';
 }
 
-async function captureElement(el: HTMLElement) {
+async function captureNode(node: HTMLElement, width: number) {
   const { default: html2canvas } = await import('html2canvas');
 
   const sandbox = document.createElement('div');
@@ -17,25 +17,23 @@ async function captureElement(el: HTMLElement) {
   sandbox.style.top = '0';
   sandbox.style.zIndex = '-1';
   sandbox.style.background = 'white';
-  sandbox.style.padding = '0';
 
-  const clone = el.cloneNode(true) as HTMLElement;
-  clone.style.width = `${Math.max(el.clientWidth, 760)}px`;
+  const clone = node.cloneNode(true) as HTMLElement;
+  clone.style.width = `${width}px`;
   clone.style.maxHeight = 'none';
   clone.style.height = 'auto';
-  clone.style.overflow = 'visible';
+  clone.style.overflow = 'hidden';
   clone.style.transform = 'none';
+  clone.style.margin = '0';
+  clone.style.boxShadow = 'none';
 
-  // Remove scroll clipping from cloned nodes
-  clone.querySelectorAll<HTMLElement>('[class*="overflow"], [class*="max-h-"]').forEach((node) => {
-    node.style.overflow = 'visible';
-    node.style.maxHeight = 'none';
-    node.style.height = 'auto';
+  clone.querySelectorAll<HTMLElement>('[class*="overflow"], [class*="max-h-"]').forEach((n) => {
+    n.style.overflow = 'visible';
+    n.style.maxHeight = 'none';
+    n.style.height = 'auto';
   });
-
-  // Hide explicitly non-printable elements only
-  clone.querySelectorAll<HTMLElement>('.print\\:hidden, [class*="print:hidden"], [data-print-hide="true"]').forEach((node) => {
-    node.style.display = 'none';
+  clone.querySelectorAll<HTMLElement>('.print\\:hidden, [class*="print:hidden"], [data-print-hide="true"]').forEach((n) => {
+    n.style.display = 'none';
   });
 
   sandbox.appendChild(clone);
@@ -54,6 +52,19 @@ async function captureElement(el: HTMLElement) {
   return canvas;
 }
 
+// 210mm at 96dpi ≈ 794px
+const A4_PX_WIDTH = 794;
+
+async function capturePages(el: HTMLElement): Promise<HTMLCanvasElement[]> {
+  const docs = Array.from(el.querySelectorAll<HTMLElement>('.ti-doc'));
+  const nodes = docs.length > 0 ? docs : [el];
+  const canvases: HTMLCanvasElement[] = [];
+  for (const n of nodes) {
+    canvases.push(await captureNode(n, A4_PX_WIDTH));
+  }
+  return canvases;
+}
+
 const PrintActions = ({ printAreaId, title, size = 'sm' }: PrintActionsProps) => {
   const handlePrint = async () => {
     const el = document.getElementById(printAreaId);
@@ -65,8 +76,8 @@ const PrintActions = ({ printAreaId, title, size = 'sm' }: PrintActionsProps) =>
     const toastId = toast.loading('กำลังเตรียมหน้าพิมพ์...');
 
     try {
-      const canvas = await captureElement(el);
-      const dataUrl = canvas.toDataURL('image/png');
+      const canvases = await capturePages(el);
+      const imgs = canvases.map((c) => c.toDataURL('image/png'));
 
       const iframe = document.createElement('iframe');
       iframe.style.position = 'fixed';
@@ -85,6 +96,10 @@ const PrintActions = ({ printAreaId, title, size = 'sm' }: PrintActionsProps) =>
         return;
       }
 
+      const pages = imgs
+        .map((src) => `<div class="page"><img src="${src}" /></div>`)
+        .join('');
+
       iframeDoc.open();
       iframeDoc.write(`
         <!DOCTYPE html>
@@ -92,31 +107,30 @@ const PrintActions = ({ printAreaId, title, size = 'sm' }: PrintActionsProps) =>
         <head>
           <title>${title || 'Print'}</title>
           <style>
-            @page { margin: 10mm; size: A4; }
-            body { margin: 0; padding: 0; }
-            img { width: 100%; height: auto; display: block; }
+            @page { margin: 0; size: A4; }
+            html, body { margin: 0; padding: 0; background: white; }
+            .page { width: 210mm; height: 297mm; overflow: hidden; page-break-after: always; display: flex; align-items: center; justify-content: center; }
+            .page:last-child { page-break-after: auto; }
+            .page img { width: 210mm; height: 297mm; object-fit: contain; display: block; }
           </style>
         </head>
-        <body>
-          <img src="${dataUrl}" />
-        </body>
+        <body>${pages}</body>
         </html>
       `);
       iframeDoc.close();
 
-      const img = iframeDoc.querySelector('img');
-      if (img) {
-        img.onload = () => {
-          toast.dismiss(toastId);
-          iframe.contentWindow?.focus();
-          iframe.contentWindow?.print();
-          setTimeout(() => document.body.removeChild(iframe), 1000);
-        };
-      } else {
+      const doPrint = () => {
         toast.dismiss(toastId);
         iframe.contentWindow?.focus();
         iframe.contentWindow?.print();
         setTimeout(() => document.body.removeChild(iframe), 1000);
+      };
+      const lastImg = iframeDoc.querySelectorAll('img');
+      if (lastImg.length > 0) {
+        const last = lastImg[lastImg.length - 1] as HTMLImageElement;
+        if (last.complete) doPrint(); else last.onload = doPrint;
+      } else {
+        doPrint();
       }
     } catch (err) {
       toast.dismiss(toastId);
@@ -136,27 +150,22 @@ const PrintActions = ({ printAreaId, title, size = 'sm' }: PrintActionsProps) =>
 
     try {
       const { jsPDF } = await import('jspdf');
-      const canvas = await captureElement(el);
-
-      const imgWidth = 190;
-      const pageHeight = 277;
-      const imgHeight = (canvas.height * imgWidth) / canvas.width;
+      const canvases = await capturePages(el);
 
       const pdf = new jsPDF('p', 'mm', 'a4');
-      const imgData = canvas.toDataURL('image/png');
+      const pageW = 210;
+      const pageH = 297;
 
-      let heightLeft = imgHeight;
-      let position = 10;
-
-      pdf.addImage(imgData, 'PNG', 10, position, imgWidth, imgHeight);
-      heightLeft -= pageHeight;
-
-      while (heightLeft > 0) {
-        position = heightLeft - imgHeight + 10;
-        pdf.addPage();
-        pdf.addImage(imgData, 'PNG', 10, position, imgWidth, imgHeight);
-        heightLeft -= pageHeight;
-      }
+      canvases.forEach((canvas, idx) => {
+        if (idx > 0) pdf.addPage();
+        // Fit each captured doc onto a single A4 page, preserving aspect ratio
+        const ratio = Math.min(pageW / canvas.width, pageH / canvas.height);
+        const w = canvas.width * ratio;
+        const h = canvas.height * ratio;
+        const x = (pageW - w) / 2;
+        const y = (pageH - h) / 2;
+        pdf.addImage(canvas.toDataURL('image/png'), 'PNG', x, y, w, h);
+      });
 
       const filename = (title || 'document').replace(/[^a-zA-Z0-9ก-๙\s-]/g, '').trim();
       pdf.save(`${filename}.pdf`);
