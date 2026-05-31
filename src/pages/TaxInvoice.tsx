@@ -32,14 +32,18 @@ interface InvoiceRow {
 }
 
 const SAMPLE: Partial<InvoiceData> = {
-  customer_name: 'บริษัท ตัวอย่าง จำกัด',
-  customer_address: '123 ถนนสุขุมวิท แขวงคลองตัน เขตคลองเตย กรุงเทพฯ 10110',
-  customer_tax_id: '0105566001234',
+  customer_name: '',
+  customer_address: '',
+  customer_tax_id: '',
   branch_type: 'head',
   branch_no: '',
+  // ตาม PDF: 1 บรรทัด รหัส OY-67003 รายละเอียด "ค่าอาหารและเครื่องดื่ม"
+  // ราคารวมจากใบเสร็จ OYARD BKK = 7,348.00 (Subtotal 6,680 + Service Charge 10% 668)
   items: [
-    { code: 'OY-67003', description: 'ค่าอาหารและเครื่องดื่ม', qty: 1, unit: 'รายการ', price: 2007.5 },
+    { code: 'OY-67003', description: 'ค่าอาหารและเครื่องดื่ม', qty: 1, unit: 'รายการ', price: 7348 },
   ],
+  payment_cash: false,
+  payment_transfer: true,
   notes: '',
 };
 
@@ -52,7 +56,7 @@ function emptyInvoice(today: string): InvoiceData {
     customer_tax_id: '',
     branch_type: 'head',
     branch_no: '',
-    items: [{ code: '', description: '', qty: 1, unit: 'รายการ', price: 0 }],
+    items: [{ code: 'OY-67003', description: 'ค่าอาหารและเครื่องดื่ม', qty: 1, unit: 'รายการ', price: 7348 }],
     total_amount: 0,
     discount: 0,
     amount_after_discount: 0,
@@ -60,14 +64,17 @@ function emptyInvoice(today: string): InvoiceData {
     grand_total: 0,
     amount_text: '',
     payment_cash: false,
-    payment_transfer: false,
+    payment_transfer: true,
     cheque_no: '',
     cheque_bank: '',
     cheque_date: '',
     cheque_amount: 0,
     notes: '',
-    signer_name: 'สัจจพร สมานิมงคล',
+    signer_name: 'สัจจพร สมาธิมงคล',
+    signer_license: '',
     signer_date: today,
+    receiver_name: '',
+    receiver_date: '',
   };
 }
 
