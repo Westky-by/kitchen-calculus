@@ -204,6 +204,21 @@ const TaxInvoicePage = () => {
         r.onerror = reject;
         r.readAsDataURL(f);
       });
+
+      // Upload bill image to storage so it stays attached to the invoice
+      try {
+        const ext = (f.name.split('.').pop() || 'jpg').toLowerCase();
+        const path = `${user?.id || 'anon'}/${Date.now()}-${Math.random().toString(36).slice(2, 8)}.${ext}`;
+        const { error: upErr } = await supabase.storage.from('bill-images').upload(path, f, {
+          contentType: f.type || 'image/jpeg',
+          upsert: false,
+        });
+        if (!upErr) {
+          const { data: pub } = supabase.storage.from('bill-images').getPublicUrl(path);
+          setSourceImageUrl(pub.publicUrl);
+        }
+      } catch { /* non-fatal */ }
+
       const { data: sess } = await supabase.auth.getSession();
       const res = await fetch(`${import.meta.env.VITE_SUPABASE_URL}/functions/v1/ocr-bill`, {
         method: 'POST',
