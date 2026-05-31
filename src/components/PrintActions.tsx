@@ -8,7 +8,7 @@ interface PrintActionsProps {
   size?: 'sm' | 'default';
 }
 
-async function captureElement(el: HTMLElement) {
+async function captureNode(node: HTMLElement, width: number) {
   const { default: html2canvas } = await import('html2canvas');
 
   const sandbox = document.createElement('div');
@@ -17,25 +17,23 @@ async function captureElement(el: HTMLElement) {
   sandbox.style.top = '0';
   sandbox.style.zIndex = '-1';
   sandbox.style.background = 'white';
-  sandbox.style.padding = '0';
 
-  const clone = el.cloneNode(true) as HTMLElement;
-  clone.style.width = `${Math.max(el.clientWidth, 760)}px`;
+  const clone = node.cloneNode(true) as HTMLElement;
+  clone.style.width = `${width}px`;
   clone.style.maxHeight = 'none';
   clone.style.height = 'auto';
-  clone.style.overflow = 'visible';
+  clone.style.overflow = 'hidden';
   clone.style.transform = 'none';
+  clone.style.margin = '0';
+  clone.style.boxShadow = 'none';
 
-  // Remove scroll clipping from cloned nodes
-  clone.querySelectorAll<HTMLElement>('[class*="overflow"], [class*="max-h-"]').forEach((node) => {
-    node.style.overflow = 'visible';
-    node.style.maxHeight = 'none';
-    node.style.height = 'auto';
+  clone.querySelectorAll<HTMLElement>('[class*="overflow"], [class*="max-h-"]').forEach((n) => {
+    n.style.overflow = 'visible';
+    n.style.maxHeight = 'none';
+    n.style.height = 'auto';
   });
-
-  // Hide explicitly non-printable elements only
-  clone.querySelectorAll<HTMLElement>('.print\\:hidden, [class*="print:hidden"], [data-print-hide="true"]').forEach((node) => {
-    node.style.display = 'none';
+  clone.querySelectorAll<HTMLElement>('.print\\:hidden, [class*="print:hidden"], [data-print-hide="true"]').forEach((n) => {
+    n.style.display = 'none';
   });
 
   sandbox.appendChild(clone);
@@ -52,6 +50,19 @@ async function captureElement(el: HTMLElement) {
 
   document.body.removeChild(sandbox);
   return canvas;
+}
+
+// 210mm at 96dpi ≈ 794px
+const A4_PX_WIDTH = 794;
+
+async function capturePages(el: HTMLElement): Promise<HTMLCanvasElement[]> {
+  const docs = Array.from(el.querySelectorAll<HTMLElement>('.ti-doc'));
+  const nodes = docs.length > 0 ? docs : [el];
+  const canvases: HTMLCanvasElement[] = [];
+  for (const n of nodes) {
+    canvases.push(await captureNode(n, A4_PX_WIDTH));
+  }
+  return canvases;
 }
 
 const PrintActions = ({ printAreaId, title, size = 'sm' }: PrintActionsProps) => {
