@@ -12,7 +12,7 @@ export interface InvoiceItem {
 
 export interface InvoiceData {
   doc_number: string;
-  doc_date: string; // YYYY-MM-DD
+  doc_date: string;
   customer_name: string;
   customer_address: string;
   customer_tax_id: string;
@@ -33,7 +33,10 @@ export interface InvoiceData {
   cheque_amount: number;
   notes: string;
   signer_name: string;
+  signer_license: string;
   signer_date: string;
+  receiver_name: string;
+  receiver_date: string;
 }
 
 type CopyType = 'original' | 'company' | 'accounting';
