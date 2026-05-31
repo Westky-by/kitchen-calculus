@@ -554,7 +554,12 @@ const TaxInvoicePage = () => {
                     </Button>
                   </div>
                   <input ref={fileRef} type="file" accept="image/*" className="hidden" onChange={handleFile} />
-                  <p className="text-xs text-muted-foreground">รองรับ JPG/PNG ระบบจะดึง วันที่/ลูกค้า/รายการอัตโนมัติ</p>
+                  <p className="text-xs text-muted-foreground">รองรับ JPG/PNG ระบบจะดึง วันที่/ลูกค้า/รายการอัตโนมัติ และจะแนบเก็บรูปบิลไว้กับเอกสาร</p>
+                  {sourceImageUrl && (
+                    <a href={sourceImageUrl} target="_blank" rel="noreferrer" className="block">
+                      <img src={sourceImageUrl} alt="บิลต้นฉบับ" className="max-h-40 rounded border" />
+                    </a>
+                  )}
                 </Card>
 
                 <Card className="p-3 space-y-2">
