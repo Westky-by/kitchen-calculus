@@ -27,7 +27,8 @@
 .ti-company { padding-top: 6px; text-align: left; }
 .ti-company-th { font-size: 16pt; font-weight: 700; line-height: 1.1; text-align: left; }
 .ti-company-en { font-size: 13pt; font-weight: 700; line-height: 1.1; text-align: left; margin-bottom: 4px; }
-.ti-company-addr { font-size: 8.5pt; color: #111; line-height: 1.3; text-align: left; white-space: nowrap; }
+.ti-company-addr { font-size: 8.5pt; color: #111; line-height: 1.3; text-align: left; word-break: break-word; overflow-wrap: anywhere; }
+.ti-company-addr.ti-nowrap { white-space: nowrap; }
 
 /* Top-right small bordered box */
 .ti-corner-box {
