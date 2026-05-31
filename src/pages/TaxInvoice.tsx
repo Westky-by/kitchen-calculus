@@ -470,10 +470,19 @@ const TaxInvoicePage = () => {
                     <h3 className="text-sm font-bold">ข้อมูลเอกสาร</h3>
                     <Button size="sm" variant="outline" onClick={handleApplySample}><Sparkles className="w-3 h-3 mr-1" />ใช้ค่าตัวอย่าง</Button>
                   </div>
-                  <div className="grid grid-cols-2 gap-2">
+                  <div className="grid grid-cols-3 gap-2">
                     <div>
                       <Label className="text-xs">วันที่เอกสาร</Label>
                       <Input type="date" value={data.doc_date} onChange={e => setData(p => ({ ...p, doc_date: e.target.value, signer_date: e.target.value }))} />
+                    </div>
+                    <div>
+                      <Label className="text-xs">รหัสผู้สร้าง (2 หลัก)</Label>
+                      <Input
+                        maxLength={2}
+                        value={creatorCode}
+                        onChange={e => setCreatorCode(e.target.value.replace(/\D/g, '').slice(0, 2).padStart(0, '0'))}
+                        className="font-mono"
+                      />
                     </div>
                     <div>
                       <Label className="text-xs">เลขที่ (ตัวอย่าง)</Label>
