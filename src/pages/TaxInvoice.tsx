@@ -645,17 +645,30 @@ const TaxInvoicePage = () => {
                 </Card>
 
                 <Card className="p-3 space-y-2">
-                  <div className="flex items-center justify-between">
+                  <div className="flex items-center justify-between flex-wrap gap-2">
                     <h3 className="text-sm font-bold">รายการสินค้า</h3>
-                    <Button size="sm" variant="outline" onClick={addRow}><Plus className="w-3 h-3 mr-1" />เพิ่มแถว</Button>
+                    <div className="flex gap-1">
+                      <Button
+                        size="sm"
+                        variant="outline"
+                        onClick={() => setData(p => ({
+                          ...p,
+                          items: [{ code: 'OY-67003', description: 'ค่าอาหารและเครื่องดื่ม', qty: 1, unit: 'รายการ', price: p.items.reduce((s, it) => s + (it.qty || 0) * (it.price || 0), 0) || (billRef.before_vat || billRef.total || 0) }],
+                        }))}
+                        title="ใช้รายการ Standard: OY-67003 ค่าอาหารและเครื่องดื่ม รวมยอดเป็นราคา/หน่วย"
+                      >
+                        <Sparkles className="w-3 h-3 mr-1" />Standard
+                      </Button>
+                      <Button size="sm" variant="outline" onClick={addRow}><Plus className="w-3 h-3 mr-1" />เพิ่มแถว</Button>
+                    </div>
                   </div>
                   {data.items.map((it, i) => (
-                    <div key={i} className="grid grid-cols-[2fr_3fr_1fr_1fr_1.2fr_auto] gap-1 items-center">
+                    <div key={i} className="grid grid-cols-[1.1fr_minmax(0,4fr)_0.7fr_0.9fr_1.3fr_auto] gap-1 items-center">
                       <Input className="h-8 text-xs" placeholder="รหัส" value={it.code} onChange={e => updateItem(i, { code: e.target.value })} />
-                      <Input className="h-8 text-xs" placeholder="รายละเอียด" value={it.description} onChange={e => updateItem(i, { description: e.target.value })} />
-                      <Input className="h-8 text-xs" type="number" placeholder="จำนวน" value={it.qty || 0} onChange={e => updateItem(i, { qty: Number(e.target.value) || 0 })} />
+                      <Input className="h-8 text-xs w-full" placeholder="รายละเอียด" value={it.description} onChange={e => updateItem(i, { description: e.target.value })} />
+                      <Input className="h-8 text-xs" type="number" placeholder="จำนวน" value={it.qty || ''} onChange={e => updateItem(i, { qty: Number(e.target.value) || 0 })} />
                       <Input className="h-8 text-xs" placeholder="หน่วย" value={it.unit} onChange={e => updateItem(i, { unit: e.target.value })} />
-                      <Input className="h-8 text-xs" type="number" placeholder="ราคา/หน่วย" value={it.price || 0} onChange={e => updateItem(i, { price: Number(e.target.value) || 0 })} />
+                      <Input className="h-8 text-xs" type="number" placeholder="ราคา/หน่วย" value={it.price || ''} onChange={e => updateItem(i, { price: Number(e.target.value) || 0 })} />
                       <Button size="icon" variant="ghost" onClick={() => removeRow(i)} className="h-7 w-7"><Trash2 className="w-3 h-3 text-destructive" /></Button>
                     </div>
                   ))}
