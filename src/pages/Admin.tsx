@@ -457,6 +457,7 @@ const Admin = () => {
                     <TableHead>ชื่อผู้ใช้</TableHead>
                     <TableHead>ชื่อ-นามสกุล</TableHead>
                     <TableHead>ตำแหน่ง</TableHead>
+                    <TableHead>รหัสผู้สร้าง</TableHead>
                     <TableHead>Role</TableHead>
                     <TableHead>สถานะ</TableHead>
                     <TableHead>สมัครเมื่อ</TableHead>
@@ -470,6 +471,32 @@ const Admin = () => {
                       <TableCell>{u.full_name}</TableCell>
                       <TableCell>{u.position || '-'}</TableCell>
                       <TableCell>
+                        {editingCodeId === u.id ? (
+                          <div className="flex gap-1 items-center">
+                            <Input
+                              value={editingCodeVal}
+                              onChange={(e) => setEditingCodeVal(e.target.value)}
+                              className="w-20 h-8 text-xs"
+                              maxLength={6}
+                              autoFocus
+                              onKeyDown={(e) => {
+                                if (e.key === 'Enter') handleSaveCreatorCode(u.id);
+                                if (e.key === 'Escape') setEditingCodeId('');
+                              }}
+                            />
+                            <Button size="sm" variant="default" className="h-8 px-2 text-xs" onClick={() => handleSaveCreatorCode(u.id)}>OK</Button>
+                            <Button size="sm" variant="ghost" className="h-8 px-2 text-xs" onClick={() => setEditingCodeId('')}>×</Button>
+                          </div>
+                        ) : (
+                          <button
+                            type="button"
+                            onClick={() => { setEditingCodeId(u.id); setEditingCodeVal(u.creator_code || ''); }}
+                            className="font-mono text-sm px-2 py-1 rounded hover:bg-muted border border-dashed border-border"
+                          >
+                            {u.creator_code || '00'}
+                          </button>
+                        )}
+                      </TableCell>
                         <Select
                           value={u.role}
                           onValueChange={(val) => handleRoleChange(u.id, u.role, val)}
