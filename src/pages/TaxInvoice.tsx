@@ -155,8 +155,22 @@ const TaxInvoicePage = () => {
     })();
   }, [user, fetchList]);
 
-  // ---- Recalculate totals from items + discount (VAT-exclusive: add 7% on top, no rounding) ----
+  // ---- Recalculate totals (VAT-exclusive add 7%) OR override from bill reference ----
   useEffect(() => {
+    if (useBillTotals) {
+      const pre = billRef.before_vat || 0;
+      const vat = billRef.vat_amount || 0;
+      const grand = billRef.total || (pre + vat);
+      setData(prev => ({
+        ...prev,
+        total_amount: pre,
+        amount_after_discount: pre,
+        vat,
+        grand_total: grand,
+        amount_text: bahtText(grand),
+      }));
+      return;
+    }
     const total = data.items.reduce((s, it) => s + (it.qty || 0) * (it.price || 0), 0);
     const afterDiscount = Math.max(0, total - (data.discount || 0));
     const vat = afterDiscount * 0.07;
@@ -170,7 +184,7 @@ const TaxInvoicePage = () => {
       amount_text: bahtText(grand),
     }));
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [JSON.stringify(data.items), data.discount]);
+  }, [JSON.stringify(data.items), data.discount, useBillTotals, JSON.stringify(billRef)]);
 
   // ---- New invoice ----
   const startNew = () => {
