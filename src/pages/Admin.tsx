@@ -1167,9 +1167,10 @@ const Admin = () => {
                           <button
                             type="button"
                             onClick={() => setViewingManual(m)}
-                            className="font-medium text-left hover:text-primary hover:underline"
+                            className="font-medium text-left hover:text-primary hover:underline inline-flex items-center gap-2"
                           >
                             {m.title}
+                            {m.file_url && <Paperclip className="w-3.5 h-3.5 text-muted-foreground" />}
                           </button>
                         </TableCell>
                         <TableCell>
