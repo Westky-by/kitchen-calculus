@@ -808,7 +808,7 @@ const TaxInvoicePage = () => {
                   <p className="text-xs text-muted-foreground mb-2">ตัวอย่างใบกำกับ (ต้นฉบับ)</p>
                   <div className="overflow-auto bg-gray-200 p-2 rounded" style={{ maxHeight: '80vh' }}>
                     <div style={{ transform: 'scale(0.7)', transformOrigin: 'top left', width: '210mm' }}>
-                      <TaxInvoiceDoc data={{ ...data, doc_number: previewNumber }} copy="original" />
+                      <TaxInvoiceDoc data={{ ...data, doc_number: previewNumber }} copy="original" companySignature={companySignature} />
                     </div>
                   </div>
                 </Card>
@@ -838,9 +838,9 @@ const TaxInvoicePage = () => {
           {printData && (
             <div id="tax-invoice-print-area" className="ti-print-area" ref={printRef}>
               <div className="ti-print-root">
-                <TaxInvoiceDoc data={printData} copy="original" />
-                <TaxInvoiceDoc data={printData} copy="company" />
-                <TaxInvoiceDoc data={printData} copy="accounting" />
+                <TaxInvoiceDoc data={printData} copy="original" companySignature={companySignature} />
+                <TaxInvoiceDoc data={printData} copy="company" companySignature={companySignature} />
+                <TaxInvoiceDoc data={printData} copy="accounting" companySignature={companySignature} />
               </div>
             </div>
           )}
@@ -854,9 +854,9 @@ const TaxInvoicePage = () => {
       {printOpen && printData && (
         <div className="ti-print-area hidden print:block">
           <div className="ti-print-root">
-            <TaxInvoiceDoc data={printData} copy="original" />
-            <TaxInvoiceDoc data={printData} copy="company" />
-            <TaxInvoiceDoc data={printData} copy="accounting" />
+            <TaxInvoiceDoc data={printData} copy="original" companySignature={companySignature} />
+            <TaxInvoiceDoc data={printData} copy="company" companySignature={companySignature} />
+            <TaxInvoiceDoc data={printData} copy="accounting" companySignature={companySignature} />
           </div>
         </div>
       )}
