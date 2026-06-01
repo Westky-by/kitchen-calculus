@@ -49,10 +49,12 @@ const COPY_LABELS: Record<CopyType, { th: string; en: string; box_th: string; bo
 
 function fmt(n: number) { return n.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 }); }
 
-export default function TaxInvoiceDoc({ data, copy = 'original' }: { data: InvoiceData; copy?: CopyType }) {
+export default function TaxInvoiceDoc({ data, copy = 'original', companySignature }: { data: InvoiceData; copy?: CopyType; companySignature?: string }) {
   const label = COPY_LABELS[copy];
   const showStamp = copy !== 'accounting';
   const showSignature = copy === 'original';
+  const signatureSrc = companySignature || signature;
+
 
   // Pad to 18 rows for the table (matches PDF template)
   const rows: (InvoiceItem | null)[] = [];
