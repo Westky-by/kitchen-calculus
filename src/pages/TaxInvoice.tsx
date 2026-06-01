@@ -148,6 +148,38 @@ const TaxInvoicePage = () => {
     e.target.value = '';
   };
   const printRef = useRef<HTMLDivElement>(null);
+  const [downloading, setDownloading] = useState(false);
+
+  const handleDownloadPdf = async () => {
+    const area = document.getElementById('tax-invoice-print-area');
+    if (!area || !printData) { toast.error('ไม่พบเอกสารสำหรับดาวน์โหลด'); return; }
+    const pages = Array.from(area.querySelectorAll('.ti-print-root > *')) as HTMLElement[];
+    if (pages.length === 0) { toast.error('ไม่พบหน้าเอกสาร'); return; }
+    setDownloading(true);
+    try {
+      const pdf = new jsPDF({ unit: 'mm', format: 'a4', orientation: 'portrait' });
+      const pw = pdf.internal.pageSize.getWidth();
+      const ph = pdf.internal.pageSize.getHeight();
+      for (let i = 0; i < pages.length; i++) {
+        const canvas = await html2canvas(pages[i], { scale: 2, useCORS: true, backgroundColor: '#ffffff' });
+        const img = canvas.toDataURL('image/jpeg', 0.95);
+        const ratio = Math.min(pw / canvas.width, ph / canvas.height);
+        const w = canvas.width * ratio;
+        const h = canvas.height * ratio;
+        const x = (pw - w) / 2;
+        const y = (ph - h) / 2;
+        if (i > 0) pdf.addPage();
+        pdf.addImage(img, 'JPEG', x, y, w, h);
+      }
+      const filename = `Tax-Invoice-${printData.doc_number || 'document'}.pdf`;
+      pdf.save(filename);
+      toast.success(`ดาวน์โหลด ${filename} สำเร็จ`);
+    } catch (err: any) {
+      toast.error('ดาวน์โหลด PDF ไม่สำเร็จ: ' + (err?.message || ''));
+    } finally {
+      setDownloading(false);
+    }
+  };
 
   const isAdmin = role === 'admin' || role === 'super_admin';
 
