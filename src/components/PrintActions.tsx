@@ -8,6 +8,9 @@ interface PrintActionsProps {
   size?: 'sm' | 'default';
 }
 
+// 210mm at 96dpi ≈ 794px
+const A4_PX_WIDTH = 794;
+
 async function captureNode(node: HTMLElement, width: number) {
   const { default: html2canvas } = await import('html2canvas');
   const isTaxInvoiceDoc = node.classList.contains('ti-doc');
@@ -23,27 +26,57 @@ async function captureNode(node: HTMLElement, width: number) {
   clone.style.width = `${width}px`;
   clone.style.margin = '0';
   clone.style.boxShadow = 'none';
-  clone.style.transform = 'none';
   clone.style.transformOrigin = 'top left';
-  clone.style.setProperty('--ti-fit-scale', '1');
-
-  if (isTaxInvoiceDoc) {
-    // Render at exact A4 size — no auto-scale, matches the on-screen layout 1:1
-    const A4_PX_HEIGHT = Math.round(width * Math.SQRT2);
-    clone.style.height = `${A4_PX_HEIGHT}px`;
-    clone.style.minHeight = `${A4_PX_HEIGHT}px`;
-    clone.style.maxHeight = `${A4_PX_HEIGHT}px`;
-    clone.style.overflow = 'hidden';
-  } else {
-    clone.style.minHeight = '0';
-    clone.style.maxHeight = 'none';
-    clone.style.height = 'auto';
-    clone.style.overflow = 'visible';
-  }
 
   clone.querySelectorAll<HTMLElement>('.print\\:hidden, [class*="print:hidden"], [data-print-hide="true"]').forEach((n) => {
     n.style.display = 'none';
   });
+
+  if (isTaxInvoiceDoc) {
+    // Fit-to-page: wrap in a frame at exact A4 size and compress doc to fit
+    const maxHeight = Math.round(width * Math.SQRT2);
+    const frame = document.createElement('div');
+    frame.style.width = `${width}px`;
+    frame.style.height = `${maxHeight}px`;
+    frame.style.background = 'white';
+    frame.style.overflow = 'hidden';
+    frame.style.position = 'relative';
+
+    // Measure natural height first
+    clone.style.setProperty('--ti-fit-scale', '1');
+    clone.style.transform = 'none';
+    frame.appendChild(clone);
+    sandbox.appendChild(frame);
+    document.body.appendChild(sandbox);
+
+    try {
+      const naturalHeight = clone.offsetHeight;
+      const fitScale = naturalHeight > maxHeight ? maxHeight / naturalHeight : 1;
+      clone.style.setProperty('--ti-fit-scale', String(fitScale));
+      clone.style.transform = `scale(${fitScale})`;
+      clone.style.transformOrigin = 'top left';
+      clone.style.width = `${width / fitScale}px`;
+
+      return await html2canvas(frame, {
+        scale: 2,
+        useCORS: true,
+        logging: false,
+        backgroundColor: '#ffffff',
+        width,
+        height: maxHeight,
+        windowWidth: width,
+        windowHeight: maxHeight,
+      });
+    } finally {
+      document.body.removeChild(sandbox);
+    }
+  }
+
+  clone.style.minHeight = '0';
+  clone.style.maxHeight = 'none';
+  clone.style.height = 'auto';
+  clone.style.overflow = 'visible';
+  clone.style.transform = 'none';
 
   sandbox.appendChild(clone);
   document.body.appendChild(sandbox);
@@ -56,16 +89,13 @@ async function captureNode(node: HTMLElement, width: number) {
       backgroundColor: '#ffffff',
       width: clone.offsetWidth,
       height: clone.offsetHeight,
-      windowWidth: clone.offsetWidth,
-      windowHeight: clone.offsetHeight,
+      windowWidth: clone.scrollWidth,
+      windowHeight: clone.scrollHeight,
     });
   } finally {
     document.body.removeChild(sandbox);
   }
 }
-
-// 210mm at 96dpi ≈ 794px
-const A4_PX_WIDTH = 794;
 
 async function capturePages(el: HTMLElement): Promise<HTMLCanvasElement[]> {
   const docs = Array.from(el.querySelectorAll<HTMLElement>('.ti-doc'));
@@ -121,9 +151,26 @@ const PrintActions = ({ printAreaId, title, size = 'sm' }: PrintActionsProps) =>
           <style>
             @page { margin: 0; size: A4; }
             html, body { margin: 0; padding: 0; background: white; }
-            .page { width: 210mm; height: 297mm; overflow: hidden; page-break-after: always; }
+            .page {
+              width: 210mm;
+              height: 297mm;
+              padding: 4mm;
+              box-sizing: border-box;
+              overflow: hidden;
+              page-break-after: always;
+              display: flex;
+              align-items: center;
+              justify-content: center;
+            }
             .page:last-child { page-break-after: auto; }
-            .page img { width: 210mm; height: 297mm; display: block; }
+            .page img {
+              max-width: 100%;
+              max-height: 100%;
+              width: auto;
+              height: auto;
+              display: block;
+              object-fit: contain;
+            }
           </style>
         </head>
         <body>${pages}</body>
@@ -170,8 +217,13 @@ const PrintActions = ({ printAreaId, title, size = 'sm' }: PrintActionsProps) =>
 
       canvases.forEach((canvas, idx) => {
         if (idx > 0) pdf.addPage();
-        // Fill full A4 — doc already includes its own A4 margins
-        pdf.addImage(canvas.toDataURL('image/png'), 'PNG', 0, 0, pageW, pageH);
+        // Fit-to-page: scale canvas to fit within A4 while preserving aspect ratio
+        const ratio = Math.min(pageW / canvas.width, pageH / canvas.height);
+        const w = canvas.width * ratio;
+        const h = canvas.height * ratio;
+        const x = (pageW - w) / 2;
+        const y = (pageH - h) / 2;
+        pdf.addImage(canvas.toDataURL('image/png'), 'PNG', x, y, w, h);
       });
 
       const filename = (title || 'document').replace(/[^a-zA-Z0-9ก-๙\s-]/g, '').trim();
