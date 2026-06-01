@@ -419,6 +419,12 @@ const Admin = () => {
             >
               <Rocket className="w-4 h-4" /> อัพเดทเวอร์ชัน Public
             </button>
+            <button
+              onClick={() => { setTab('emails'); fetchEmailRecipients(); }}
+              className={`flex items-center gap-2 px-4 py-2 text-sm border-b-[3px] ${tab === 'emails' ? 'tab-active' : 'tab-inactive border-transparent'}`}
+            >
+              <Mail className="w-4 h-4" /> อีเมลผู้รับใบกำกับ
+            </button>
           </div>
         </div>
       </div>
