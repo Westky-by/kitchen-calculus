@@ -156,6 +156,70 @@ const Admin = () => {
     }
   };
 
+  const fetchEmailRecipients = useCallback(async () => {
+    const { data } = await supabase
+      .from('tax_invoice_email_recipients')
+      .select('*')
+      .order('is_default', { ascending: false })
+      .order('created_at', { ascending: false });
+    if (data) setEmailRecipients(data as EmailRecipientRow[]);
+  }, []);
+
+  const handleAddEmail = async () => {
+    const email = newEmail.trim().toLowerCase();
+    if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
+      toast.error('รูปแบบอีเมลไม่ถูกต้อง');
+      return;
+    }
+    setAddingEmail(true);
+    try {
+      const { data, error } = await supabase
+        .from('tax_invoice_email_recipients')
+        .insert({
+          email,
+          label: newEmailLabel.trim(),
+          is_default: emailRecipients.length === 0,
+          created_by: user!.id,
+        })
+        .select()
+        .single();
+      if (error) {
+        toast.error(error.code === '23505' ? 'อีเมลนี้มีอยู่แล้ว' : 'เพิ่มไม่สำเร็จ: ' + error.message);
+        return;
+      }
+      toast.success('เพิ่มอีเมลเรียบร้อย');
+      await logActivity('เพิ่มอีเมลผู้รับ', 'tax_invoice_email_recipients', (data as any).id, { email });
+      setNewEmail(''); setNewEmailLabel('');
+      fetchEmailRecipients();
+    } finally {
+      setAddingEmail(false);
+    }
+  };
+
+  const handleDeleteEmail = async (r: EmailRecipientRow) => {
+    if (!confirm(`ลบอีเมล ${r.email}?`)) return;
+    const { error } = await supabase.from('tax_invoice_email_recipients').delete().eq('id', r.id);
+    if (error) { toast.error('ลบไม่สำเร็จ'); return; }
+    toast.success('ลบเรียบร้อย');
+    await logActivity('ลบอีเมลผู้รับ', 'tax_invoice_email_recipients', r.id, { email: r.email });
+    fetchEmailRecipients();
+  };
+
+  const handleSetDefaultEmail = async (r: EmailRecipientRow) => {
+    const { error: e1 } = await supabase
+      .from('tax_invoice_email_recipients')
+      .update({ is_default: false })
+      .neq('id', r.id);
+    if (e1) { toast.error('ตั้งค่าเริ่มต้นไม่สำเร็จ'); return; }
+    const { error: e2 } = await supabase
+      .from('tax_invoice_email_recipients')
+      .update({ is_default: true })
+      .eq('id', r.id);
+    if (e2) { toast.error('ตั้งค่าเริ่มต้นไม่สำเร็จ'); return; }
+    toast.success('ตั้งเป็นอีเมลหลักแล้ว');
+    fetchEmailRecipients();
+  };
+
   const handleDeleteVersion = async (v: VersionRow) => {
     if (!confirm(`ลบเวอร์ชัน ${v.version} หรือไม่?`)) return;
     const { error } = await supabase.from('version_updates').delete().eq('id', v.id);
@@ -168,8 +232,8 @@ const Admin = () => {
   useEffect(() => {
     if (role !== 'admin' && role !== 'super_admin') return;
     setLoading(true);
-    Promise.all([fetchUsers(), fetchLogs(), fetchVersions()]).then(() => setLoading(false));
-  }, [role, fetchUsers, fetchLogs, fetchVersions]);
+    Promise.all([fetchUsers(), fetchLogs(), fetchVersions(), fetchEmailRecipients()]).then(() => setLoading(false));
+  }, [role, fetchUsers, fetchLogs, fetchVersions, fetchEmailRecipients]);
 
   const canManageUser = (targetRole: string) => {
     if (role === 'super_admin') return true;
