@@ -9,7 +9,7 @@ import { Label } from '@/components/ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger, DialogFooter, DialogClose } from '@/components/ui/dialog';
-import { ArrowLeft, Users, Shield, Activity, UserX, UserCheck, UserPlus, Eye, EyeOff, KeyRound, Info, Rocket, Plus, Trash2 } from 'lucide-react';
+import { ArrowLeft, Users, Shield, Activity, UserX, UserCheck, UserPlus, Eye, EyeOff, KeyRound, Info, Rocket, Plus, Trash2, Mail, Star } from 'lucide-react';
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
 import { Textarea } from '@/components/ui/textarea';
 import { useNavigate } from 'react-router-dom';
@@ -46,13 +46,25 @@ interface VersionRow {
   created_at: string;
 }
 
+interface EmailRecipientRow {
+  id: string;
+  email: string;
+  label: string;
+  is_default: boolean;
+  created_at: string;
+}
+
 const Admin = () => {
   const { role, user } = useAuth();
   const navigate = useNavigate();
-  const [tab, setTab] = useState<'users' | 'logs' | 'versions'>('users');
+  const [tab, setTab] = useState<'users' | 'logs' | 'versions' | 'emails'>('users');
   const [users, setUsers] = useState<UserRow[]>([]);
   const [logs, setLogs] = useState<LogRow[]>([]);
   const [versions, setVersions] = useState<VersionRow[]>([]);
+  const [emailRecipients, setEmailRecipients] = useState<EmailRecipientRow[]>([]);
+  const [newEmail, setNewEmail] = useState('');
+  const [newEmailLabel, setNewEmailLabel] = useState('');
+  const [addingEmail, setAddingEmail] = useState(false);
   const [loading, setLoading] = useState(true);
 
   // Add user form
