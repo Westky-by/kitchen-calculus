@@ -13,7 +13,6 @@ const A4_PX_WIDTH = 794;
 
 async function captureNode(node: HTMLElement, width: number) {
   const { default: html2canvas } = await import('html2canvas');
-  const isTaxInvoiceDoc = node.classList.contains('ti-doc');
 
   const sandbox = document.createElement('div');
   sandbox.style.position = 'fixed';
@@ -26,57 +25,16 @@ async function captureNode(node: HTMLElement, width: number) {
   clone.style.width = `${width}px`;
   clone.style.margin = '0';
   clone.style.boxShadow = 'none';
-  clone.style.transformOrigin = 'top left';
-
-  clone.querySelectorAll<HTMLElement>('.print\\:hidden, [class*="print:hidden"], [data-print-hide="true"]').forEach((n) => {
-    n.style.display = 'none';
-  });
-
-  if (isTaxInvoiceDoc) {
-    // Fit-to-page: wrap in a frame at exact A4 size and compress doc to fit
-    const maxHeight = Math.round(width * Math.SQRT2);
-    const frame = document.createElement('div');
-    frame.style.width = `${width}px`;
-    frame.style.height = `${maxHeight}px`;
-    frame.style.background = 'white';
-    frame.style.overflow = 'hidden';
-    frame.style.position = 'relative';
-
-    // Measure natural height first
-    clone.style.setProperty('--ti-fit-scale', '1');
-    clone.style.transform = 'none';
-    frame.appendChild(clone);
-    sandbox.appendChild(frame);
-    document.body.appendChild(sandbox);
-
-    try {
-      const naturalHeight = clone.offsetHeight;
-      const fitScale = naturalHeight > maxHeight ? maxHeight / naturalHeight : 1;
-      clone.style.setProperty('--ti-fit-scale', String(fitScale));
-      clone.style.transform = `scale(${fitScale})`;
-      clone.style.transformOrigin = 'top left';
-      clone.style.width = `${width / fitScale}px`;
-
-      return await html2canvas(frame, {
-        scale: 2,
-        useCORS: true,
-        logging: false,
-        backgroundColor: '#ffffff',
-        width,
-        height: maxHeight,
-        windowWidth: width,
-        windowHeight: maxHeight,
-      });
-    } finally {
-      document.body.removeChild(sandbox);
-    }
-  }
-
+  clone.style.transform = 'none';
   clone.style.minHeight = '0';
   clone.style.maxHeight = 'none';
   clone.style.height = 'auto';
   clone.style.overflow = 'visible';
-  clone.style.transform = 'none';
+  clone.style.setProperty('--ti-fit-scale', '1');
+
+  clone.querySelectorAll<HTMLElement>('.print\\:hidden, [class*="print:hidden"], [data-print-hide="true"]').forEach((n) => {
+    n.style.display = 'none';
+  });
 
   sandbox.appendChild(clone);
   document.body.appendChild(sandbox);
