@@ -85,6 +85,10 @@ const Admin = () => {
   const [manualSort, setManualSort] = useState(0);
   const [editingManualId, setEditingManualId] = useState<string>('');
   const [savingManual, setSavingManual] = useState(false);
+  const [manualFile, setManualFile] = useState<File | null>(null);
+  const [manualExistingFileUrl, setManualExistingFileUrl] = useState('');
+  const [manualExistingFileName, setManualExistingFileName] = useState('');
+  const [removeExistingFile, setRemoveExistingFile] = useState(false);
   const [viewingManual, setViewingManual] = useState<ManualRow | null>(null);
   const [loading, setLoading] = useState(true);
 
