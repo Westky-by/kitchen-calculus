@@ -78,17 +78,20 @@
   margin: 0 0 4px;
 }
 .ti-cust-left { display: flex; flex-direction: column; gap: 3px; min-width: 0; }
-.ti-cust-row { display: flex; align-items: baseline; gap: 6px; font-size: 10pt; line-height: 1.25; flex-wrap: nowrap; min-width: 0; }
-.ti-cust-lbl { white-space: nowrap; }
+.ti-cust-row { display: flex; align-items: center; gap: 6px; font-size: 10pt; line-height: 1.25; flex-wrap: nowrap; min-width: 0; }
+.ti-cust-lbl { white-space: nowrap; min-width: 56px; }
+.ti-cust-lbl.ti-cust-lbl-empty { visibility: hidden; }
 .ti-cust-val {
   flex: 1;
   border-bottom: 1px dotted #94a3b8;
-  min-height: 16px;
+  min-height: 18px;
   padding: 0 4px 1px;
   font-weight: 500;
   white-space: normal;
   overflow-wrap: anywhere;
   word-break: normal;
+  display: flex;
+  align-items: center;
 }
 .ti-cust-taxid { flex: 0 1 210px; }
 .ti-cb { display: inline-flex; align-items: center; gap: 4px; font-size: 10pt; line-height: 1.2; }
