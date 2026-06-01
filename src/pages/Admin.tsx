@@ -68,7 +68,7 @@ interface ManualRow {
 const Admin = () => {
   const { role, user } = useAuth();
   const navigate = useNavigate();
-  const [tab, setTab] = useState<'users' | 'logs' | 'versions' | 'emails'>('users');
+  const [tab, setTab] = useState<'users' | 'logs' | 'versions' | 'emails' | 'manuals'>('users');
   const [users, setUsers] = useState<UserRow[]>([]);
   const [logs, setLogs] = useState<LogRow[]>([]);
   const [versions, setVersions] = useState<VersionRow[]>([]);
@@ -76,6 +76,14 @@ const Admin = () => {
   const [newEmail, setNewEmail] = useState('');
   const [newEmailLabel, setNewEmailLabel] = useState('');
   const [addingEmail, setAddingEmail] = useState(false);
+  const [manuals, setManuals] = useState<ManualRow[]>([]);
+  const [manualTitle, setManualTitle] = useState('');
+  const [manualCategory, setManualCategory] = useState('ทั่วไป');
+  const [manualContent, setManualContent] = useState('');
+  const [manualSort, setManualSort] = useState(0);
+  const [editingManualId, setEditingManualId] = useState<string>('');
+  const [savingManual, setSavingManual] = useState(false);
+  const [viewingManual, setViewingManual] = useState<ManualRow | null>(null);
   const [loading, setLoading] = useState(true);
 
   // Add user form
