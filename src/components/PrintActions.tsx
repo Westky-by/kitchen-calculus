@@ -24,10 +24,10 @@ const printElementViaIframe = (el: HTMLElement, title: string) => {
   const iframe = document.createElement('iframe');
   iframe.setAttribute('aria-hidden', 'true');
   iframe.style.position = 'fixed';
-  iframe.style.right = '0';
-  iframe.style.bottom = '0';
-  iframe.style.width = '0';
-  iframe.style.height = '0';
+  iframe.style.left = '-10000px';
+  iframe.style.top = '0';
+  iframe.style.width = '210mm';
+  iframe.style.height = '297mm';
   iframe.style.border = '0';
   iframe.style.opacity = '0';
   document.body.appendChild(iframe);
@@ -47,10 +47,17 @@ const printElementViaIframe = (el: HTMLElement, title: string) => {
     <title>${title.replace(/[<>]/g, '')}</title>
     ${headHtml}
     <style>
-      html, body { margin: 0; padding: 0; background: #fff; }
-      .print-host { padding: 12px; }
+      html, body { margin: 0; padding: 0; background: #fff; color: #111; }
+      .print-host { width: 100%; min-height: 100%; padding: 12px; box-sizing: border-box; }
       [data-print-hide="true"], .print\\:hidden { display: none !important; }
       @page { margin: 12mm; }
+      @media print {
+        html, body, body * { visibility: visible !important; }
+        body { -webkit-print-color-adjust: exact; print-color-adjust: exact; }
+        .print-host { position: static !important; left: auto !important; top: auto !important; width: 100% !important; padding: 0 !important; }
+        [data-print-hide="true"], [data-print-hide="true"] *, .print\\:hidden { display: none !important; visibility: hidden !important; }
+        nav, .nav-bar, header { display: none !important; }
+      }
     </style>
   </head>
   <body>
@@ -67,6 +74,7 @@ const printElementViaIframe = (el: HTMLElement, title: string) => {
     return;
   }
   const clone = el.cloneNode(true) as HTMLElement;
+  clone.classList.add('printable-area');
   // Strip any controls that should not print
   clone.querySelectorAll('[data-print-hide="true"], .print\\:hidden').forEach((n) => n.remove());
   host.appendChild(clone);
