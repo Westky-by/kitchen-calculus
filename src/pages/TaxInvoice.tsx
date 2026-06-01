@@ -844,8 +844,45 @@ const TaxInvoicePage = () => {
               </div>
             </div>
           )}
-          <DialogFooter className="print:hidden">
+          <DialogFooter className="print:hidden gap-2">
             <Button variant="outline" onClick={() => setPrintOpen(false)}>ปิด</Button>
+            <Button
+              className="bg-primary text-primary-foreground hover:bg-primary/90"
+              onClick={() => {
+                const el = document.getElementById('tax-invoice-print-area');
+                if (!el) { toast.error('ไม่พบเนื้อหา'); return; }
+                const title = `Tax-Invoice - ${printData?.doc_number || 'preview'}`;
+                const prev = document.title;
+                document.title = title;
+                const headHtml = Array.from(document.head.querySelectorAll('link[rel="stylesheet"], style'))
+                  .map(n => n.outerHTML).join('\n');
+                const iframe = document.createElement('iframe');
+                Object.assign(iframe.style, { position: 'fixed', right: '0', bottom: '0', width: '0', height: '0', border: '0', opacity: '0' });
+                document.body.appendChild(iframe);
+                const doc = iframe.contentDocument!;
+                doc.open();
+                doc.write(`<!doctype html><html><head><meta charset="utf-8"/><title>${title.replace(/[<>]/g,'')}</title>${headHtml}<style>html,body{margin:0;padding:0;background:#fff}@page{margin:8mm}[data-print-hide="true"],.print\\:hidden{display:none!important}</style></head><body><div id="host"></div></body></html>`);
+                doc.close();
+                const clone = el.cloneNode(true) as HTMLElement;
+                clone.querySelectorAll('[data-print-hide="true"], .print\\:hidden').forEach(n => n.remove());
+                doc.getElementById('host')!.appendChild(clone);
+                const trigger = () => {
+                  try { iframe.contentWindow?.focus(); iframe.contentWindow?.print(); }
+                  finally {
+                    setTimeout(() => { iframe.remove(); document.title = prev; }, 1000);
+                  }
+                };
+                const imgs = Array.from(clone.querySelectorAll('img'));
+                if (imgs.length === 0) { setTimeout(trigger, 150); return; }
+                let remaining = imgs.length;
+                const done = () => { if (--remaining <= 0) setTimeout(trigger, 150); };
+                imgs.forEach(img => { if ((img as HTMLImageElement).complete) done(); else { img.addEventListener('load', done); img.addEventListener('error', done); } });
+                setTimeout(() => { if (remaining > 0) { remaining = 0; trigger(); } }, 5000);
+              }}
+            >
+              <FileDown className="w-4 h-4 mr-2" />
+              บันทึกเป็น PDF
+            </Button>
           </DialogFooter>
         </DialogContent>
       </Dialog>
