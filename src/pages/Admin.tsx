@@ -1094,6 +1094,35 @@ const Admin = () => {
         )}
       </main>
 
+      {/* View Manual Dialog */}
+      <Dialog open={!!viewingManual} onOpenChange={(open) => !open && setViewingManual(null)}>
+        <DialogContent className="sm:max-w-2xl max-h-[85vh] overflow-auto">
+          <DialogHeader>
+            <DialogTitle className="flex items-center gap-2">
+              <BookOpen className="w-5 h-5" /> {viewingManual?.title}
+            </DialogTitle>
+          </DialogHeader>
+          <div className="space-y-3 py-2">
+            {viewingManual && (
+              <>
+                <div className="flex gap-2 items-center text-xs text-muted-foreground">
+                  <Badge variant="outline">{viewingManual.category}</Badge>
+                  <span>โดย {viewingManual.created_by_username}</span>
+                  <span>·</span>
+                  <span>{new Date(viewingManual.updated_at).toLocaleString('th-TH')}</span>
+                </div>
+                <div className="text-sm whitespace-pre-wrap leading-relaxed">
+                  {viewingManual.content}
+                </div>
+              </>
+            )}
+          </div>
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setViewingManual(null)}>ปิด</Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
       {/* Reset Password Dialog */}
       <Dialog open={resetOpen} onOpenChange={setResetOpen}>
         <DialogContent className="sm:max-w-sm">
