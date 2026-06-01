@@ -168,7 +168,7 @@
 /* ===== Footer grid (bordered like template) ===== */
 .ti-footer-grid {
   display: grid;
-  grid-template-columns: 1fr 240px;
+  grid-template-columns: 70% 30%;
   border-left: 0.75pt solid #000;
   border-right: 0.75pt solid #000;
   border-bottom: 0.75pt solid #000;
