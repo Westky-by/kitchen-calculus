@@ -858,7 +858,13 @@ const TaxInvoicePage = () => {
           <DialogHeader className="print:hidden">
             <DialogTitle className="flex items-center justify-between">
               <span>ตัวอย่างเอกสาร 3 ชุด (A4 ต่อหน้า)</span>
-              <PrintActions printAreaId="tax-invoice-print-area" title={`Tax-Invoice-${printData?.doc_number || 'preview'}`} />
+              <div className="flex items-center gap-2">
+                <Button size="sm" onClick={handleDownloadPdf} disabled={downloading}>
+                  <Download className="w-3.5 h-3.5 mr-1" />
+                  {downloading ? 'กำลังสร้าง PDF...' : 'บันทึก PDF'}
+                </Button>
+                <PrintActions printAreaId="tax-invoice-print-area" title={`Tax-Invoice-${printData?.doc_number || 'preview'}`} />
+              </div>
             </DialogTitle>
           </DialogHeader>
           {printSourceImage && (
