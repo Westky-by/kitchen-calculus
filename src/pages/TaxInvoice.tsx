@@ -276,6 +276,11 @@ const TaxInvoicePage = () => {
         return;
       }
       const r = result.data || {};
+      const grandTotal = Number(r.grand_total) || 0;
+      const beforeVat = Number(r.pre_vat_amount ?? r.before_vat) || 0;
+      const beforeSvc = Number(r.before_service_charge) || 0;
+      // ราคาที่จะใช้เติมรายการเดียวเมื่อบิลไม่มีรายละเอียด — เลือกยอดก่อน Service Charge > ก่อน VAT > ยอดสุทธิ
+      const fallbackAmount = beforeSvc || beforeVat || grandTotal;
       const mappedItems: InvoiceItem[] = Array.isArray(r.items) && r.items.length > 0
         ? r.items.map((x: any) => {
             const qty = Number(x.qty) || 1;
@@ -290,7 +295,15 @@ const TaxInvoicePage = () => {
               price: unitPrice,
             };
           })
-        : [];
+        : fallbackAmount > 0
+          ? [{
+              code: 'OY-67003',
+              description: 'ค่าอาหารและเครื่องดื่ม',
+              qty: 1,
+              unit: 'รายการ',
+              price: fallbackAmount,
+            }]
+          : [];
       setData(prev => {
         const items = mappedItems.length > 0 ? mappedItems : prev.items;
         return {
@@ -302,6 +315,7 @@ const TaxInvoicePage = () => {
           items,
         };
       });
+
       // Fill bill reference values (สำหรับอ้างอิงตามใบเสร็จ — ไม่แสดงใน PDF)
       setBillRef({
         subtotal: Number(r.subtotal) || 0,
