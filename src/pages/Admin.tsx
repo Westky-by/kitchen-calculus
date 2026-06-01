@@ -9,7 +9,7 @@ import { Label } from '@/components/ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger, DialogFooter, DialogClose } from '@/components/ui/dialog';
-import { ArrowLeft, Users, Shield, Activity, UserX, UserCheck, UserPlus, Eye, EyeOff, KeyRound, Info, Rocket, Plus, Trash2 } from 'lucide-react';
+import { ArrowLeft, Users, Shield, Activity, UserX, UserCheck, UserPlus, Eye, EyeOff, KeyRound, Info, Rocket, Plus, Trash2, Mail, Star } from 'lucide-react';
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
 import { Textarea } from '@/components/ui/textarea';
 import { useNavigate } from 'react-router-dom';
@@ -46,13 +46,25 @@ interface VersionRow {
   created_at: string;
 }
 
+interface EmailRecipientRow {
+  id: string;
+  email: string;
+  label: string;
+  is_default: boolean;
+  created_at: string;
+}
+
 const Admin = () => {
   const { role, user } = useAuth();
   const navigate = useNavigate();
-  const [tab, setTab] = useState<'users' | 'logs' | 'versions'>('users');
+  const [tab, setTab] = useState<'users' | 'logs' | 'versions' | 'emails'>('users');
   const [users, setUsers] = useState<UserRow[]>([]);
   const [logs, setLogs] = useState<LogRow[]>([]);
   const [versions, setVersions] = useState<VersionRow[]>([]);
+  const [emailRecipients, setEmailRecipients] = useState<EmailRecipientRow[]>([]);
+  const [newEmail, setNewEmail] = useState('');
+  const [newEmailLabel, setNewEmailLabel] = useState('');
+  const [addingEmail, setAddingEmail] = useState(false);
   const [loading, setLoading] = useState(true);
 
   // Add user form
@@ -144,6 +156,70 @@ const Admin = () => {
     }
   };
 
+  const fetchEmailRecipients = useCallback(async () => {
+    const { data } = await supabase
+      .from('tax_invoice_email_recipients')
+      .select('*')
+      .order('is_default', { ascending: false })
+      .order('created_at', { ascending: false });
+    if (data) setEmailRecipients(data as EmailRecipientRow[]);
+  }, []);
+
+  const handleAddEmail = async () => {
+    const email = newEmail.trim().toLowerCase();
+    if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
+      toast.error('รูปแบบอีเมลไม่ถูกต้อง');
+      return;
+    }
+    setAddingEmail(true);
+    try {
+      const { data, error } = await supabase
+        .from('tax_invoice_email_recipients')
+        .insert({
+          email,
+          label: newEmailLabel.trim(),
+          is_default: emailRecipients.length === 0,
+          created_by: user!.id,
+        })
+        .select()
+        .single();
+      if (error) {
+        toast.error(error.code === '23505' ? 'อีเมลนี้มีอยู่แล้ว' : 'เพิ่มไม่สำเร็จ: ' + error.message);
+        return;
+      }
+      toast.success('เพิ่มอีเมลเรียบร้อย');
+      await logActivity('เพิ่มอีเมลผู้รับ', 'tax_invoice_email_recipients', (data as any).id, { email });
+      setNewEmail(''); setNewEmailLabel('');
+      fetchEmailRecipients();
+    } finally {
+      setAddingEmail(false);
+    }
+  };
+
+  const handleDeleteEmail = async (r: EmailRecipientRow) => {
+    if (!confirm(`ลบอีเมล ${r.email}?`)) return;
+    const { error } = await supabase.from('tax_invoice_email_recipients').delete().eq('id', r.id);
+    if (error) { toast.error('ลบไม่สำเร็จ'); return; }
+    toast.success('ลบเรียบร้อย');
+    await logActivity('ลบอีเมลผู้รับ', 'tax_invoice_email_recipients', r.id, { email: r.email });
+    fetchEmailRecipients();
+  };
+
+  const handleSetDefaultEmail = async (r: EmailRecipientRow) => {
+    const { error: e1 } = await supabase
+      .from('tax_invoice_email_recipients')
+      .update({ is_default: false })
+      .neq('id', r.id);
+    if (e1) { toast.error('ตั้งค่าเริ่มต้นไม่สำเร็จ'); return; }
+    const { error: e2 } = await supabase
+      .from('tax_invoice_email_recipients')
+      .update({ is_default: true })
+      .eq('id', r.id);
+    if (e2) { toast.error('ตั้งค่าเริ่มต้นไม่สำเร็จ'); return; }
+    toast.success('ตั้งเป็นอีเมลหลักแล้ว');
+    fetchEmailRecipients();
+  };
+
   const handleDeleteVersion = async (v: VersionRow) => {
     if (!confirm(`ลบเวอร์ชัน ${v.version} หรือไม่?`)) return;
     const { error } = await supabase.from('version_updates').delete().eq('id', v.id);
@@ -156,8 +232,8 @@ const Admin = () => {
   useEffect(() => {
     if (role !== 'admin' && role !== 'super_admin') return;
     setLoading(true);
-    Promise.all([fetchUsers(), fetchLogs(), fetchVersions()]).then(() => setLoading(false));
-  }, [role, fetchUsers, fetchLogs, fetchVersions]);
+    Promise.all([fetchUsers(), fetchLogs(), fetchVersions(), fetchEmailRecipients()]).then(() => setLoading(false));
+  }, [role, fetchUsers, fetchLogs, fetchVersions, fetchEmailRecipients]);
 
   const canManageUser = (targetRole: string) => {
     if (role === 'super_admin') return true;
@@ -342,6 +418,12 @@ const Admin = () => {
               className={`flex items-center gap-2 px-4 py-2 text-sm border-b-[3px] ${tab === 'versions' ? 'tab-active' : 'tab-inactive border-transparent'}`}
             >
               <Rocket className="w-4 h-4" /> อัพเดทเวอร์ชัน Public
+            </button>
+            <button
+              onClick={() => { setTab('emails'); fetchEmailRecipients(); }}
+              className={`flex items-center gap-2 px-4 py-2 text-sm border-b-[3px] ${tab === 'emails' ? 'tab-active' : 'tab-inactive border-transparent'}`}
+            >
+              <Mail className="w-4 h-4" /> อีเมลผู้รับใบกำกับ
             </button>
           </div>
         </div>
@@ -610,7 +692,7 @@ const Admin = () => {
               );
             })()}
           </div>
-        ) : (
+        ) : tab === 'versions' ? (
           <div className="space-y-4">
             <Alert>
               <Rocket className="h-4 w-4" />
@@ -694,6 +776,97 @@ const Admin = () => {
                         <TableCell className="text-xs">{v.created_by_username}</TableCell>
                         <TableCell>
                           <Button size="icon" variant="ghost" onClick={() => handleDeleteVersion(v)}>
+                            <Trash2 className="w-4 h-4 text-destructive" />
+                          </Button>
+                        </TableCell>
+                      </TableRow>
+                    ))}
+                  </TableBody>
+                </Table>
+              </div>
+            </Card>
+          </div>
+        ) : (
+          <div className="space-y-4">
+            <Alert>
+              <Mail className="h-4 w-4" />
+              <AlertTitle>อีเมลผู้รับใบกำกับภาษี</AlertTitle>
+              <AlertDescription className="text-sm">
+                กำหนดอีเมลปลายทางที่จะใช้สำหรับส่งใบกำกับภาษีเป็น PDF (หน้าแรก) —
+                สามารถเพิ่มได้หลายรายการ และตั้ง "อีเมลหลัก" ได้ 1 รายการ
+              </AlertDescription>
+            </Alert>
+            <Card className="p-4">
+              <h2 className="text-lg font-bold mb-4 flex items-center gap-2">
+                <Plus className="w-5 h-5" /> เพิ่มอีเมลใหม่
+              </h2>
+              <div className="grid gap-3 md:grid-cols-[1fr_1fr_auto]">
+                <div className="space-y-1">
+                  <Label>อีเมล *</Label>
+                  <Input
+                    type="email"
+                    placeholder="name@example.com"
+                    value={newEmail}
+                    onChange={(e) => setNewEmail(e.target.value)}
+                    autoComplete="off"
+                  />
+                </div>
+                <div className="space-y-1">
+                  <Label>ชื่อกำกับ (ไม่บังคับ)</Label>
+                  <Input
+                    placeholder="เช่น บัญชี, ลูกค้า A"
+                    value={newEmailLabel}
+                    onChange={(e) => setNewEmailLabel(e.target.value)}
+                  />
+                </div>
+                <div className="flex items-end">
+                  <Button onClick={handleAddEmail} disabled={addingEmail} className="gap-1">
+                    <Plus className="w-4 h-4" /> {addingEmail ? 'กำลังเพิ่ม...' : 'เพิ่ม'}
+                  </Button>
+                </div>
+              </div>
+            </Card>
+            <Card className="p-4">
+              <h2 className="text-lg font-bold mb-4 flex items-center gap-2">
+                <Mail className="w-5 h-5" /> รายการอีเมล ({emailRecipients.length})
+              </h2>
+              <div className="overflow-auto max-h-[60vh]">
+                <Table>
+                  <TableHeader>
+                    <TableRow>
+                      <TableHead>อีเมล</TableHead>
+                      <TableHead>ชื่อกำกับ</TableHead>
+                      <TableHead className="w-32">สถานะ</TableHead>
+                      <TableHead className="w-40">เพิ่มเมื่อ</TableHead>
+                      <TableHead className="w-28 text-right">จัดการ</TableHead>
+                    </TableRow>
+                  </TableHeader>
+                  <TableBody>
+                    {emailRecipients.length === 0 && (
+                      <TableRow>
+                        <TableCell colSpan={5} className="text-center text-muted-foreground py-8">
+                          ยังไม่มีอีเมลผู้รับ
+                        </TableCell>
+                      </TableRow>
+                    )}
+                    {emailRecipients.map((r) => (
+                      <TableRow key={r.id}>
+                        <TableCell className="font-medium">{r.email}</TableCell>
+                        <TableCell className="text-sm text-muted-foreground">{r.label || '-'}</TableCell>
+                        <TableCell>
+                          {r.is_default ? (
+                            <Badge className="gap-1"><Star className="w-3 h-3" /> หลัก</Badge>
+                          ) : (
+                            <Button size="sm" variant="ghost" className="h-7 px-2 text-xs" onClick={() => handleSetDefaultEmail(r)}>
+                              ตั้งเป็นหลัก
+                            </Button>
+                          )}
+                        </TableCell>
+                        <TableCell className="text-xs text-muted-foreground whitespace-nowrap">
+                          {new Date(r.created_at).toLocaleString('th-TH')}
+                        </TableCell>
+                        <TableCell className="text-right">
+                          <Button size="icon" variant="ghost" onClick={() => handleDeleteEmail(r)}>
                             <Trash2 className="w-4 h-4 text-destructive" />
                           </Button>
                         </TableCell>
