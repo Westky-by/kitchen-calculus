@@ -74,6 +74,7 @@ const printElementViaIframe = (el: HTMLElement, title: string) => {
     return;
   }
   const clone = el.cloneNode(true) as HTMLElement;
+  clone.classList.add('printable-area');
   // Strip any controls that should not print
   clone.querySelectorAll('[data-print-hide="true"], .print\\:hidden').forEach((n) => n.remove());
   host.appendChild(clone);
