@@ -248,6 +248,75 @@ const Admin = () => {
     fetchVersions();
   };
 
+  const fetchManuals = useCallback(async () => {
+    const { data } = await (supabase as any)
+      .from('user_manuals')
+      .select('*')
+      .order('sort_order', { ascending: true })
+      .order('created_at', { ascending: false });
+    if (data) setManuals(data as ManualRow[]);
+  }, []);
+
+  const resetManualForm = () => {
+    setEditingManualId('');
+    setManualTitle('');
+    setManualCategory('ทั่วไป');
+    setManualContent('');
+    setManualSort(0);
+  };
+
+  const handleSaveManual = async () => {
+    if (!manualTitle.trim()) { toast.error('กรุณากรอกหัวข้อคู่มือ'); return; }
+    if (!manualContent.trim()) { toast.error('กรุณากรอกเนื้อหา'); return; }
+    setSavingManual(true);
+    try {
+      const profRes = await supabase.from('profiles').select('username').eq('id', user!.id).single();
+      const username = (profRes.data as any)?.username || '';
+      const payload: any = {
+        title: manualTitle.trim(),
+        category: manualCategory.trim() || 'ทั่วไป',
+        content: manualContent,
+        sort_order: Number(manualSort) || 0,
+      };
+      if (editingManualId) {
+        const { error } = await (supabase as any).from('user_manuals').update(payload).eq('id', editingManualId);
+        if (error) { toast.error('บันทึกไม่สำเร็จ: ' + error.message); return; }
+        toast.success('แก้ไขคู่มือเรียบร้อย');
+        await logActivity('แก้ไขคู่มือ', 'user_manuals', editingManualId, { title: payload.title });
+      } else {
+        payload.created_by = user!.id;
+        payload.created_by_username = username;
+        const { data, error } = await (supabase as any).from('user_manuals').insert(payload).select().single();
+        if (error) { toast.error('บันทึกไม่สำเร็จ: ' + error.message); return; }
+        toast.success('เพิ่มคู่มือเรียบร้อย');
+        await logActivity('เพิ่มคู่มือ', 'user_manuals', (data as any).id, { title: payload.title });
+      }
+      resetManualForm();
+      fetchManuals();
+    } finally {
+      setSavingManual(false);
+    }
+  };
+
+  const handleEditManual = (m: ManualRow) => {
+    setEditingManualId(m.id);
+    setManualTitle(m.title);
+    setManualCategory(m.category || 'ทั่วไป');
+    setManualContent(m.content || '');
+    setManualSort(m.sort_order || 0);
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+  };
+
+  const handleDeleteManual = async (m: ManualRow) => {
+    if (!confirm(`ลบคู่มือ "${m.title}" หรือไม่?`)) return;
+    const { error } = await (supabase as any).from('user_manuals').delete().eq('id', m.id);
+    if (error) { toast.error('ลบไม่สำเร็จ'); return; }
+    toast.success('ลบเรียบร้อย');
+    await logActivity('ลบคู่มือ', 'user_manuals', m.id, { title: m.title });
+    if (editingManualId === m.id) resetManualForm();
+    fetchManuals();
+  };
+
   useEffect(() => {
     if (role !== 'admin' && role !== 'super_admin') return;
     setLoading(true);
