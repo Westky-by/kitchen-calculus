@@ -1216,9 +1216,24 @@ const Admin = () => {
                   <span>·</span>
                   <span>{new Date(viewingManual.updated_at).toLocaleString('th-TH')}</span>
                 </div>
-                <div className="text-sm whitespace-pre-wrap leading-relaxed">
-                  {viewingManual.content}
-                </div>
+                {viewingManual.content && (
+                  <div className="text-sm whitespace-pre-wrap leading-relaxed">
+                    {viewingManual.content}
+                  </div>
+                )}
+                {viewingManual.file_url && (
+                  <a
+                    href={viewingManual.file_url}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    download={viewingManual.file_name || undefined}
+                    className="flex items-center gap-2 p-3 rounded border border-border bg-muted/40 text-sm hover:bg-muted transition-colors"
+                  >
+                    <Paperclip className="w-4 h-4 text-muted-foreground" />
+                    <span className="flex-1 truncate text-primary">{viewingManual.file_name || 'ไฟล์แนบ'}</span>
+                    <Download className="w-4 h-4 text-muted-foreground" />
+                  </a>
+                )}
               </>
             )}
           </div>
