@@ -128,6 +128,23 @@ const TaxInvoicePage = () => {
   const [printOpen, setPrintOpen] = useState(false);
   const [printData, setPrintData] = useState<InvoiceData | null>(null);
   const [printSourceImage, setPrintSourceImage] = useState<string>('');
+  const [companySignature, setCompanySignature] = useState<string>(() => {
+    try { return localStorage.getItem('ti_company_signature') || ''; } catch { return ''; }
+  });
+  const companySigFileRef = useRef<HTMLInputElement>(null);
+  const handleCompanySignatureFile = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const f = e.target.files?.[0];
+    if (!f) return;
+    if (!f.type.startsWith('image/')) return;
+    const reader = new FileReader();
+    reader.onload = () => {
+      const url = String(reader.result || '');
+      setCompanySignature(url);
+      try { localStorage.setItem('ti_company_signature', url); } catch {}
+    };
+    reader.readAsDataURL(f);
+    e.target.value = '';
+  };
   const printRef = useRef<HTMLDivElement>(null);
 
   const isAdmin = role === 'admin' || role === 'super_admin';
