@@ -320,8 +320,8 @@ const Admin = () => {
   useEffect(() => {
     if (role !== 'admin' && role !== 'super_admin') return;
     setLoading(true);
-    Promise.all([fetchUsers(), fetchLogs(), fetchVersions(), fetchEmailRecipients()]).then(() => setLoading(false));
-  }, [role, fetchUsers, fetchLogs, fetchVersions, fetchEmailRecipients]);
+    Promise.all([fetchUsers(), fetchLogs(), fetchVersions(), fetchEmailRecipients(), fetchManuals()]).then(() => setLoading(false));
+  }, [role, fetchUsers, fetchLogs, fetchVersions, fetchEmailRecipients, fetchManuals]);
 
   const canManageUser = (targetRole: string) => {
     if (role === 'super_admin') return true;
