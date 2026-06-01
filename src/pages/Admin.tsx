@@ -9,7 +9,7 @@ import { Label } from '@/components/ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger, DialogFooter, DialogClose } from '@/components/ui/dialog';
-import { ArrowLeft, Users, Shield, Activity, UserX, UserCheck, UserPlus, Eye, EyeOff, KeyRound, Info, Rocket, Plus, Trash2, Mail, Star, BookOpen, Pencil, X } from 'lucide-react';
+import { ArrowLeft, Users, Shield, Activity, UserX, UserCheck, UserPlus, Eye, EyeOff, KeyRound, Info, Rocket, Plus, Trash2, Mail, Star, BookOpen, Pencil, X, Paperclip, Download } from 'lucide-react';
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
 import { Textarea } from '@/components/ui/textarea';
 import { useNavigate } from 'react-router-dom';
@@ -60,6 +60,8 @@ interface ManualRow {
   content: string;
   category: string;
   sort_order: number;
+  file_url: string;
+  file_name: string;
   created_by_username: string;
   created_at: string;
   updated_at: string;
@@ -83,6 +85,10 @@ const Admin = () => {
   const [manualSort, setManualSort] = useState(0);
   const [editingManualId, setEditingManualId] = useState<string>('');
   const [savingManual, setSavingManual] = useState(false);
+  const [manualFile, setManualFile] = useState<File | null>(null);
+  const [manualExistingFileUrl, setManualExistingFileUrl] = useState('');
+  const [manualExistingFileName, setManualExistingFileName] = useState('');
+  const [removeExistingFile, setRemoveExistingFile] = useState(false);
   const [viewingManual, setViewingManual] = useState<ManualRow | null>(null);
   const [loading, setLoading] = useState(true);
 
@@ -263,20 +269,61 @@ const Admin = () => {
     setManualCategory('ทั่วไป');
     setManualContent('');
     setManualSort(0);
+    setManualFile(null);
+    setManualExistingFileUrl('');
+    setManualExistingFileName('');
+    setRemoveExistingFile(false);
+  };
+
+  const extractStoragePath = (publicUrl: string): string | null => {
+    const marker = '/storage/v1/object/public/manual-files/';
+    const idx = publicUrl.indexOf(marker);
+    return idx === -1 ? null : publicUrl.slice(idx + marker.length);
   };
 
   const handleSaveManual = async () => {
     if (!manualTitle.trim()) { toast.error('กรุณากรอกหัวข้อคู่มือ'); return; }
-    if (!manualContent.trim()) { toast.error('กรุณากรอกเนื้อหา'); return; }
+    if (!manualContent.trim() && !manualFile && !manualExistingFileUrl) {
+      toast.error('กรุณากรอกเนื้อหา หรือแนบไฟล์อย่างน้อย 1 อย่าง');
+      return;
+    }
     setSavingManual(true);
     try {
       const profRes = await supabase.from('profiles').select('username').eq('id', user!.id).single();
       const username = (profRes.data as any)?.username || '';
+
+      let fileUrl = manualExistingFileUrl;
+      let fileName = manualExistingFileName;
+
+      // Remove or replace existing file
+      if ((removeExistingFile || manualFile) && manualExistingFileUrl) {
+        const path = extractStoragePath(manualExistingFileUrl);
+        if (path) await supabase.storage.from('manual-files').remove([path]);
+        fileUrl = '';
+        fileName = '';
+      }
+
+      // Upload new file
+      if (manualFile) {
+        const ext = manualFile.name.split('.').pop() || 'bin';
+        const path = `${user!.id}/${Date.now()}-${Math.random().toString(36).slice(2, 8)}.${ext}`;
+        const { error: upErr } = await supabase.storage.from('manual-files').upload(path, manualFile, {
+          contentType: manualFile.type || undefined,
+          upsert: false,
+        });
+        if (upErr) { toast.error('อัพโหลดไฟล์ไม่สำเร็จ: ' + upErr.message); return; }
+        const { data: pub } = supabase.storage.from('manual-files').getPublicUrl(path);
+        fileUrl = pub.publicUrl;
+        fileName = manualFile.name;
+      }
+
       const payload: any = {
         title: manualTitle.trim(),
         category: manualCategory.trim() || 'ทั่วไป',
         content: manualContent,
         sort_order: Number(manualSort) || 0,
+        file_url: fileUrl,
+        file_name: fileName,
       };
       if (editingManualId) {
         const { error } = await (supabase as any).from('user_manuals').update(payload).eq('id', editingManualId);
@@ -304,11 +351,19 @@ const Admin = () => {
     setManualCategory(m.category || 'ทั่วไป');
     setManualContent(m.content || '');
     setManualSort(m.sort_order || 0);
+    setManualFile(null);
+    setManualExistingFileUrl(m.file_url || '');
+    setManualExistingFileName(m.file_name || '');
+    setRemoveExistingFile(false);
     window.scrollTo({ top: 0, behavior: 'smooth' });
   };
 
   const handleDeleteManual = async (m: ManualRow) => {
     if (!confirm(`ลบคู่มือ "${m.title}" หรือไม่?`)) return;
+    if (m.file_url) {
+      const path = extractStoragePath(m.file_url);
+      if (path) await supabase.storage.from('manual-files').remove([path]);
+    }
     const { error } = await (supabase as any).from('user_manuals').delete().eq('id', m.id);
     if (error) { toast.error('ลบไม่สำเร็จ'); return; }
     toast.success('ลบเรียบร้อย');
@@ -316,6 +371,7 @@ const Admin = () => {
     if (editingManualId === m.id) resetManualForm();
     fetchManuals();
   };
+
 
   useEffect(() => {
     if (role !== 'admin' && role !== 'super_admin') return;
@@ -1012,13 +1068,62 @@ const Admin = () => {
                 </div>
               </div>
               <div className="space-y-1 mt-3">
-                <Label>เนื้อหา * (รองรับการขึ้นบรรทัดใหม่)</Label>
+                <Label>เนื้อหา (รองรับการขึ้นบรรทัดใหม่)</Label>
                 <Textarea
                   placeholder="อธิบายขั้นตอนการใช้งานอย่างละเอียด..."
                   value={manualContent}
                   onChange={(e) => setManualContent(e.target.value)}
                   rows={8}
                 />
+              </div>
+              <div className="space-y-2 mt-3">
+                <Label>ไฟล์แนบ (PDF / รูปภาพ / เอกสาร — ไม่บังคับ)</Label>
+                {manualExistingFileUrl && !removeExistingFile && !manualFile && (
+                  <div className="flex items-center gap-2 p-2 rounded border border-border bg-muted/40 text-sm">
+                    <Paperclip className="w-4 h-4 text-muted-foreground" />
+                    <a
+                      href={manualExistingFileUrl}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="flex-1 truncate text-primary hover:underline"
+                    >
+                      {manualExistingFileName || 'ไฟล์แนบ'}
+                    </a>
+                    <Button
+                      type="button"
+                      size="sm"
+                      variant="ghost"
+                      className="h-7 px-2 text-xs text-destructive"
+                      onClick={() => setRemoveExistingFile(true)}
+                    >
+                      <Trash2 className="w-3 h-3 mr-1" /> ลบไฟล์
+                    </Button>
+                  </div>
+                )}
+                <div className="flex items-center gap-2">
+                  <Input
+                    type="file"
+                    onChange={(e) => {
+                      const f = e.target.files?.[0] || null;
+                      setManualFile(f);
+                      if (f) setRemoveExistingFile(true);
+                    }}
+                    accept=".pdf,.doc,.docx,.xls,.xlsx,.ppt,.pptx,.txt,.png,.jpg,.jpeg,.webp,.gif"
+                  />
+                  {manualFile && (
+                    <Button
+                      type="button"
+                      size="sm"
+                      variant="ghost"
+                      onClick={() => { setManualFile(null); setRemoveExistingFile(false); }}
+                    >
+                      <X className="w-4 h-4" />
+                    </Button>
+                  )}
+                </div>
+                {manualFile && (
+                  <p className="text-xs text-muted-foreground">เลือกไฟล์ใหม่: {manualFile.name}</p>
+                )}
               </div>
               <div className="flex justify-end gap-2 mt-3">
                 {editingManualId && (
@@ -1062,9 +1167,10 @@ const Admin = () => {
                           <button
                             type="button"
                             onClick={() => setViewingManual(m)}
-                            className="font-medium text-left hover:text-primary hover:underline"
+                            className="font-medium text-left hover:text-primary hover:underline inline-flex items-center gap-2"
                           >
                             {m.title}
+                            {m.file_url && <Paperclip className="w-3.5 h-3.5 text-muted-foreground" />}
                           </button>
                         </TableCell>
                         <TableCell>
@@ -1111,9 +1217,24 @@ const Admin = () => {
                   <span>·</span>
                   <span>{new Date(viewingManual.updated_at).toLocaleString('th-TH')}</span>
                 </div>
-                <div className="text-sm whitespace-pre-wrap leading-relaxed">
-                  {viewingManual.content}
-                </div>
+                {viewingManual.content && (
+                  <div className="text-sm whitespace-pre-wrap leading-relaxed">
+                    {viewingManual.content}
+                  </div>
+                )}
+                {viewingManual.file_url && (
+                  <a
+                    href={viewingManual.file_url}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    download={viewingManual.file_name || undefined}
+                    className="flex items-center gap-2 p-3 rounded border border-border bg-muted/40 text-sm hover:bg-muted transition-colors"
+                  >
+                    <Paperclip className="w-4 h-4 text-muted-foreground" />
+                    <span className="flex-1 truncate text-primary">{viewingManual.file_name || 'ไฟล์แนบ'}</span>
+                    <Download className="w-4 h-4 text-muted-foreground" />
+                  </a>
+                )}
               </>
             )}
           </div>
