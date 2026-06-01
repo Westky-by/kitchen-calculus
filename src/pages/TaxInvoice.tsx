@@ -770,7 +770,26 @@ const TaxInvoicePage = () => {
                       <Input type="date" value={data.receiver_date} onChange={e => setData(p => ({ ...p, receiver_date: e.target.value }))} />
                     </div>
                   </div>
+                  <div className="border-t pt-2 mt-1 space-y-1">
+                    <Label className="text-xs font-semibold">ลายเซ็น/ตราประทับ "ในนาม บริษัท" (PNG)</Label>
+                    <div className="flex items-center gap-2">
+                      <Button size="sm" variant="outline" onClick={() => companySigFileRef.current?.click()}>
+                        <Upload className="w-3 h-3 mr-1" />เลือกรูป PNG
+                      </Button>
+                      {companySignature && (
+                        <>
+                          <img src={companySignature} alt="ลายเซ็นบริษัท" className="h-8 border rounded bg-white" />
+                          <Button size="sm" variant="ghost" onClick={() => { setCompanySignature(''); try { localStorage.removeItem('ti_company_signature'); } catch {} }}>
+                            ลบ
+                          </Button>
+                        </>
+                      )}
+                      <input ref={companySigFileRef} type="file" accept="image/png,image/*" className="hidden" onChange={handleCompanySignatureFile} />
+                    </div>
+                    <p className="text-[10px] text-muted-foreground">แนะนำ PNG พื้นหลังโปร่งใส จะแสดงในช่อง "ในนาม บริษัท" ของเอกสาร (ฉบับต้นฉบับ)</p>
+                  </div>
                 </Card>
+
 
                 <div className="flex gap-2 sticky bottom-2">
                   <Button className="flex-1" onClick={handleSave} disabled={!!savingId}>
