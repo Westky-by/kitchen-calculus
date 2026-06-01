@@ -84,14 +84,14 @@
 .ti-cust-val {
   flex: 1;
   border-bottom: 1px dotted #94a3b8;
-  min-height: 18px;
-  padding: 0 4px 1px;
+  min-height: 20px;
+  padding: 2px 4px 3px;
   font-weight: 500;
   white-space: normal;
   overflow-wrap: anywhere;
   word-break: normal;
-  display: flex;
-  align-items: center;
+  display: block;
+  line-height: 1.4;
 }
 .ti-cust-val-noline { border-bottom: none !important; }
 .ti-cust-taxid { flex: 0 1 210px; }
