@@ -9,7 +9,7 @@ import { Label } from '@/components/ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger, DialogFooter, DialogClose } from '@/components/ui/dialog';
-import { ArrowLeft, Users, Shield, Activity, UserX, UserCheck, UserPlus, Eye, EyeOff, KeyRound, Info, Rocket, Plus, Trash2, Mail, Star } from 'lucide-react';
+import { ArrowLeft, Users, Shield, Activity, UserX, UserCheck, UserPlus, Eye, EyeOff, KeyRound, Info, Rocket, Plus, Trash2, Mail, Star, BookOpen, Pencil, X } from 'lucide-react';
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
 import { Textarea } from '@/components/ui/textarea';
 import { useNavigate } from 'react-router-dom';
