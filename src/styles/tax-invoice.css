@@ -3,7 +3,7 @@
   width: 210mm;
   height: 297mm;
   min-height: 297mm;
-  padding: 6.5mm 9mm 7mm 9mm;
+  padding: 6.8mm 9mm 7mm 9mm;
   background: white;
   color: #000;
   font-family: 'Sarabun', 'TH SarabunPSK', sans-serif;
@@ -78,17 +78,20 @@
   margin: 0 0 4px;
 }
 .ti-cust-left { display: flex; flex-direction: column; gap: 3px; min-width: 0; }
-.ti-cust-row { display: flex; align-items: baseline; gap: 6px; font-size: 10pt; line-height: 1.25; flex-wrap: nowrap; min-width: 0; }
-.ti-cust-lbl { white-space: nowrap; }
+.ti-cust-row { display: flex; align-items: center; gap: 6px; font-size: 10pt; line-height: 1.25; flex-wrap: nowrap; min-width: 0; }
+.ti-cust-lbl { white-space: nowrap; min-width: 56px; }
+.ti-cust-lbl.ti-cust-lbl-empty { visibility: hidden; }
 .ti-cust-val {
   flex: 1;
   border-bottom: 1px dotted #94a3b8;
-  min-height: 16px;
+  min-height: 18px;
   padding: 0 4px 1px;
   font-weight: 500;
   white-space: normal;
   overflow-wrap: anywhere;
   word-break: normal;
+  display: flex;
+  align-items: center;
 }
 .ti-cust-taxid { flex: 0 1 210px; }
 .ti-cb { display: inline-flex; align-items: center; gap: 4px; font-size: 10pt; line-height: 1.2; }
@@ -165,7 +168,7 @@
 /* ===== Footer grid (bordered like template) ===== */
 .ti-footer-grid {
   display: grid;
-  grid-template-columns: 1fr 240px;
+  grid-template-columns: 70% 30%;
   border-left: 0.75pt solid #000;
   border-right: 0.75pt solid #000;
   border-bottom: 0.75pt solid #000;
@@ -206,15 +209,15 @@
   padding: 3px 8px;
   display: flex;
   justify-content: space-between;
-  align-items: flex-start;
+  align-items: center;
   gap: 6px;
   min-height: 25px;
 }
 .ti-tot-cell:last-child { border-bottom: none; }
-.ti-tot-left { display: flex; flex-direction: column; min-width: 0; }
+.ti-tot-left { display: flex; flex-direction: column; justify-content: center; min-width: 0; }
 .ti-tot-th { font-weight: 600; font-size: 8.5pt; line-height: 1.12; }
 .ti-tot-en { font-size: 6.2pt; color: #555; line-height: 1.05; letter-spacing: 0; }
-.ti-tot-amt { font-weight: 600; font-size: 9.2pt; text-align: right; white-space: nowrap; padding-top: 6px; }
+.ti-tot-amt { font-weight: 600; font-size: 9.2pt; text-align: right; white-space: nowrap; display: flex; align-items: center; }
 .ti-tot-grand { background: #fafafa; }
 .ti-tot-grand .ti-tot-th { font-weight: 800; font-size: 9pt; }
 .ti-tot-grand .ti-tot-amt { font-weight: 800; font-size: 10.5pt; }
@@ -222,7 +225,7 @@
 /* ===== Signatures (3 bordered boxes) ===== */
 .ti-sign-row {
   display: grid;
-  grid-template-columns: 1.1fr 1fr 1fr;
+  grid-template-columns: 35% 35% 30%;
   border-left: 0.75pt solid #000;
   border-right: 0.75pt solid #000;
   border-bottom: 0.75pt solid #000;

@@ -95,7 +95,16 @@ export default function TaxInvoiceDoc({ data, copy = 'original' }: { data: Invoi
       <div className="ti-customer">
         <div className="ti-cust-left">
           <div className="ti-cust-row"><span className="ti-cust-lbl">นามลูกค้า</span><span className="ti-cust-val">{data.customer_name}</span></div>
-          <div className="ti-cust-row"><span className="ti-cust-lbl">ที่อยู่</span><span className="ti-cust-val">{data.customer_address}</span></div>
+          {(() => {
+            const lines = (data.customer_address || '').split('\n');
+            const padded = [lines[0] ?? '', lines[1] ?? '', lines.slice(2).join(' ') ?? ''];
+            return padded.map((ln, idx) => (
+              <div className="ti-cust-row" key={`addr-${idx}`}>
+                <span className={`ti-cust-lbl${idx === 0 ? '' : ' ti-cust-lbl-empty'}`}>ที่อยู่</span>
+                <span className="ti-cust-val">{ln}</span>
+              </div>
+            ));
+          })()}
           <div className="ti-cust-row">
             <span className="ti-cust-lbl">เลขประจำตัวผู้เสียภาษี</span>
             <span className="ti-cust-val ti-cust-taxid">{data.customer_tax_id}</span>
