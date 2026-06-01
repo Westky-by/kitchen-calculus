@@ -8,191 +8,24 @@ interface PrintActionsProps {
   size?: 'sm' | 'default';
 }
 
-// 210mm at 96dpi ≈ 794px
-const A4_PX_WIDTH = 794;
-
-async function captureNode(node: HTMLElement, width: number) {
-  const { default: html2canvas } = await import('html2canvas');
-
-  const sandbox = document.createElement('div');
-  sandbox.style.position = 'fixed';
-  sandbox.style.left = '-100000px';
-  sandbox.style.top = '0';
-  sandbox.style.zIndex = '-1';
-  sandbox.style.background = 'white';
-
-  const clone = node.cloneNode(true) as HTMLElement;
-  clone.style.width = `${width}px`;
-  clone.style.margin = '0';
-  clone.style.boxShadow = 'none';
-  clone.style.transform = 'none';
-  clone.style.minHeight = '0';
-  clone.style.maxHeight = 'none';
-  clone.style.height = 'auto';
-  clone.style.overflow = 'visible';
-  clone.style.setProperty('--ti-fit-scale', '1');
-
-  clone.querySelectorAll<HTMLElement>('.print\\:hidden, [class*="print:hidden"], [data-print-hide="true"]').forEach((n) => {
-    n.style.display = 'none';
-  });
-
-  sandbox.appendChild(clone);
-  document.body.appendChild(sandbox);
-
-  try {
-    return await html2canvas(clone, {
-      scale: 2,
-      useCORS: true,
-      logging: false,
-      backgroundColor: '#ffffff',
-      width: clone.offsetWidth,
-      height: clone.offsetHeight,
-      windowWidth: clone.scrollWidth,
-      windowHeight: clone.scrollHeight,
-    });
-  } finally {
-    document.body.removeChild(sandbox);
-  }
-}
-
-async function capturePages(el: HTMLElement): Promise<HTMLCanvasElement[]> {
-  const docs = Array.from(el.querySelectorAll<HTMLElement>('.ti-doc'));
-  const nodes = docs.length > 0 ? docs : [el];
-  const canvases: HTMLCanvasElement[] = [];
-  for (const n of nodes) {
-    canvases.push(await captureNode(n, A4_PX_WIDTH));
-  }
-  return canvases;
-}
-
 const PrintActions = ({ printAreaId, title, size = 'sm' }: PrintActionsProps) => {
-  const handlePrint = async () => {
+  const handlePrint = () => {
     const el = document.getElementById(printAreaId);
     if (!el) {
       toast.error('ไม่พบเนื้อหาสำหรับพิมพ์');
       return;
     }
-
-    const toastId = toast.loading('กำลังเตรียมหน้าพิมพ์...');
-
-    try {
-      const canvases = await capturePages(el);
-      const imgs = canvases.map((c) => c.toDataURL('image/png'));
-
-      const iframe = document.createElement('iframe');
-      iframe.style.position = 'fixed';
-      iframe.style.right = '0';
-      iframe.style.bottom = '0';
-      iframe.style.width = '0';
-      iframe.style.height = '0';
-      iframe.style.border = 'none';
-      document.body.appendChild(iframe);
-
-      const iframeDoc = iframe.contentWindow?.document;
-      if (!iframeDoc) {
-        toast.dismiss(toastId);
-        toast.error('ไม่สามารถเตรียมหน้าพิมพ์ได้');
-        document.body.removeChild(iframe);
-        return;
-      }
-
-      const pages = imgs
-        .map((src) => `<div class="page"><img src="${src}" /></div>`)
-        .join('');
-
-      iframeDoc.open();
-      iframeDoc.write(`
-        <!DOCTYPE html>
-        <html>
-        <head>
-          <title>${title || 'Print'}</title>
-          <style>
-            @page { margin: 0; size: A4; }
-            html, body { margin: 0; padding: 0; background: white; }
-            .page {
-              width: 210mm;
-              height: 297mm;
-              padding: 4mm;
-              box-sizing: border-box;
-              overflow: hidden;
-              page-break-after: always;
-              display: flex;
-              align-items: center;
-              justify-content: center;
-            }
-            .page:last-child { page-break-after: auto; }
-            .page img {
-              max-width: 100%;
-              max-height: 100%;
-              width: auto;
-              height: auto;
-              display: block;
-              object-fit: contain;
-            }
-          </style>
-        </head>
-        <body>${pages}</body>
-        </html>
-      `);
-      iframeDoc.close();
-
-      const doPrint = () => {
-        toast.dismiss(toastId);
-        iframe.contentWindow?.focus();
-        iframe.contentWindow?.print();
-        setTimeout(() => document.body.removeChild(iframe), 1000);
-      };
-      const lastImg = iframeDoc.querySelectorAll('img');
-      if (lastImg.length > 0) {
-        const last = lastImg[lastImg.length - 1] as HTMLImageElement;
-        if (last.complete) doPrint(); else last.onload = doPrint;
-      } else {
-        doPrint();
-      }
-    } catch (err) {
-      toast.dismiss(toastId);
-      toast.error('เกิดข้อผิดพลาดในการพิมพ์');
-      console.error('Print error:', err);
-    }
+    window.print();
   };
 
-  const handleSavePDF = async () => {
+  const handleSavePDF = () => {
+    // Default: use browser's print-to-PDF
     const el = document.getElementById(printAreaId);
     if (!el) {
       toast.error('ไม่พบเนื้อหาสำหรับบันทึก PDF');
       return;
     }
-
-    const toastId = toast.loading('กำลังสร้างไฟล์ PDF...');
-
-    try {
-      const { jsPDF } = await import('jspdf');
-      const canvases = await capturePages(el);
-
-      const pdf = new jsPDF('p', 'mm', 'a4');
-      const pageW = 210;
-      const pageH = 297;
-
-      canvases.forEach((canvas, idx) => {
-        if (idx > 0) pdf.addPage();
-        // Fit-to-page: scale canvas to fit within A4 while preserving aspect ratio
-        const ratio = Math.min(pageW / canvas.width, pageH / canvas.height);
-        const w = canvas.width * ratio;
-        const h = canvas.height * ratio;
-        const x = (pageW - w) / 2;
-        const y = (pageH - h) / 2;
-        pdf.addImage(canvas.toDataURL('image/png'), 'PNG', x, y, w, h);
-      });
-
-      const filename = (title || 'document').replace(/[^a-zA-Z0-9ก-๙\s-]/g, '').trim();
-      pdf.save(`${filename}.pdf`);
-      toast.dismiss(toastId);
-      toast.success('บันทึก PDF เรียบร้อย');
-    } catch (err) {
-      toast.dismiss(toastId);
-      toast.error('เกิดข้อผิดพลาดในการสร้าง PDF');
-      console.error('PDF error:', err);
-    }
+    window.print();
   };
 
   return (
