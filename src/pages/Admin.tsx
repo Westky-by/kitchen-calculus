@@ -971,6 +971,126 @@ const Admin = () => {
               </div>
             </Card>
           </div>
+        ) : (
+          <div className="space-y-4">
+            <Alert>
+              <BookOpen className="h-4 w-4" />
+              <AlertTitle>คู่มือ / วิธีการใช้งาน</AlertTitle>
+              <AlertDescription className="text-sm">
+                เก็บเอกสารคู่มือและวิธีใช้งานระบบให้ผู้ใช้ทุกคนเปิดอ่านได้ —
+                เฉพาะ Admin / Super Admin เท่านั้นที่สามารถเพิ่ม / แก้ไข / ลบได้
+              </AlertDescription>
+            </Alert>
+            <Card className="p-4">
+              <h2 className="text-lg font-bold mb-4 flex items-center gap-2">
+                {editingManualId ? <><Pencil className="w-5 h-5" /> แก้ไขคู่มือ</> : <><Plus className="w-5 h-5" /> เพิ่มคู่มือใหม่</>}
+              </h2>
+              <div className="grid gap-3 md:grid-cols-[1fr_200px_120px]">
+                <div className="space-y-1">
+                  <Label>หัวข้อ *</Label>
+                  <Input
+                    placeholder="เช่น วิธีสร้างสูตรอาหาร"
+                    value={manualTitle}
+                    onChange={(e) => setManualTitle(e.target.value)}
+                  />
+                </div>
+                <div className="space-y-1">
+                  <Label>หมวดหมู่</Label>
+                  <Input
+                    placeholder="เช่น ทั่วไป, สูตรอาหาร"
+                    value={manualCategory}
+                    onChange={(e) => setManualCategory(e.target.value)}
+                  />
+                </div>
+                <div className="space-y-1">
+                  <Label>ลำดับ</Label>
+                  <Input
+                    type="number"
+                    value={manualSort}
+                    onChange={(e) => setManualSort(Number(e.target.value) || 0)}
+                  />
+                </div>
+              </div>
+              <div className="space-y-1 mt-3">
+                <Label>เนื้อหา * (รองรับการขึ้นบรรทัดใหม่)</Label>
+                <Textarea
+                  placeholder="อธิบายขั้นตอนการใช้งานอย่างละเอียด..."
+                  value={manualContent}
+                  onChange={(e) => setManualContent(e.target.value)}
+                  rows={8}
+                />
+              </div>
+              <div className="flex justify-end gap-2 mt-3">
+                {editingManualId && (
+                  <Button variant="outline" onClick={resetManualForm} className="gap-1">
+                    <X className="w-4 h-4" /> ยกเลิก
+                  </Button>
+                )}
+                <Button onClick={handleSaveManual} disabled={savingManual} className="gap-1">
+                  <Plus className="w-4 h-4" /> {savingManual ? 'กำลังบันทึก...' : (editingManualId ? 'บันทึกการแก้ไข' : 'เพิ่มคู่มือ')}
+                </Button>
+              </div>
+            </Card>
+            <Card className="p-4">
+              <h2 className="text-lg font-bold mb-4 flex items-center gap-2">
+                <BookOpen className="w-5 h-5" /> รายการคู่มือ ({manuals.length})
+              </h2>
+              <div className="overflow-auto max-h-[60vh]">
+                <Table>
+                  <TableHeader>
+                    <TableRow>
+                      <TableHead className="w-16">ลำดับ</TableHead>
+                      <TableHead>หัวข้อ</TableHead>
+                      <TableHead className="w-32">หมวดหมู่</TableHead>
+                      <TableHead className="w-32">โดย</TableHead>
+                      <TableHead className="w-40">อัพเดทล่าสุด</TableHead>
+                      <TableHead className="w-32 text-right">จัดการ</TableHead>
+                    </TableRow>
+                  </TableHeader>
+                  <TableBody>
+                    {manuals.length === 0 && (
+                      <TableRow>
+                        <TableCell colSpan={6} className="text-center text-muted-foreground py-8">
+                          ยังไม่มีคู่มือการใช้งาน
+                        </TableCell>
+                      </TableRow>
+                    )}
+                    {manuals.map((m) => (
+                      <TableRow key={m.id}>
+                        <TableCell className="text-sm text-muted-foreground">{m.sort_order}</TableCell>
+                        <TableCell>
+                          <button
+                            type="button"
+                            onClick={() => setViewingManual(m)}
+                            className="font-medium text-left hover:text-primary hover:underline"
+                          >
+                            {m.title}
+                          </button>
+                        </TableCell>
+                        <TableCell>
+                          <Badge variant="outline">{m.category}</Badge>
+                        </TableCell>
+                        <TableCell className="text-xs">{m.created_by_username}</TableCell>
+                        <TableCell className="text-xs text-muted-foreground whitespace-nowrap">
+                          {new Date(m.updated_at).toLocaleString('th-TH')}
+                        </TableCell>
+                        <TableCell className="text-right">
+                          <div className="flex gap-1 justify-end">
+                            <Button size="icon" variant="ghost" onClick={() => handleEditManual(m)}>
+                              <Pencil className="w-4 h-4" />
+                            </Button>
+                            <Button size="icon" variant="ghost" onClick={() => handleDeleteManual(m)}>
+                              <Trash2 className="w-4 h-4 text-destructive" />
+                            </Button>
+                          </div>
+                        </TableCell>
+                      </TableRow>
+                    ))}
+                  </TableBody>
+                </Table>
+              </div>
+            </Card>
+          </div>
         )}
       </main>
 
