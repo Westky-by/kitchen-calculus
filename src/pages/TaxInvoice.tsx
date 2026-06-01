@@ -824,7 +824,7 @@ const TaxInvoicePage = () => {
           <DialogHeader className="print:hidden">
             <DialogTitle className="flex items-center justify-between">
               <span>ตัวอย่างเอกสาร 3 ชุด (A4 ต่อหน้า)</span>
-              <PrintActions printAreaId="tax-invoice-print-area" title={`Tax-Invoice-${printData?.doc_number || 'preview'}`} />
+              <PrintActions printAreaId="tax-invoice-print-area" title={`Tax-Invoice - ${printData?.doc_number || 'preview'}`} />
             </DialogTitle>
           </DialogHeader>
           {printSourceImage && (
