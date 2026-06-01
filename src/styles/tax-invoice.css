@@ -262,22 +262,39 @@
   .ti-print-area { position: absolute; left: 0; top: 0; width: 100%; background: white; }
   .ti-print-root { background: white !important; }
   .ti-print-root .ti-doc { box-shadow: none; margin: 0; }
+  .ti-table {
+    display: table !important;
+    border-collapse: collapse !important;
+    border-spacing: 0 !important;
+    table-layout: fixed !important;
+    width: 100% !important;
+  }
+  .ti-table thead { display: table-header-group !important; }
+  .ti-table tbody { display: table-row-group !important; }
+  .ti-table tr { display: table-row !important; }
   .ti-table th,
   .ti-table td {
+    display: table-cell !important;
     vertical-align: middle !important;
+    line-height: 1.2 !important;
+    padding-top: 8px !important;
+    padding-bottom: 8px !important;
+    height: auto !important;
+    min-height: 0 !important;
+    text-align-last: auto !important;
   }
-  .ti-table th {
-    padding-top: 0 !important;
-    padding-bottom: 0 !important;
-    line-height: 18px !important;
+  .ti-table th > *,
+  .ti-table td > * {
+    display: table-cell !important;
+    vertical-align: middle !important;
+    line-height: 1.2 !important;
   }
-  .ti-table td {
-    padding-top: 0 !important;
-    padding-bottom: 0 !important;
-    line-height: 17px !important;
-  }
-  .ti-table td.ti-r {
-    padding-right: 10px !important;
+  .ti-table td.ti-r,
+  .ti-table th:nth-child(6),
+  .ti-table th:nth-child(7),
+  .ti-table td:nth-child(6),
+  .ti-table td:nth-child(7) {
+    padding-right: 12px !important;
   }
   .ti-tot-cell,
   .ti-amount-text,
@@ -287,17 +304,25 @@
     align-items: center !important;
   }
   .ti-tot-cell {
-    padding-right: 11px !important;
+    display: flex !important;
+    min-height: 27px !important;
+    padding-top: 5px !important;
+    padding-bottom: 5px !important;
+    padding-right: 12px !important;
     line-height: 1.2 !important;
+    vertical-align: middle !important;
   }
   .ti-tot-left,
   .ti-tot-amt {
     justify-content: center !important;
+    line-height: 1.2 !important;
   }
   .ti-tot-amt {
-    align-self: stretch;
+    align-self: stretch !important;
+    display: flex !important;
+    align-items: center !important;
     justify-content: flex-end !important;
-    padding-right: 1px !important;
+    padding-right: 12px !important;
     line-height: 1.2 !important;
   }
 }
