@@ -54,6 +54,17 @@ interface EmailRecipientRow {
   created_at: string;
 }
 
+interface ManualRow {
+  id: string;
+  title: string;
+  content: string;
+  category: string;
+  sort_order: number;
+  created_by_username: string;
+  created_at: string;
+  updated_at: string;
+}
+
 const Admin = () => {
   const { role, user } = useAuth();
   const navigate = useNavigate();
