@@ -93,6 +93,7 @@
   display: flex;
   align-items: center;
 }
+.ti-cust-val-noline { border-bottom: none !important; }
 .ti-cust-taxid { flex: 0 1 210px; }
 .ti-cb { display: inline-flex; align-items: center; gap: 4px; font-size: 10pt; line-height: 1.2; }
 .ti-cb-mark {
