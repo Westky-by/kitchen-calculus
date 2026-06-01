@@ -232,7 +232,7 @@ export default function TaxInvoiceDoc({ data, copy = 'original', companySignatur
         <div className="ti-sign-cell ti-sign-auth-c">
           <div className="ti-sign-auth-name">ในนาม บริษัท ดีรวยสุข จำกัด</div>
           <div className="ti-sign-img-wrap">
-            {showSignature && <img src={signature} alt="" className="ti-sign-img" />}
+            {showSignature && <img src={signatureSrc} alt="" className="ti-sign-img" />}
           </div>
           <div className="ti-sign-foot">ผู้มีอำนาจลงนาม</div>
         </div>
