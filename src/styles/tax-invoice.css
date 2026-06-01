@@ -310,14 +310,9 @@
   .ti-table td > * {
     display: table-cell !important;
     vertical-align: middle !important;
-    line-height: 1.2 !important;
-  }
-  .ti-table td.ti-r,
-  .ti-table th:nth-child(6),
-  .ti-table th:nth-child(7),
-  .ti-table td:nth-child(6),
-  .ti-table td:nth-child(7) {
-    padding-right: 12px !important;
+    line-height: 1.3 !important;
+    align-items: unset !important;
+    justify-content: unset !important;
   }
   .ti-tot-cell,
   .ti-amount-text,
