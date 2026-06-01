@@ -78,7 +78,7 @@
   margin: 0 0 4px;
 }
 .ti-cust-left { display: flex; flex-direction: column; gap: 3px; min-width: 0; }
-.ti-cust-row { display: flex; align-items: center; gap: 6px; font-size: 10pt; line-height: 1.25; flex-wrap: nowrap; min-width: 0; }
+.ti-cust-row { display: flex; align-items: flex-end; gap: 6px; font-size: 10pt; line-height: 1.25; flex-wrap: nowrap; min-width: 0; }
 .ti-cust-lbl { white-space: nowrap; min-width: 56px; }
 .ti-cust-lbl.ti-cust-lbl-empty { visibility: hidden; }
 .ti-cust-val {
