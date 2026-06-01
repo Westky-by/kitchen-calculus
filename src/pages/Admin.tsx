@@ -269,20 +269,61 @@ const Admin = () => {
     setManualCategory('ทั่วไป');
     setManualContent('');
     setManualSort(0);
+    setManualFile(null);
+    setManualExistingFileUrl('');
+    setManualExistingFileName('');
+    setRemoveExistingFile(false);
+  };
+
+  const extractStoragePath = (publicUrl: string): string | null => {
+    const marker = '/storage/v1/object/public/manual-files/';
+    const idx = publicUrl.indexOf(marker);
+    return idx === -1 ? null : publicUrl.slice(idx + marker.length);
   };
 
   const handleSaveManual = async () => {
     if (!manualTitle.trim()) { toast.error('กรุณากรอกหัวข้อคู่มือ'); return; }
-    if (!manualContent.trim()) { toast.error('กรุณากรอกเนื้อหา'); return; }
+    if (!manualContent.trim() && !manualFile && !manualExistingFileUrl) {
+      toast.error('กรุณากรอกเนื้อหา หรือแนบไฟล์อย่างน้อย 1 อย่าง');
+      return;
+    }
     setSavingManual(true);
     try {
       const profRes = await supabase.from('profiles').select('username').eq('id', user!.id).single();
       const username = (profRes.data as any)?.username || '';
+
+      let fileUrl = manualExistingFileUrl;
+      let fileName = manualExistingFileName;
+
+      // Remove or replace existing file
+      if ((removeExistingFile || manualFile) && manualExistingFileUrl) {
+        const path = extractStoragePath(manualExistingFileUrl);
+        if (path) await supabase.storage.from('manual-files').remove([path]);
+        fileUrl = '';
+        fileName = '';
+      }
+
+      // Upload new file
+      if (manualFile) {
+        const ext = manualFile.name.split('.').pop() || 'bin';
+        const path = `${user!.id}/${Date.now()}-${Math.random().toString(36).slice(2, 8)}.${ext}`;
+        const { error: upErr } = await supabase.storage.from('manual-files').upload(path, manualFile, {
+          contentType: manualFile.type || undefined,
+          upsert: false,
+        });
+        if (upErr) { toast.error('อัพโหลดไฟล์ไม่สำเร็จ: ' + upErr.message); return; }
+        const { data: pub } = supabase.storage.from('manual-files').getPublicUrl(path);
+        fileUrl = pub.publicUrl;
+        fileName = manualFile.name;
+      }
+
       const payload: any = {
         title: manualTitle.trim(),
         category: manualCategory.trim() || 'ทั่วไป',
         content: manualContent,
         sort_order: Number(manualSort) || 0,
+        file_url: fileUrl,
+        file_name: fileName,
       };
       if (editingManualId) {
         const { error } = await (supabase as any).from('user_manuals').update(payload).eq('id', editingManualId);
@@ -310,11 +351,19 @@ const Admin = () => {
     setManualCategory(m.category || 'ทั่วไป');
     setManualContent(m.content || '');
     setManualSort(m.sort_order || 0);
+    setManualFile(null);
+    setManualExistingFileUrl(m.file_url || '');
+    setManualExistingFileName(m.file_name || '');
+    setRemoveExistingFile(false);
     window.scrollTo({ top: 0, behavior: 'smooth' });
   };
 
   const handleDeleteManual = async (m: ManualRow) => {
     if (!confirm(`ลบคู่มือ "${m.title}" หรือไม่?`)) return;
+    if (m.file_url) {
+      const path = extractStoragePath(m.file_url);
+      if (path) await supabase.storage.from('manual-files').remove([path]);
+    }
     const { error } = await (supabase as any).from('user_manuals').delete().eq('id', m.id);
     if (error) { toast.error('ลบไม่สำเร็จ'); return; }
     toast.success('ลบเรียบร้อย');
@@ -322,6 +371,7 @@ const Admin = () => {
     if (editingManualId === m.id) resetManualForm();
     fetchManuals();
   };
+
 
   useEffect(() => {
     if (role !== 'admin' && role !== 'super_admin') return;
