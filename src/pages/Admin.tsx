@@ -880,7 +880,7 @@ const Admin = () => {
               </div>
             </Card>
           </div>
-        ) : (
+        ) : tab === 'emails' ? (
           <div className="space-y-4">
             <Alert>
               <Mail className="h-4 w-4" />
