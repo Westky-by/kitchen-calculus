@@ -513,6 +513,12 @@ const Admin = () => {
             >
               <Mail className="w-4 h-4" /> อีเมลผู้รับใบกำกับ
             </button>
+            <button
+              onClick={() => { setTab('manuals'); fetchManuals(); }}
+              className={`flex items-center gap-2 px-4 py-2 text-sm border-b-[3px] ${tab === 'manuals' ? 'tab-active' : 'tab-inactive border-transparent'}`}
+            >
+              <BookOpen className="w-4 h-4" /> คู่มือการใช้งาน
+            </button>
           </div>
         </div>
       </div>
