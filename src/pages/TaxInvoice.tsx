@@ -12,7 +12,9 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@
 import { Tabs, TabsList, TabsTrigger, TabsContent } from '@/components/ui/tabs';
 import { Badge } from '@/components/ui/badge';
 import { Checkbox } from '@/components/ui/checkbox';
-import { ArrowLeft, Plus, Upload, Trash2, FileText, Eye, Sparkles, Save } from 'lucide-react';
+import { ArrowLeft, Plus, Upload, Trash2, FileText, Eye, Sparkles, Save, Download } from 'lucide-react';
+import html2canvas from 'html2canvas';
+import jsPDF from 'jspdf';
 import { toast } from 'sonner';
 import TaxInvoiceDoc, { type InvoiceData, type InvoiceItem } from '@/components/TaxInvoiceDoc';
 import PrintActions from '@/components/PrintActions';
