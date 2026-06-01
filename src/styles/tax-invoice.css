@@ -267,6 +267,30 @@
   .ti-print-area { position: absolute; left: 0; top: 0; width: 100%; background: white; }
   .ti-print-root { background: white !important; }
   .ti-print-root .ti-doc { box-shadow: none; margin: 0; }
+  /* Force borders to render in print */
+  .ti-footer-grid {
+    border-left: 1px solid #000 !important;
+    border-right: 1px solid #000 !important;
+    border-bottom: 1px solid #000 !important;
+  }
+  .ti-left-col { border-right: 1px solid #000 !important; }
+  .ti-tot-cell { border-bottom: 1px solid #000 !important; }
+  .ti-tot-cell:last-child { border-bottom: none !important; }
+  .ti-sign-row {
+    border-left: 1px solid #000 !important;
+    border-right: 1px solid #000 !important;
+    border-bottom: 1px solid #000 !important;
+  }
+  .ti-sign-cell { border-right: 1px solid #000 !important; }
+  .ti-sign-cell:last-child { border-right: none !important; }
+  .ti-table, .ti-doc table { border: 1px solid #000 !important; }
+  .ti-table th, .ti-table td,
+  .ti-doc table th, .ti-doc table td {
+    border-left: 1px solid #000 !important;
+    border-right: 1px solid #000 !important;
+    border-bottom: 1px solid #cbd5e1 !important;
+  }
+  .ti-table tbody tr:last-child td { border-bottom: 1px solid #000 !important; }
 
   .ti-doc table,
   .ti-table {
