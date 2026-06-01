@@ -859,7 +859,7 @@ const TaxInvoicePage = () => {
                     import('jspdf'),
                   ]);
                   const jsPDF = (jsPDFmod as any).jsPDF || (jsPDFmod as any).default;
-                  const pages = Array.from(el.querySelectorAll<HTMLElement>('.ti-page, .tax-invoice-page')) ;
+                  const pages = Array.from(el.querySelectorAll<HTMLElement>('.ti-doc'));
                   const targets: HTMLElement[] = pages.length ? pages : [el];
                   const pdf = new jsPDF({ unit: 'mm', format: 'a4', orientation: 'portrait' });
                   const pageW = pdf.internal.pageSize.getWidth();
