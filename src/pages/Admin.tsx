@@ -1068,13 +1068,62 @@ const Admin = () => {
                 </div>
               </div>
               <div className="space-y-1 mt-3">
-                <Label>เนื้อหา * (รองรับการขึ้นบรรทัดใหม่)</Label>
+                <Label>เนื้อหา (รองรับการขึ้นบรรทัดใหม่)</Label>
                 <Textarea
                   placeholder="อธิบายขั้นตอนการใช้งานอย่างละเอียด..."
                   value={manualContent}
                   onChange={(e) => setManualContent(e.target.value)}
                   rows={8}
                 />
+              </div>
+              <div className="space-y-2 mt-3">
+                <Label>ไฟล์แนบ (PDF / รูปภาพ / เอกสาร — ไม่บังคับ)</Label>
+                {manualExistingFileUrl && !removeExistingFile && !manualFile && (
+                  <div className="flex items-center gap-2 p-2 rounded border border-border bg-muted/40 text-sm">
+                    <Paperclip className="w-4 h-4 text-muted-foreground" />
+                    <a
+                      href={manualExistingFileUrl}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="flex-1 truncate text-primary hover:underline"
+                    >
+                      {manualExistingFileName || 'ไฟล์แนบ'}
+                    </a>
+                    <Button
+                      type="button"
+                      size="sm"
+                      variant="ghost"
+                      className="h-7 px-2 text-xs text-destructive"
+                      onClick={() => setRemoveExistingFile(true)}
+                    >
+                      <Trash2 className="w-3 h-3 mr-1" /> ลบไฟล์
+                    </Button>
+                  </div>
+                )}
+                <div className="flex items-center gap-2">
+                  <Input
+                    type="file"
+                    onChange={(e) => {
+                      const f = e.target.files?.[0] || null;
+                      setManualFile(f);
+                      if (f) setRemoveExistingFile(true);
+                    }}
+                    accept=".pdf,.doc,.docx,.xls,.xlsx,.ppt,.pptx,.txt,.png,.jpg,.jpeg,.webp,.gif"
+                  />
+                  {manualFile && (
+                    <Button
+                      type="button"
+                      size="sm"
+                      variant="ghost"
+                      onClick={() => { setManualFile(null); setRemoveExistingFile(false); }}
+                    >
+                      <X className="w-4 h-4" />
+                    </Button>
+                  )}
+                </div>
+                {manualFile && (
+                  <p className="text-xs text-muted-foreground">เลือกไฟล์ใหม่: {manualFile.name}</p>
+                )}
               </div>
               <div className="flex justify-end gap-2 mt-3">
                 {editingManualId && (
