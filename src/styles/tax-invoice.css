@@ -209,15 +209,15 @@
   padding: 3px 8px;
   display: flex;
   justify-content: space-between;
-  align-items: flex-start;
+  align-items: center;
   gap: 6px;
   min-height: 25px;
 }
 .ti-tot-cell:last-child { border-bottom: none; }
-.ti-tot-left { display: flex; flex-direction: column; min-width: 0; }
+.ti-tot-left { display: flex; flex-direction: column; justify-content: center; min-width: 0; }
 .ti-tot-th { font-weight: 600; font-size: 8.5pt; line-height: 1.12; }
 .ti-tot-en { font-size: 6.2pt; color: #555; line-height: 1.05; letter-spacing: 0; }
-.ti-tot-amt { font-weight: 600; font-size: 9.2pt; text-align: right; white-space: nowrap; padding-top: 6px; }
+.ti-tot-amt { font-weight: 600; font-size: 9.2pt; text-align: right; white-space: nowrap; display: flex; align-items: center; }
 .ti-tot-grand { background: #fafafa; }
 .ti-tot-grand .ti-tot-th { font-weight: 800; font-size: 9pt; }
 .ti-tot-grand .ti-tot-amt { font-weight: 800; font-size: 10.5pt; }
