@@ -98,13 +98,20 @@ export default function TaxInvoiceDoc({ data, copy = 'original' }: { data: Invoi
           {(() => {
             const lines = (data.customer_address || '').split('\n');
             const padded = [lines[0] ?? '', lines[1] ?? '', lines.slice(2).join(' ') ?? ''];
-            return padded.map((ln, idx) => (
-              <div className="ti-cust-row" key={`addr-${idx}`}>
-                <span className={`ti-cust-lbl${idx === 0 ? '' : ' ti-cust-lbl-empty'}`}>ที่อยู่</span>
-                <span className="ti-cust-val">{ln}</span>
-              </div>
-            ));
+            const filledCount = padded.filter(l => l.trim() !== '').length;
+            const hybrid = filledCount > 2;
+            return padded.map((ln, idx) => {
+              // Hybrid: when data exceeds 2 rows, keep underline only on the last row
+              const hideUnderline = hybrid && idx !== padded.length - 1;
+              return (
+                <div className="ti-cust-row" key={`addr-${idx}`}>
+                  <span className={`ti-cust-lbl${idx === 0 ? '' : ' ti-cust-lbl-empty'}`}>ที่อยู่</span>
+                  <span className={`ti-cust-val${hideUnderline ? ' ti-cust-val-noline' : ''}`}>{ln}</span>
+                </div>
+              );
+            });
           })()}
+
           <div className="ti-cust-row">
             <span className="ti-cust-lbl">เลขประจำตัวผู้เสียภาษี</span>
             <span className="ti-cust-val ti-cust-taxid">{data.customer_tax_id}</span>
