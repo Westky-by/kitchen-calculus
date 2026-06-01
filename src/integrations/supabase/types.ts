@@ -482,6 +482,8 @@ export type Database = {
           created_at: string
           created_by: string | null
           created_by_username: string
+          file_name: string
+          file_url: string
           id: string
           sort_order: number
           title: string
@@ -493,6 +495,8 @@ export type Database = {
           created_at?: string
           created_by?: string | null
           created_by_username?: string
+          file_name?: string
+          file_url?: string
           id?: string
           sort_order?: number
           title: string
@@ -504,6 +508,8 @@ export type Database = {
           created_at?: string
           created_by?: string | null
           created_by_username?: string
+          file_name?: string
+          file_url?: string
           id?: string
           sort_order?: number
           title?: string
