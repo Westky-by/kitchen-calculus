@@ -692,7 +692,7 @@ const Admin = () => {
               );
             })()}
           </div>
-        ) : (
+        ) : tab === 'versions' ? (
           <div className="space-y-4">
             <Alert>
               <Rocket className="h-4 w-4" />
@@ -776,6 +776,97 @@ const Admin = () => {
                         <TableCell className="text-xs">{v.created_by_username}</TableCell>
                         <TableCell>
                           <Button size="icon" variant="ghost" onClick={() => handleDeleteVersion(v)}>
+                            <Trash2 className="w-4 h-4 text-destructive" />
+                          </Button>
+                        </TableCell>
+                      </TableRow>
+                    ))}
+                  </TableBody>
+                </Table>
+              </div>
+            </Card>
+          </div>
+        ) : (
+          <div className="space-y-4">
+            <Alert>
+              <Mail className="h-4 w-4" />
+              <AlertTitle>อีเมลผู้รับใบกำกับภาษี</AlertTitle>
+              <AlertDescription className="text-sm">
+                กำหนดอีเมลปลายทางที่จะใช้สำหรับส่งใบกำกับภาษีเป็น PDF (หน้าแรก) —
+                สามารถเพิ่มได้หลายรายการ และตั้ง "อีเมลหลัก" ได้ 1 รายการ
+              </AlertDescription>
+            </Alert>
+            <Card className="p-4">
+              <h2 className="text-lg font-bold mb-4 flex items-center gap-2">
+                <Plus className="w-5 h-5" /> เพิ่มอีเมลใหม่
+              </h2>
+              <div className="grid gap-3 md:grid-cols-[1fr_1fr_auto]">
+                <div className="space-y-1">
+                  <Label>อีเมล *</Label>
+                  <Input
+                    type="email"
+                    placeholder="name@example.com"
+                    value={newEmail}
+                    onChange={(e) => setNewEmail(e.target.value)}
+                    autoComplete="off"
+                  />
+                </div>
+                <div className="space-y-1">
+                  <Label>ชื่อกำกับ (ไม่บังคับ)</Label>
+                  <Input
+                    placeholder="เช่น บัญชี, ลูกค้า A"
+                    value={newEmailLabel}
+                    onChange={(e) => setNewEmailLabel(e.target.value)}
+                  />
+                </div>
+                <div className="flex items-end">
+                  <Button onClick={handleAddEmail} disabled={addingEmail} className="gap-1">
+                    <Plus className="w-4 h-4" /> {addingEmail ? 'กำลังเพิ่ม...' : 'เพิ่ม'}
+                  </Button>
+                </div>
+              </div>
+            </Card>
+            <Card className="p-4">
+              <h2 className="text-lg font-bold mb-4 flex items-center gap-2">
+                <Mail className="w-5 h-5" /> รายการอีเมล ({emailRecipients.length})
+              </h2>
+              <div className="overflow-auto max-h-[60vh]">
+                <Table>
+                  <TableHeader>
+                    <TableRow>
+                      <TableHead>อีเมล</TableHead>
+                      <TableHead>ชื่อกำกับ</TableHead>
+                      <TableHead className="w-32">สถานะ</TableHead>
+                      <TableHead className="w-40">เพิ่มเมื่อ</TableHead>
+                      <TableHead className="w-28 text-right">จัดการ</TableHead>
+                    </TableRow>
+                  </TableHeader>
+                  <TableBody>
+                    {emailRecipients.length === 0 && (
+                      <TableRow>
+                        <TableCell colSpan={5} className="text-center text-muted-foreground py-8">
+                          ยังไม่มีอีเมลผู้รับ
+                        </TableCell>
+                      </TableRow>
+                    )}
+                    {emailRecipients.map((r) => (
+                      <TableRow key={r.id}>
+                        <TableCell className="font-medium">{r.email}</TableCell>
+                        <TableCell className="text-sm text-muted-foreground">{r.label || '-'}</TableCell>
+                        <TableCell>
+                          {r.is_default ? (
+                            <Badge className="gap-1"><Star className="w-3 h-3" /> หลัก</Badge>
+                          ) : (
+                            <Button size="sm" variant="ghost" className="h-7 px-2 text-xs" onClick={() => handleSetDefaultEmail(r)}>
+                              ตั้งเป็นหลัก
+                            </Button>
+                          )}
+                        </TableCell>
+                        <TableCell className="text-xs text-muted-foreground whitespace-nowrap">
+                          {new Date(r.created_at).toLocaleString('th-TH')}
+                        </TableCell>
+                        <TableCell className="text-right">
+                          <Button size="icon" variant="ghost" onClick={() => handleDeleteEmail(r)}>
                             <Trash2 className="w-4 h-4 text-destructive" />
                           </Button>
                         </TableCell>
