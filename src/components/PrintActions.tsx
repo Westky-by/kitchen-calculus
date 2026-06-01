@@ -47,8 +47,8 @@ const printElementViaIframe = (el: HTMLElement, title: string) => {
     <title>${title.replace(/[<>]/g, '')}</title>
     ${headHtml}
     <style>
-      html, body { margin: 0; padding: 0; background: #fff; }
-      .print-host { padding: 12px; }
+      html, body { margin: 0; padding: 0; background: #fff; color: #111; }
+      .print-host { width: 100%; min-height: 100%; padding: 12px; box-sizing: border-box; }
       [data-print-hide="true"], .print\\:hidden { display: none !important; }
       @page { margin: 12mm; }
     </style>
