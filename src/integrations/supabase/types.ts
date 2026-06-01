@@ -361,6 +361,33 @@ export type Database = {
         }
         Relationships: []
       }
+      tax_invoice_email_recipients: {
+        Row: {
+          created_at: string
+          created_by: string | null
+          email: string
+          id: string
+          is_default: boolean
+          label: string
+        }
+        Insert: {
+          created_at?: string
+          created_by?: string | null
+          email: string
+          id?: string
+          is_default?: boolean
+          label?: string
+        }
+        Update: {
+          created_at?: string
+          created_by?: string | null
+          email?: string
+          id?: string
+          is_default?: boolean
+          label?: string
+        }
+        Relationships: []
+      }
       tax_invoices: {
         Row: {
           amount_after_discount: number
