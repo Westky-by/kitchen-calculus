@@ -49,10 +49,12 @@ const COPY_LABELS: Record<CopyType, { th: string; en: string; box_th: string; bo
 
 function fmt(n: number) { return n.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 }); }
 
-export default function TaxInvoiceDoc({ data, copy = 'original' }: { data: InvoiceData; copy?: CopyType }) {
+export default function TaxInvoiceDoc({ data, copy = 'original', companySignature }: { data: InvoiceData; copy?: CopyType; companySignature?: string }) {
   const label = COPY_LABELS[copy];
   const showStamp = copy !== 'accounting';
   const showSignature = copy === 'original';
+  const signatureSrc = companySignature || signature;
+
 
   // Pad to 18 rows for the table (matches PDF template)
   const rows: (InvoiceItem | null)[] = [];
@@ -98,19 +100,15 @@ export default function TaxInvoiceDoc({ data, copy = 'original' }: { data: Invoi
           {(() => {
             const lines = (data.customer_address || '').split('\n');
             const padded = [lines[0] ?? '', lines[1] ?? '', lines.slice(2).join(' ') ?? ''];
-            const filledCount = padded.filter(l => l.trim() !== '').length;
-            const hybrid = filledCount > 2;
-            return padded.map((ln, idx) => {
-              // Hybrid: when data exceeds 2 rows, keep underline only on the last row
-              const hideUnderline = hybrid && idx !== padded.length - 1;
-              return (
-                <div className="ti-cust-row" key={`addr-${idx}`}>
-                  <span className={`ti-cust-lbl${idx === 0 ? '' : ' ti-cust-lbl-empty'}`}>ที่อยู่</span>
-                  <span className={`ti-cust-val${hideUnderline ? ' ti-cust-val-noline' : ''}`}>{ln}</span>
-                </div>
-              );
-            });
+            const lastIdx = padded.length - 1;
+            return padded.map((ln, idx) => (
+              <div className="ti-cust-row" key={`addr-${idx}`}>
+                <span className={`ti-cust-lbl${idx === 0 ? '' : ' ti-cust-lbl-empty'}`}>ที่อยู่</span>
+                <span className={`ti-cust-val${idx !== lastIdx ? ' ti-cust-val-noline' : ''}`}>{ln}</span>
+              </div>
+            ));
           })()}
+
 
           <div className="ti-cust-row">
             <span className="ti-cust-lbl">เลขประจำตัวผู้เสียภาษี</span>
@@ -234,7 +232,7 @@ export default function TaxInvoiceDoc({ data, copy = 'original' }: { data: Invoi
         <div className="ti-sign-cell ti-sign-auth-c">
           <div className="ti-sign-auth-name">ในนาม บริษัท ดีรวยสุข จำกัด</div>
           <div className="ti-sign-img-wrap">
-            {showSignature && <img src={signature} alt="" className="ti-sign-img" />}
+            {showSignature && <img src={signatureSrc} alt="" className="ti-sign-img" />}
           </div>
           <div className="ti-sign-foot">ผู้มีอำนาจลงนาม</div>
         </div>

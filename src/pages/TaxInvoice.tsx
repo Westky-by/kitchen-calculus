@@ -128,6 +128,23 @@ const TaxInvoicePage = () => {
   const [printOpen, setPrintOpen] = useState(false);
   const [printData, setPrintData] = useState<InvoiceData | null>(null);
   const [printSourceImage, setPrintSourceImage] = useState<string>('');
+  const [companySignature, setCompanySignature] = useState<string>(() => {
+    try { return localStorage.getItem('ti_company_signature') || ''; } catch { return ''; }
+  });
+  const companySigFileRef = useRef<HTMLInputElement>(null);
+  const handleCompanySignatureFile = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const f = e.target.files?.[0];
+    if (!f) return;
+    if (!f.type.startsWith('image/')) return;
+    const reader = new FileReader();
+    reader.onload = () => {
+      const url = String(reader.result || '');
+      setCompanySignature(url);
+      try { localStorage.setItem('ti_company_signature', url); } catch {}
+    };
+    reader.readAsDataURL(f);
+    e.target.value = '';
+  };
   const printRef = useRef<HTMLDivElement>(null);
 
   const isAdmin = role === 'admin' || role === 'super_admin';
@@ -753,7 +770,26 @@ const TaxInvoicePage = () => {
                       <Input type="date" value={data.receiver_date} onChange={e => setData(p => ({ ...p, receiver_date: e.target.value }))} />
                     </div>
                   </div>
+                  <div className="border-t pt-2 mt-1 space-y-1">
+                    <Label className="text-xs font-semibold">ลายเซ็น/ตราประทับ "ในนาม บริษัท" (PNG)</Label>
+                    <div className="flex items-center gap-2">
+                      <Button size="sm" variant="outline" onClick={() => companySigFileRef.current?.click()}>
+                        <Upload className="w-3 h-3 mr-1" />เลือกรูป PNG
+                      </Button>
+                      {companySignature && (
+                        <>
+                          <img src={companySignature} alt="ลายเซ็นบริษัท" className="h-8 border rounded bg-white" />
+                          <Button size="sm" variant="ghost" onClick={() => { setCompanySignature(''); try { localStorage.removeItem('ti_company_signature'); } catch {} }}>
+                            ลบ
+                          </Button>
+                        </>
+                      )}
+                      <input ref={companySigFileRef} type="file" accept="image/png,image/*" className="hidden" onChange={handleCompanySignatureFile} />
+                    </div>
+                    <p className="text-[10px] text-muted-foreground">แนะนำ PNG พื้นหลังโปร่งใส จะแสดงในช่อง "ในนาม บริษัท" ของเอกสาร (ฉบับต้นฉบับ)</p>
+                  </div>
                 </Card>
+
 
                 <div className="flex gap-2 sticky bottom-2">
                   <Button className="flex-1" onClick={handleSave} disabled={!!savingId}>
@@ -772,7 +808,7 @@ const TaxInvoicePage = () => {
                   <p className="text-xs text-muted-foreground mb-2">ตัวอย่างใบกำกับ (ต้นฉบับ)</p>
                   <div className="overflow-auto bg-gray-200 p-2 rounded" style={{ maxHeight: '80vh' }}>
                     <div style={{ transform: 'scale(0.7)', transformOrigin: 'top left', width: '210mm' }}>
-                      <TaxInvoiceDoc data={{ ...data, doc_number: previewNumber }} copy="original" />
+                      <TaxInvoiceDoc data={{ ...data, doc_number: previewNumber }} copy="original" companySignature={companySignature} />
                     </div>
                   </div>
                 </Card>
@@ -802,9 +838,9 @@ const TaxInvoicePage = () => {
           {printData && (
             <div id="tax-invoice-print-area" className="ti-print-area" ref={printRef}>
               <div className="ti-print-root">
-                <TaxInvoiceDoc data={printData} copy="original" />
-                <TaxInvoiceDoc data={printData} copy="company" />
-                <TaxInvoiceDoc data={printData} copy="accounting" />
+                <TaxInvoiceDoc data={printData} copy="original" companySignature={companySignature} />
+                <TaxInvoiceDoc data={printData} copy="company" companySignature={companySignature} />
+                <TaxInvoiceDoc data={printData} copy="accounting" companySignature={companySignature} />
               </div>
             </div>
           )}
@@ -818,9 +854,9 @@ const TaxInvoicePage = () => {
       {printOpen && printData && (
         <div className="ti-print-area hidden print:block">
           <div className="ti-print-root">
-            <TaxInvoiceDoc data={printData} copy="original" />
-            <TaxInvoiceDoc data={printData} copy="company" />
-            <TaxInvoiceDoc data={printData} copy="accounting" />
+            <TaxInvoiceDoc data={printData} copy="original" companySignature={companySignature} />
+            <TaxInvoiceDoc data={printData} copy="company" companySignature={companySignature} />
+            <TaxInvoiceDoc data={printData} copy="accounting" companySignature={companySignature} />
           </div>
         </div>
       )}
