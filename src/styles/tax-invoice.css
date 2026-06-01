@@ -225,7 +225,7 @@
 /* ===== Signatures (3 bordered boxes) ===== */
 .ti-sign-row {
   display: grid;
-  grid-template-columns: 1.1fr 1fr 1fr;
+  grid-template-columns: 35% 35% 30%;
   border-left: 0.75pt solid #000;
   border-right: 0.75pt solid #000;
   border-bottom: 0.75pt solid #000;
