@@ -51,6 +51,13 @@ const printElementViaIframe = (el: HTMLElement, title: string) => {
       .print-host { width: 100%; min-height: 100%; padding: 12px; box-sizing: border-box; }
       [data-print-hide="true"], .print\\:hidden { display: none !important; }
       @page { margin: 12mm; }
+      @media print {
+        html, body, body * { visibility: visible !important; }
+        body { -webkit-print-color-adjust: exact; print-color-adjust: exact; }
+        .print-host { position: static !important; left: auto !important; top: auto !important; width: 100% !important; padding: 0 !important; }
+        [data-print-hide="true"], [data-print-hide="true"] *, .print\\:hidden { display: none !important; visibility: hidden !important; }
+        nav, .nav-bar, header { display: none !important; }
+      }
     </style>
   </head>
   <body>
