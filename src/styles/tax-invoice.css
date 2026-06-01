@@ -257,11 +257,17 @@
 .ti-print-root .ti-doc { page-break-after: always; box-shadow: 0 4px 20px rgba(0,0,0,0.1); margin: 8px auto; }
 .ti-print-root .ti-doc:last-child { page-break-after: auto; }
 @media print {
+  html, body, .ti-print-area, .ti-print-area *, .ti-doc, .ti-doc * {
+    -webkit-print-color-adjust: exact !important;
+    print-color-adjust: exact !important;
+    color-adjust: exact !important;
+  }
   body * { visibility: hidden; }
   .ti-print-area, .ti-print-area * { visibility: visible; }
   .ti-print-area { position: absolute; left: 0; top: 0; width: 100%; background: white; }
   .ti-print-root { background: white !important; }
   .ti-print-root .ti-doc { box-shadow: none; margin: 0; }
+
   .ti-doc table,
   .ti-table {
     display: table !important;
