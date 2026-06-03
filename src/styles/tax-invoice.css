@@ -246,8 +246,8 @@
 .ti-sign-sender-c { text-align: left; }
 .ti-sign-auth-c { text-align: center; }
 .ti-sign-auth-name { font-weight: 600; margin-bottom: 2px; }
-.ti-sign-img-wrap { height: 25px; display: flex; align-items: center; justify-content: center; }
-.ti-sign-img { height: 31px; object-fit: contain; }
+.ti-sign-img-wrap { height: 44px; display: flex; align-items: center; justify-content: center; }
+.ti-sign-img { height: 56px; object-fit: contain; }
 .ti-sign-foot { font-size: 8pt; margin-top: 1px; }
 .ti-sign-name { font-weight: 600; }
 .ti-sign-license { font-size: 7.5pt; color: #444; line-height: 1.2; }
