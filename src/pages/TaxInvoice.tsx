@@ -788,7 +788,7 @@ const TaxInvoicePage = () => {
                     </div>
                   </div>
                   {data.items.map((it, i) => (
-                    <div key={i} className="grid grid-cols-[90px_minmax(0,1fr)_70px_80px_110px_80px_auto] gap-1 items-center">
+                    <div key={i} className="grid grid-cols-[80px_minmax(200px,1fr)_70px_75px_100px_75px_auto] gap-1 items-center">
                       <Input className="h-8 text-xs" placeholder="รหัส" value={it.code} onChange={e => updateItem(i, { code: e.target.value })} />
                       <Input className="h-8 text-xs w-full" placeholder="รายละเอียด" value={it.description} onChange={e => updateItem(i, { description: e.target.value })} />
                       <Input className="h-8 text-xs" type="number" placeholder="จำนวน" value={it.qty || ''} onChange={e => updateItem(i, { qty: Number(e.target.value) || 0 })} />
