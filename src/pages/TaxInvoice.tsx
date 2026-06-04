@@ -788,26 +788,57 @@ const TaxInvoicePage = () => {
                     </div>
                   </div>
                   {data.items.map((it, i) => (
-                    <div key={i} className="grid grid-cols-[80px_minmax(200px,1fr)_70px_75px_100px_75px_auto] gap-1 items-center">
-                      <Input className="h-8 text-xs" placeholder="รหัส" value={it.code} onChange={e => updateItem(i, { code: e.target.value })} />
-                      <Input className="h-8 text-xs w-full" placeholder="รายละเอียด" value={it.description} onChange={e => updateItem(i, { description: e.target.value })} />
-                      <Input className="h-8 text-xs" type="number" placeholder="จำนวน" value={it.qty || ''} onChange={e => updateItem(i, { qty: Number(e.target.value) || 0 })} />
-                      <Input className="h-8 text-xs" placeholder="หน่วย" value={it.unit} onChange={e => updateItem(i, { unit: e.target.value })} />
-                      <Input className="h-8 text-xs" type="number" placeholder="ราคา/หน่วย" value={it.price || ''} onChange={e => updateItem(i, { price: Number(e.target.value) || 0 })} />
-                      <div className="relative">
-                        <Input
-                          className="h-8 text-xs pr-6"
-                          type="number"
-                          min={0}
-                          step={1}
-                          placeholder="SC%"
-                          title="Service Charge % เฉพาะรายการนี้ (0 = ไม่คิด)"
-                          value={it.sc ?? 0}
-                          onChange={e => updateItem(i, { sc: Number(e.target.value) || 0 })}
-                        />
-                        <span className="absolute right-1.5 top-1/2 -translate-y-1/2 text-[10px] text-muted-foreground pointer-events-none">%</span>
+                    <div key={i} className="border rounded p-2 bg-card/50 space-y-2">
+                      {/* Row 1: รหัส + รายละเอียด (เต็มความกว้าง) */}
+                      <div className="flex gap-2 items-center">
+                        <div className="w-[110px] shrink-0">
+                          <Label className="text-[10px] text-muted-foreground">รหัส</Label>
+                          <Input className="h-8 text-xs" placeholder="รหัส" value={it.code} onChange={e => updateItem(i, { code: e.target.value })} />
+                        </div>
+                        <div className="flex-1 min-w-0">
+                          <Label className="text-[10px] text-muted-foreground">รายละเอียด</Label>
+                          <Input className="h-8 text-xs w-full" placeholder="รายละเอียด" value={it.description} onChange={e => updateItem(i, { description: e.target.value })} />
+                        </div>
+                        <Button size="icon" variant="ghost" onClick={() => removeRow(i)} className="h-8 w-8 self-end"><Trash2 className="w-3.5 h-3.5 text-destructive" /></Button>
                       </div>
-                      <Button size="icon" variant="ghost" onClick={() => removeRow(i)} className="h-7 w-7"><Trash2 className="w-3 h-3 text-destructive" /></Button>
+                      {/* Row 2: จำนวน / หน่วย / ราคา / SC% */}
+                      <div className="flex flex-wrap gap-2 items-end">
+                        <div className="w-[90px]">
+                          <Label className="text-[10px] text-muted-foreground">จำนวน</Label>
+                          <Input className="h-8 text-xs" type="number" inputMode="decimal" placeholder="0" value={it.qty ?? 0} onChange={e => updateItem(i, { qty: Number(e.target.value) || 0 })} />
+                        </div>
+                        <div className="w-[110px]">
+                          <Label className="text-[10px] text-muted-foreground">หน่วย</Label>
+                          <Input className="h-8 text-xs" placeholder="หน่วย" value={it.unit} onChange={e => updateItem(i, { unit: e.target.value })} />
+                        </div>
+                        <div className="w-[140px]">
+                          <Label className="text-[10px] text-muted-foreground">ราคา/หน่วย (รวม VAT)</Label>
+                          <Input className="h-8 text-xs text-right" type="number" inputMode="decimal" placeholder="0.00" value={it.price ?? 0} onChange={e => updateItem(i, { price: Number(e.target.value) || 0 })} />
+                        </div>
+                        <div className="w-[100px]">
+                          <Label className="text-[10px] text-muted-foreground">Service Charge</Label>
+                          <div className="relative">
+                            <Input
+                              className="h-8 text-xs pr-6 text-right"
+                              type="number"
+                              inputMode="decimal"
+                              min={0}
+                              step={1}
+                              placeholder="0"
+                              title="Service Charge % เฉพาะรายการนี้ (0 = ไม่คิด)"
+                              value={it.sc ?? 0}
+                              onChange={e => updateItem(i, { sc: Number(e.target.value) || 0 })}
+                            />
+                            <span className="absolute right-2 top-1/2 -translate-y-1/2 text-[10px] text-muted-foreground pointer-events-none">%</span>
+                          </div>
+                        </div>
+                        <div className="flex-1 min-w-[120px] text-right">
+                          <div className="text-[10px] text-muted-foreground">รวม (บาท)</div>
+                          <div className="h-8 flex items-center justify-end font-semibold text-sm">
+                            {((it.qty || 0) * (it.price || 0) * (1 + ((it.sc || 0) / 100))).toLocaleString('th-TH', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
+                          </div>
+                        </div>
+                      </div>
                     </div>
                   ))}
                 </Card>
