@@ -609,8 +609,13 @@ const TaxInvoicePage = () => {
                       />
                     </div>
                     <div>
-                      <Label className="text-xs">เลขที่เอกสาร</Label>
-                      <Input value={previewNumber} readOnly className="font-mono text-xs" />
+                      <Label className="text-xs">เลขที่เอกสาร (แก้ไขได้)</Label>
+                      <Input
+                        value={data.doc_number || previewNumber}
+                        onChange={e => setData(p => ({ ...p, doc_number: e.target.value }))}
+                        placeholder={previewNumber}
+                        className="font-mono text-xs"
+                      />
                     </div>
                   </div>
                   <div className="flex items-center gap-2 p-2 rounded bg-amber-50 dark:bg-amber-950/30 border border-amber-200">
