@@ -803,7 +803,10 @@ const TaxInvoicePage = () => {
                           <Label className="text-[10px] text-muted-foreground">รายละเอียด</Label>
                           <Input className="h-8 text-xs w-full" placeholder="รายละเอียด" value={it.description} onChange={e => updateItem(i, { description: e.target.value })} />
                         </div>
-                        <Button size="icon" variant="ghost" onClick={() => removeRow(i)} className="h-8 w-8 self-end"><Trash2 className="w-3.5 h-3.5 text-destructive" /></Button>
+                        <div className="flex gap-1 self-end">
+                          <Button size="icon" variant="ghost" onClick={() => duplicateRow(i)} className="h-8 w-8" title="คัดลอกแถวนี้"><Copy className="w-3.5 h-3.5 text-blue-600" /></Button>
+                          <Button size="icon" variant="ghost" onClick={() => removeRow(i)} className="h-8 w-8" title="ลบแถวนี้"><Trash2 className="w-3.5 h-3.5 text-destructive" /></Button>
+                        </div>
                       </div>
                       {/* Row 2: จำนวน / หน่วย / ราคา / SC% */}
                       <div className="flex flex-wrap gap-2 items-end">
