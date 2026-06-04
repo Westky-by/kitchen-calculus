@@ -535,10 +535,26 @@ const TaxInvoicePage = () => {
     fetchList();
   };
 
+  const [nextSeq, setNextSeq] = useState<number>(1);
+  useEffect(() => {
+    if (savingId) return; // editing existing — don't override
+    let cancelled = false;
+    (async () => {
+      try {
+        const { data: seqData } = await supabase.rpc('next_tax_invoice_seq' as any, { _doc_date: data.doc_date });
+        if (cancelled) return;
+        setNextSeq(Number(seqData) || 1);
+      } catch {
+        if (!cancelled) setNextSeq(1);
+      }
+    })();
+    return () => { cancelled = true; };
+  }, [data.doc_date, savingId, list]);
+
   const previewNumber = useMemo(() => {
     if (data.doc_number) return data.doc_number;
-    return buildDocNumber(creatorCode, data.doc_date, 1);
-  }, [creatorCode, data.doc_date, data.doc_number]);
+    return buildDocNumber(creatorCode, data.doc_date, nextSeq);
+  }, [creatorCode, data.doc_date, data.doc_number, nextSeq]);
 
   const filteredList = useMemo(() => {
     const q = search.trim().toLowerCase();
