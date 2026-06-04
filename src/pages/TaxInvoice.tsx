@@ -181,7 +181,10 @@ const TaxInvoicePage = () => {
   //   VAT 7%       = Grand − Subtotal  (extracted from inclusive total)
   // If "ใช้ยอดหนี้" (useBillTotals) is on → use billRef.total as Grand and derive the rest.
   useEffect(() => {
-    const itemsInclusive = data.items.reduce((s, it) => s + (it.qty || 0) * (it.price || 0), 0);
+    const itemsInclusive = data.items.reduce(
+      (s, it) => s + (it.qty || 0) * (it.price || 0) * (1 + ((it.sc || 0) / 100)),
+      0,
+    );
     const discount = data.discount || 0;
     const grandInclusive = useBillTotals
       ? (billRef.total || 0)
@@ -785,12 +788,25 @@ const TaxInvoicePage = () => {
                     </div>
                   </div>
                   {data.items.map((it, i) => (
-                    <div key={i} className="grid grid-cols-[1.1fr_minmax(0,4fr)_0.7fr_0.9fr_1.3fr_auto] gap-1 items-center">
+                    <div key={i} className="grid grid-cols-[1.1fr_minmax(0,4fr)_0.7fr_0.8fr_1.1fr_0.8fr_auto] gap-1 items-center">
                       <Input className="h-8 text-xs" placeholder="รหัส" value={it.code} onChange={e => updateItem(i, { code: e.target.value })} />
                       <Input className="h-8 text-xs w-full" placeholder="รายละเอียด" value={it.description} onChange={e => updateItem(i, { description: e.target.value })} />
                       <Input className="h-8 text-xs" type="number" placeholder="จำนวน" value={it.qty || ''} onChange={e => updateItem(i, { qty: Number(e.target.value) || 0 })} />
                       <Input className="h-8 text-xs" placeholder="หน่วย" value={it.unit} onChange={e => updateItem(i, { unit: e.target.value })} />
                       <Input className="h-8 text-xs" type="number" placeholder="ราคา/หน่วย" value={it.price || ''} onChange={e => updateItem(i, { price: Number(e.target.value) || 0 })} />
+                      <div className="relative">
+                        <Input
+                          className="h-8 text-xs pr-6"
+                          type="number"
+                          min={0}
+                          step={1}
+                          placeholder="SC%"
+                          title="Service Charge % เฉพาะรายการนี้ (0 = ไม่คิด)"
+                          value={it.sc ?? 0}
+                          onChange={e => updateItem(i, { sc: Number(e.target.value) || 0 })}
+                        />
+                        <span className="absolute right-1.5 top-1/2 -translate-y-1/2 text-[10px] text-muted-foreground pointer-events-none">%</span>
+                      </div>
                       <Button size="icon" variant="ghost" onClick={() => removeRow(i)} className="h-7 w-7"><Trash2 className="w-3 h-3 text-destructive" /></Button>
                     </div>
                   ))}
