@@ -783,11 +783,14 @@ const TaxInvoicePage = () => {
                 <Card className="p-3 space-y-2 border-blue-300 bg-blue-50/30 dark:bg-blue-950/10">
                   <div className="flex items-center justify-between">
                     <h3 className="text-sm font-bold">ค่าตามใบเสร็จ (อ้างอิง — ไม่แสดงใน PDF)</h3>
-                    <label className="text-xs flex items-center gap-1">
+                    <label className="text-xs flex items-center gap-1 cursor-pointer">
                       <Checkbox checked={useBillTotals} onCheckedChange={(v) => setUseBillTotals(!!v)} />
-                      ใช้ยอดนี้แทนการคำนวณ
+                      ใช้ยอดหนี้ (Total) แทนการคำนวณ
                     </label>
                   </div>
+                  <p className="text-[10px] text-muted-foreground">
+                    ปกติระบบจะคำนวณ Subtotal และ VAT 7% จากราคารวมของรายการ (ราคาในรายการถือว่ารวม VAT แล้ว). หากต้องการบังคับยอดสุทธิให้ตรงกับใบเสร็จ ให้ติ๊กช่องนี้และระบุ "Total" ด้านล่าง.
+                  </p>
                   <div className="grid grid-cols-2 gap-2">
                     {[
                       ['subtotal', 'Subtotal'],
