@@ -181,23 +181,20 @@ const TaxInvoicePage = () => {
   //   VAT 7%       = Grand − Subtotal  (extracted from inclusive total)
   // If "ใช้ยอดหนี้" (useBillTotals) is on → use billRef.total as Grand and derive the rest.
   useEffect(() => {
-    // Items sum is treated as VAT-inclusive grand total.
-    // VAT 7% is extracted; satang of VAT is floored to 0.1 (10-satang).
-    // Subtotal = Grand − VAT (so Subtotal + VAT == Grand exactly).
     const itemsInclusive = data.items.reduce((s, it) => s + (it.qty || 0) * (it.price || 0), 0);
     const discount = data.discount || 0;
     const grandInclusive = useBillTotals
       ? (billRef.total || 0)
       : Math.max(0, itemsInclusive - discount);
 
-    const vatRaw = grandInclusive - grandInclusive / 1.07;
-    const vat = Math.floor(vatRaw * 10) / 10; // ปัดลงทุก 0.10 บาท
-    const subtotal = grandInclusive - vat;
+    const preVatItems = itemsInclusive / 1.07;
+    const preVatAfter = grandInclusive / 1.07;
+    const vat = grandInclusive - preVatAfter;
 
     setData(prev => ({
       ...prev,
-      total_amount: subtotal,
-      amount_after_discount: subtotal,
+      total_amount: preVatItems,
+      amount_after_discount: preVatAfter,
       vat,
       grand_total: grandInclusive,
       amount_text: bahtText(grandInclusive),
