@@ -884,8 +884,8 @@ const TaxInvoicePage = () => {
 
 
                 <div className="flex gap-2 sticky bottom-2">
-                  <Button className="flex-1" onClick={handleSave} disabled={!!savingId}>
-                    <Save className="w-4 h-4 mr-1" />{savingId ? 'บันทึกแล้ว' : 'บันทึกเอกสาร'}
+                  <Button className="flex-1" onClick={handleSave}>
+                    <Save className="w-4 h-4 mr-1" />{savingId ? 'อัปเดตเอกสาร' : 'บันทึกเอกสาร'}
                   </Button>
                   <Button variant="outline" onClick={() => { setPrintData({ ...data, doc_number: data.doc_number || previewNumber }); setPrintSourceImage(sourceImageUrl); setPrintOpen(true); }}>
                     <Eye className="w-4 h-4 mr-1" />ดูตัวอย่าง
