@@ -829,10 +829,10 @@ const TaxInvoicePage = () => {
                     <Input type="number" value={data.discount || ''} onChange={e => setData(p => ({ ...p, discount: Number(e.target.value) || 0 }))} />
                   </div>
                   <div className="bg-muted/50 p-2 rounded text-xs space-y-1">
-                    <div className="flex justify-between"><span>รวมเงิน</span><span>{data.total_amount.toFixed(2)}</span></div>
-                    <div className="flex justify-between"><span>หลังหักส่วนลด</span><span>{data.amount_after_discount.toFixed(2)}</span></div>
-                    <div className="flex justify-between"><span>VAT 7% (รวมในยอด)</span><span>{data.vat.toFixed(2)}</span></div>
-                    <div className="flex justify-between font-bold text-sm"><span>ยอดสุทธิ</span><span>{data.grand_total.toFixed(2)}</span></div>
+                    <div className="flex justify-between"><span>Subtotal (ก่อน VAT)</span><span>{data.total_amount.toFixed(2)}</span></div>
+                    <div className="flex justify-between"><span>หลังหักส่วนลด (ก่อน VAT)</span><span>{data.amount_after_discount.toFixed(2)}</span></div>
+                    <div className="flex justify-between"><span>VAT 7% (แยกออกจากยอดรวม)</span><span>{data.vat.toFixed(2)}</span></div>
+                    <div className="flex justify-between font-bold text-sm"><span>Total / ยอดสุทธิ {useBillTotals && <span className="text-blue-600">(ใช้ยอดหนี้)</span>}</span><span>{data.grand_total.toFixed(2)}</span></div>
                   </div>
                   <div>
                     <Label className="text-xs">หมายเหตุ (เว้นว่าง = ใช้ข้อความมาตรฐาน)</Label>
