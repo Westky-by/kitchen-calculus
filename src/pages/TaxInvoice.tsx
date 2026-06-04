@@ -352,17 +352,24 @@ const TaxInvoicePage = () => {
     }
 
     try {
-      // Get next sequence for the date
-      const { data: seqData, error: seqErr } = await supabase.rpc('next_tax_invoice_seq' as any, { _doc_date: data.doc_date });
-      if (seqErr) { toast.error('ขอเลขลำดับไม่สำเร็จ: ' + seqErr.message); return; }
-      const seq = Number(seqData) || 1;
-      const docNumber = buildDocNumber(creatorCode, data.doc_date, seq);
+      const isUpdate = !!savingId;
+      let docNumber = (data.doc_number || '').trim();
+      let seq = 0;
 
-      const payload = {
+      if (isUpdate) {
+        if (!docNumber) { toast.error('เลขที่เอกสารห้ามว่าง'); return; }
+      } else {
+        // New: ask DB for next seq, but allow user-supplied doc_number
+        const { data: seqData, error: seqErr } = await supabase.rpc('next_tax_invoice_seq' as any, { _doc_date: data.doc_date });
+        if (seqErr) { toast.error('ขอเลขลำดับไม่สำเร็จ: ' + seqErr.message); return; }
+        seq = Number(seqData) || 1;
+        if (!docNumber) docNumber = buildDocNumber(creatorCode, data.doc_date, seq);
+      }
+
+      const payload: any = {
         doc_number: docNumber,
         creator_code: creatorCode,
         doc_date: data.doc_date,
-        daily_seq: seq,
         customer_name: data.customer_name,
         customer_address: data.customer_address,
         customer_tax_id: data.customer_tax_id,
@@ -391,29 +398,92 @@ const TaxInvoicePage = () => {
         is_backdated: isBackdated,
         backdate_note: backdateNote,
         source_image_url: sourceImageUrl,
-        created_by: user?.id,
-        created_by_username: profile?.username || '',
       };
 
-      const { data: ins, error } = await supabase
-        .from('tax_invoices' as any)
-        .insert(payload as any)
-        .select('id,doc_number')
-        .single();
-      if (error) { toast.error('บันทึกไม่สำเร็จ: ' + error.message); return; }
-      setSavingId((ins as any).id);
-      setData(prev => ({ ...prev, doc_number: docNumber }));
-      setSavedAt(new Date().toLocaleString('th-TH'));
-      toast.success(`บันทึก ${docNumber} สำเร็จ`);
-      await logActivity('สร้างใบกำกับภาษี', 'tax_invoices', (ins as any).id, {
-        doc_number: docNumber,
-        grand_total: data.grand_total,
-        is_backdated: isBackdated,
-      });
+      if (isUpdate) {
+        const { error } = await supabase
+          .from('tax_invoices' as any)
+          .update(payload)
+          .eq('id', savingId);
+        if (error) { toast.error('อัปเดตไม่สำเร็จ: ' + error.message); return; }
+        setData(prev => ({ ...prev, doc_number: docNumber }));
+        setSavedAt(new Date().toLocaleString('th-TH'));
+        toast.success(`อัปเดต ${docNumber} สำเร็จ`);
+        await logActivity('แก้ไขใบกำกับภาษี', 'tax_invoices', savingId, {
+          doc_number: docNumber,
+          grand_total: data.grand_total,
+        });
+      } else {
+        payload.daily_seq = seq;
+        payload.created_by = user?.id;
+        payload.created_by_username = profile?.username || '';
+        const { data: ins, error } = await supabase
+          .from('tax_invoices' as any)
+          .insert(payload)
+          .select('id,doc_number')
+          .single();
+        if (error) { toast.error('บันทึกไม่สำเร็จ: ' + error.message); return; }
+        setSavingId((ins as any).id);
+        setData(prev => ({ ...prev, doc_number: docNumber }));
+        setSavedAt(new Date().toLocaleString('th-TH'));
+        toast.success(`บันทึก ${docNumber} สำเร็จ`);
+        await logActivity('สร้างใบกำกับภาษี', 'tax_invoices', (ins as any).id, {
+          doc_number: docNumber,
+          grand_total: data.grand_total,
+          is_backdated: isBackdated,
+        });
+      }
       fetchList();
     } catch (err: any) {
       toast.error('เกิดข้อผิดพลาด: ' + (err?.message || ''));
     }
+  };
+
+  // ---- Edit existing (load into form) ----
+  const handleEdit = async (row: InvoiceRow) => {
+    const { data: full, error } = await supabase
+      .from('tax_invoices' as any)
+      .select('*')
+      .eq('id', row.id)
+      .single();
+    if (error || !full) { toast.error('โหลดเอกสารไม่สำเร็จ'); return; }
+    const f: any = full;
+    const inv: InvoiceData = {
+      doc_number: f.doc_number,
+      doc_date: f.doc_date,
+      customer_name: f.customer_name,
+      customer_address: f.customer_address,
+      customer_tax_id: f.customer_tax_id,
+      branch_type: f.branch_type,
+      branch_no: f.branch_no,
+      items: f.items || [],
+      total_amount: Number(f.total_amount),
+      discount: Number(f.discount),
+      amount_after_discount: Number(f.amount_after_discount),
+      vat: Number(f.vat),
+      grand_total: Number(f.grand_total),
+      amount_text: f.amount_text,
+      payment_cash: !!f.payment_method?.cash,
+      payment_transfer: !!f.payment_method?.transfer,
+      cheque_no: f.payment_method?.cheque_no || '',
+      cheque_bank: f.payment_method?.cheque_bank || '',
+      cheque_date: f.payment_method?.cheque_date || '',
+      cheque_amount: Number(f.payment_method?.cheque_amount) || 0,
+      notes: f.notes,
+      signer_name: f.payment_method?.signer_name || 'สัจจพร สมาธิมงคล',
+      signer_license: f.payment_method?.signer_license || '',
+      signer_date: f.doc_date,
+      receiver_name: f.payment_method?.receiver_name || '',
+      receiver_date: f.payment_method?.receiver_date || '',
+    };
+    setData(inv);
+    setIsBackdated(!!f.is_backdated);
+    setBackdateNote(f.backdate_note || '');
+    setSourceImageUrl(f.source_image_url || '');
+    setSavingId(row.id);
+    setSavedAt('');
+    setUseBillTotals(false);
+    setTab('new');
   };
 
   // ---- View existing ----
