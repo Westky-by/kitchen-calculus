@@ -830,7 +830,7 @@ const TaxInvoicePage = () => {
                           <Input className="h-8 text-xs" placeholder="หน่วย" value={it.unit} onChange={e => updateItem(i, { unit: e.target.value })} />
                         </div>
                         <div className="w-[140px]">
-                          <Label className="text-[10px] text-muted-foreground">ราคา/หน่วย (รวม VAT)</Label>
+                          <Label className="text-[10px] text-muted-foreground">ราคา/หน่วย (ก่อน VAT)</Label>
                           <Input className="h-8 text-xs text-right" type="number" inputMode="decimal" placeholder="0.00" value={it.price ?? 0} onChange={e => updateItem(i, { price: Number(e.target.value) || 0 })} />
                         </div>
                         <div className="w-[100px]">
