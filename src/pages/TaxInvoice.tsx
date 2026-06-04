@@ -639,6 +639,9 @@ const TaxInvoicePage = () => {
                               <Button size="icon" variant="ghost" onClick={() => handleView(r)} title="ดู / พิมพ์">
                                 <Eye className="w-4 h-4" />
                               </Button>
+                              <Button size="icon" variant="ghost" onClick={() => handleEdit(r)} title="แก้ไข">
+                                <Pencil className="w-4 h-4 text-primary" />
+                              </Button>
                               {isAdmin && (
                                 <Button size="icon" variant="ghost" onClick={() => handleDelete(r)} title="ลบ">
                                   <Trash2 className="w-4 h-4 text-destructive" />
