@@ -181,7 +181,10 @@ const TaxInvoicePage = () => {
   //   VAT 7%       = Grand − Subtotal  (extracted from inclusive total)
   // If "ใช้ยอดหนี้" (useBillTotals) is on → use billRef.total as Grand and derive the rest.
   useEffect(() => {
-    const itemsInclusive = data.items.reduce((s, it) => s + (it.qty || 0) * (it.price || 0), 0);
+    const itemsInclusive = data.items.reduce(
+      (s, it) => s + (it.qty || 0) * (it.price || 0) * (1 + ((it.sc || 0) / 100)),
+      0,
+    );
     const discount = data.discount || 0;
     const grandInclusive = useBillTotals
       ? (billRef.total || 0)
