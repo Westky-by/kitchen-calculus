@@ -174,33 +174,44 @@ const TaxInvoicePage = () => {
     })();
   }, [user, fetchList]);
 
-  // ---- Recalculate totals — STANDARD VAT-inclusive ----
-  // Item prices are treated as VAT-inclusive (price already includes 7%).
-  //   Grand Total  = Σ(qty × price) − discount
-  //   Subtotal     = Grand / 1.07   (pre-VAT)
-  //   VAT 7%       = Grand − Subtotal  (extracted from inclusive total)
-  // If "ใช้ยอดหนี้" (useBillTotals) is on → use billRef.total as Grand and derive the rest.
+  // ---- Recalculate totals — VAT-EXCLUSIVE ----
+  // ราคาในรายการเป็นราคาก่อน VAT
+  //   Subtotal       = Σ(qty × price × (1+sc%))
+  //   After discount = Subtotal − discount
+  //   VAT 7%         = After discount × 7/100
+  //   Grand Total    = After discount + VAT
+  // ถ้า useBillTotals = true → ใช้ billRef.total เป็น Grand (รวม VAT) แล้วถอด VAT
   useEffect(() => {
-    const itemsInclusive = data.items.reduce(
+    const itemsExclusive = data.items.reduce(
       (s, it) => s + (it.qty || 0) * (it.price || 0) * (1 + ((it.sc || 0) / 100)),
       0,
     );
     const discount = data.discount || 0;
-    const grandInclusive = useBillTotals
-      ? (billRef.total || 0)
-      : Math.max(0, itemsInclusive - discount);
 
-    const preVatItems = itemsInclusive / 1.07;
-    const preVatAfter = grandInclusive / 1.07;
-    const vat = grandInclusive - preVatAfter;
+    let preVatItems: number;
+    let preVatAfter: number;
+    let vat: number;
+    let grand: number;
+
+    if (useBillTotals) {
+      grand = billRef.total || 0;
+      preVatAfter = grand / 1.07;
+      vat = grand - preVatAfter;
+      preVatItems = itemsExclusive;
+    } else {
+      preVatItems = itemsExclusive;
+      preVatAfter = Math.max(0, itemsExclusive - discount);
+      vat = preVatAfter * 0.07;
+      grand = preVatAfter + vat;
+    }
 
     setData(prev => ({
       ...prev,
       total_amount: preVatItems,
       amount_after_discount: preVatAfter,
       vat,
-      grand_total: grandInclusive,
-      amount_text: bahtText(grandInclusive),
+      grand_total: grand,
+      amount_text: bahtText(grand),
     }));
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [JSON.stringify(data.items), data.discount, useBillTotals, billRef.total]);
