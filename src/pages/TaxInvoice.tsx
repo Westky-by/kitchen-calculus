@@ -12,7 +12,7 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@
 import { Tabs, TabsList, TabsTrigger, TabsContent } from '@/components/ui/tabs';
 import { Badge } from '@/components/ui/badge';
 import { Checkbox } from '@/components/ui/checkbox';
-import { ArrowLeft, Plus, Upload, Trash2, FileText, Eye, Sparkles, Save, FileDown, Pencil } from 'lucide-react';
+import { ArrowLeft, Plus, Upload, Trash2, FileText, Eye, Sparkles, Save, FileDown, Pencil, Copy } from 'lucide-react';
 import { toast } from 'sonner';
 import TaxInvoiceDoc, { type InvoiceData, type InvoiceItem } from '@/components/TaxInvoiceDoc';
 import PrintActions from '@/components/PrintActions';
@@ -231,6 +231,10 @@ const TaxInvoicePage = () => {
   };
   const addRow = () => setData(prev => ({ ...prev, items: [...prev.items, { code: '', description: '', qty: 1, unit: 'รายการ', price: 0 }] }));
   const removeRow = (idx: number) => setData(prev => ({ ...prev, items: prev.items.filter((_, i) => i !== idx) }));
+  const duplicateRow = (idx: number) => setData(prev => ({
+    ...prev,
+    items: prev.items.flatMap((it, i) => i === idx ? [it, { ...it }] : [it]),
+  }));
 
   // ---- OCR ----
   const onPickFile = () => fileRef.current?.click();
@@ -799,7 +803,10 @@ const TaxInvoicePage = () => {
                           <Label className="text-[10px] text-muted-foreground">รายละเอียด</Label>
                           <Input className="h-8 text-xs w-full" placeholder="รายละเอียด" value={it.description} onChange={e => updateItem(i, { description: e.target.value })} />
                         </div>
-                        <Button size="icon" variant="ghost" onClick={() => removeRow(i)} className="h-8 w-8 self-end"><Trash2 className="w-3.5 h-3.5 text-destructive" /></Button>
+                        <div className="flex gap-1 self-end">
+                          <Button size="icon" variant="ghost" onClick={() => duplicateRow(i)} className="h-8 w-8" title="คัดลอกแถวนี้"><Copy className="w-3.5 h-3.5 text-blue-600" /></Button>
+                          <Button size="icon" variant="ghost" onClick={() => removeRow(i)} className="h-8 w-8" title="ลบแถวนี้"><Trash2 className="w-3.5 h-3.5 text-destructive" /></Button>
+                        </div>
                       </div>
                       {/* Row 2: จำนวน / หน่วย / ราคา / SC% */}
                       <div className="flex flex-wrap gap-2 items-end">
