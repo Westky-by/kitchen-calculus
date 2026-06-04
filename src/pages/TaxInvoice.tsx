@@ -174,36 +174,33 @@ const TaxInvoicePage = () => {
     })();
   }, [user, fetchList]);
 
-  // ---- Recalculate totals (VAT-exclusive add 7%) OR override from bill reference ----
+  // ---- Recalculate totals — STANDARD VAT-inclusive ----
+  // Item prices are treated as VAT-inclusive (price already includes 7%).
+  //   Grand Total  = Σ(qty × price) − discount
+  //   Subtotal     = Grand / 1.07   (pre-VAT)
+  //   VAT 7%       = Grand − Subtotal  (extracted from inclusive total)
+  // If "ใช้ยอดหนี้" (useBillTotals) is on → use billRef.total as Grand and derive the rest.
   useEffect(() => {
-    if (useBillTotals) {
-      const pre = billRef.before_vat || 0;
-      const vat = billRef.vat_amount || 0;
-      const grand = billRef.total || (pre + vat);
-      setData(prev => ({
-        ...prev,
-        total_amount: pre,
-        amount_after_discount: pre,
-        vat,
-        grand_total: grand,
-        amount_text: bahtText(grand),
-      }));
-      return;
-    }
-    const total = data.items.reduce((s, it) => s + (it.qty || 0) * (it.price || 0), 0);
-    const afterDiscount = Math.max(0, total - (data.discount || 0));
-    const vat = afterDiscount * 0.07;
-    const grand = afterDiscount + vat;
+    const itemsInclusive = data.items.reduce((s, it) => s + (it.qty || 0) * (it.price || 0), 0);
+    const discount = data.discount || 0;
+    const grandInclusive = useBillTotals
+      ? (billRef.total || 0)
+      : Math.max(0, itemsInclusive - discount);
+
+    const preVatItems = itemsInclusive / 1.07;
+    const preVatAfter = grandInclusive / 1.07;
+    const vat = grandInclusive - preVatAfter;
+
     setData(prev => ({
       ...prev,
-      total_amount: total,
-      amount_after_discount: afterDiscount,
+      total_amount: preVatItems,
+      amount_after_discount: preVatAfter,
       vat,
-      grand_total: grand,
-      amount_text: bahtText(grand),
+      grand_total: grandInclusive,
+      amount_text: bahtText(grandInclusive),
     }));
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [JSON.stringify(data.items), data.discount, useBillTotals, JSON.stringify(billRef)]);
+  }, [JSON.stringify(data.items), data.discount, useBillTotals, billRef.total]);
 
   // ---- New invoice ----
   const startNew = () => {
@@ -786,11 +783,14 @@ const TaxInvoicePage = () => {
                 <Card className="p-3 space-y-2 border-blue-300 bg-blue-50/30 dark:bg-blue-950/10">
                   <div className="flex items-center justify-between">
                     <h3 className="text-sm font-bold">ค่าตามใบเสร็จ (อ้างอิง — ไม่แสดงใน PDF)</h3>
-                    <label className="text-xs flex items-center gap-1">
+                    <label className="text-xs flex items-center gap-1 cursor-pointer">
                       <Checkbox checked={useBillTotals} onCheckedChange={(v) => setUseBillTotals(!!v)} />
-                      ใช้ยอดนี้แทนการคำนวณ
+                      ใช้ยอดหนี้ (Total) แทนการคำนวณ
                     </label>
                   </div>
+                  <p className="text-[10px] text-muted-foreground">
+                    ปกติระบบจะคำนวณ Subtotal และ VAT 7% จากราคารวมของรายการ (ราคาในรายการถือว่ารวม VAT แล้ว). หากต้องการบังคับยอดสุทธิให้ตรงกับใบเสร็จ ให้ติ๊กช่องนี้และระบุ "Total" ด้านล่าง.
+                  </p>
                   <div className="grid grid-cols-2 gap-2">
                     {[
                       ['subtotal', 'Subtotal'],
@@ -829,10 +829,10 @@ const TaxInvoicePage = () => {
                     <Input type="number" value={data.discount || ''} onChange={e => setData(p => ({ ...p, discount: Number(e.target.value) || 0 }))} />
                   </div>
                   <div className="bg-muted/50 p-2 rounded text-xs space-y-1">
-                    <div className="flex justify-between"><span>รวมเงิน</span><span>{data.total_amount.toFixed(2)}</span></div>
-                    <div className="flex justify-between"><span>หลังหักส่วนลด</span><span>{data.amount_after_discount.toFixed(2)}</span></div>
-                    <div className="flex justify-between"><span>VAT 7% (รวมในยอด)</span><span>{data.vat.toFixed(2)}</span></div>
-                    <div className="flex justify-between font-bold text-sm"><span>ยอดสุทธิ</span><span>{data.grand_total.toFixed(2)}</span></div>
+                    <div className="flex justify-between"><span>Subtotal (ก่อน VAT)</span><span>{data.total_amount.toFixed(2)}</span></div>
+                    <div className="flex justify-between"><span>หลังหักส่วนลด (ก่อน VAT)</span><span>{data.amount_after_discount.toFixed(2)}</span></div>
+                    <div className="flex justify-between"><span>VAT 7% (แยกออกจากยอดรวม)</span><span>{data.vat.toFixed(2)}</span></div>
+                    <div className="flex justify-between font-bold text-sm"><span>Total / ยอดสุทธิ {useBillTotals && <span className="text-blue-600">(ใช้ยอดหนี้)</span>}</span><span>{data.grand_total.toFixed(2)}</span></div>
                   </div>
                   <div>
                     <Label className="text-xs">หมายเหตุ (เว้นว่าง = ใช้ข้อความมาตรฐาน)</Label>
