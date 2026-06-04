@@ -807,7 +807,32 @@ const TaxInvoicePage = () => {
                           type="number"
                           className="h-8 text-xs"
                           value={(billRef as any)[key] || ''}
-                          onChange={e => setBillRef(p => ({ ...p, [key]: Number(e.target.value) || 0 }))}
+                          onChange={e => {
+                            const val = Number(e.target.value) || 0;
+                            setBillRef(p => {
+                              const r = key === 'rounding' ? val : (p.rounding || 0);
+                              let s = 0;
+                              switch (key) {
+                                case 'subtotal': s = val; break;
+                                case 'service_charge': s = val * 10; break;
+                                case 'total': s = (val - r) / 1.10; break;
+                                case 'before_vat': s = (val * 1.07) / 1.10; break;
+                                case 'vat_amount': s = val === 0 ? 0 : (val / 0.07) * 1.07 / 1.10; break;
+                                case 'before_service_charge': s = val * 1.07; break;
+                                case 'rounding': s = p.subtotal || 0; break;
+                              }
+                              const round2 = (n: number) => Math.round(n * 100) / 100;
+                              return {
+                                subtotal: round2(s),
+                                service_charge: round2(s * 0.10),
+                                rounding: round2(r),
+                                total: round2(s * 1.10 + r),
+                                before_vat: round2((s * 1.10) / 1.07),
+                                vat_amount: round2((s * 1.10) - (s * 1.10) / 1.07),
+                                before_service_charge: round2(s / 1.07),
+                              };
+                            });
+                          }}
                         />
                       </div>
                     ))}
