@@ -231,6 +231,10 @@ const TaxInvoicePage = () => {
   };
   const addRow = () => setData(prev => ({ ...prev, items: [...prev.items, { code: '', description: '', qty: 1, unit: 'รายการ', price: 0 }] }));
   const removeRow = (idx: number) => setData(prev => ({ ...prev, items: prev.items.filter((_, i) => i !== idx) }));
+  const duplicateRow = (idx: number) => setData(prev => ({
+    ...prev,
+    items: prev.items.flatMap((it, i) => i === idx ? [it, { ...it }] : [it]),
+  }));
 
   // ---- OCR ----
   const onPickFile = () => fileRef.current?.click();
