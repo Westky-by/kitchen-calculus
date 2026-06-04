@@ -829,9 +829,41 @@ const TaxInvoicePage = () => {
                           <Label className="text-[10px] text-muted-foreground">หน่วย</Label>
                           <Input className="h-8 text-xs" placeholder="หน่วย" value={it.unit} onChange={e => updateItem(i, { unit: e.target.value })} />
                         </div>
-                        <div className="w-[140px]">
-                          <Label className="text-[10px] text-muted-foreground">ราคา/หน่วย (ก่อน VAT)</Label>
-                          <Input className="h-8 text-xs text-right" type="number" inputMode="decimal" placeholder="0.00" value={it.price ?? 0} onChange={e => updateItem(i, { price: Number(e.target.value) || 0 })} />
+                        <div className="w-[180px]">
+                          <div className="flex items-center justify-between gap-1">
+                            <Label className="text-[10px] text-muted-foreground">ราคา/หน่วย</Label>
+                            <div className="flex rounded border overflow-hidden">
+                              <button
+                                type="button"
+                                className={`px-1.5 py-0 text-[9px] leading-4 ${((it as any).priceMode ?? 'pre') === 'pre' ? 'bg-primary text-primary-foreground' : 'bg-muted text-muted-foreground'}`}
+                                onClick={() => updateItem(i, { priceMode: 'pre' } as any)}
+                                title="ราคาที่ใส่เป็นราคาก่อน VAT"
+                              >ก่อน VAT</button>
+                              <button
+                                type="button"
+                                className={`px-1.5 py-0 text-[9px] leading-4 ${(it as any).priceMode === 'post' ? 'bg-primary text-primary-foreground' : 'bg-muted text-muted-foreground'}`}
+                                onClick={() => updateItem(i, { priceMode: 'post' } as any)}
+                                title="ราคาที่ใส่เป็นราคารวม VAT แล้ว"
+                              >หลัง VAT</button>
+                            </div>
+                          </div>
+                          <Input
+                            className="h-8 text-xs text-right"
+                            type="number"
+                            inputMode="decimal"
+                            placeholder="0.00"
+                            value={(() => {
+                              const mode = (it as any).priceMode ?? 'pre';
+                              const v = mode === 'post' ? (it.price || 0) * 1.07 : (it.price ?? 0);
+                              return Number.isFinite(v) ? Number(v.toFixed(4)) : 0;
+                            })()}
+                            onChange={e => {
+                              const raw = Number(e.target.value) || 0;
+                              const mode = (it as any).priceMode ?? 'pre';
+                              const stored = mode === 'post' ? raw / 1.07 : raw;
+                              updateItem(i, { price: stored });
+                            }}
+                          />
                         </div>
                         <div className="w-[100px]">
                           <Label className="text-[10px] text-muted-foreground">Service Charge</Label>
