@@ -8,6 +8,8 @@ export interface InvoiceItem {
   qty: number;
   unit: string;
   price: number;
+  /** Service Charge % เฉพาะรายการนี้ (0 = ไม่คิด, 10 = คิด 10%) */
+  sc?: number;
 }
 
 export interface InvoiceData {
