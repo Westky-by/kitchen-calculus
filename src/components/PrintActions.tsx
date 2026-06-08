@@ -51,10 +51,15 @@ const printElementViaIframe = (el: HTMLElement, title: string) => {
       .print-host { padding: 12px; }
       [data-print-hide="true"], .print\\:hidden { display: none !important; }
       @page { margin: 12mm; }
+      /* Override host app's @media print rules that hide non-".printable-area" content */
+      @media print {
+        body, body *, .print-host, .print-host * { visibility: visible !important; }
+        .print-host { position: static !important; }
+      }
     </style>
   </head>
   <body>
-    <div class="print-host"></div>
+    <div class="print-host printable-area"></div>
   </body>
 </html>`);
   doc.close();
