@@ -115,7 +115,9 @@ export default function TaxInvoiceDoc({ data, copy = 'original', companySignatur
             const lastIdx = lines.length - 1;
             return lines.map((ln, idx) => (
               <div className="ti-cust-row" key={`addr-${idx}`}>
-                <span className={`ti-cust-lbl${idx === 0 ? '' : ' ti-cust-lbl-empty'}`}>ที่อยู่</span>
+                {idx === 0
+                  ? <span className="ti-cust-lbl">ที่อยู่</span>
+                  : <span className="ti-cust-lbl ti-cust-lbl-empty" aria-hidden="true"></span>}
                 <span className={`ti-cust-val${idx !== lastIdx ? ' ti-cust-val-noline' : ''}`}>{ln}</span>
               </div>
             ));
