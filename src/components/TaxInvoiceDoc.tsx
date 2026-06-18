@@ -100,10 +100,20 @@ export default function TaxInvoiceDoc({ data, copy = 'original', companySignatur
         <div className="ti-cust-left">
           <div className="ti-cust-row"><span className="ti-cust-lbl">นามลูกค้า</span><span className="ti-cust-val">{data.customer_name}</span></div>
           {(() => {
-            const lines = (data.customer_address || '').split('\n');
-            const padded = [lines[0] ?? '', lines[1] ?? '', lines.slice(2).join(' ') ?? ''];
-            const lastIdx = padded.length - 1;
-            return padded.map((ln, idx) => (
+            const lines = (data.customer_address || '')
+              .split('\n')
+              .map((l) => l.trim())
+              .filter((l) => l.length > 0);
+            if (lines.length === 0) {
+              return (
+                <div className="ti-cust-row">
+                  <span className="ti-cust-lbl">ที่อยู่</span>
+                  <span className="ti-cust-val"></span>
+                </div>
+              );
+            }
+            const lastIdx = lines.length - 1;
+            return lines.map((ln, idx) => (
               <div className="ti-cust-row" key={`addr-${idx}`}>
                 <span className={`ti-cust-lbl${idx === 0 ? '' : ' ti-cust-lbl-empty'}`}>ที่อยู่</span>
                 <span className={`ti-cust-val${idx !== lastIdx ? ' ti-cust-val-noline' : ''}`}>{ln}</span>
