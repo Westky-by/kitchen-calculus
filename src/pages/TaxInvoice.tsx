@@ -668,7 +668,7 @@ const TaxInvoicePage = () => {
           </div>
 
           <TabsContent value="dashboard">
-            <TaxInvoiceDashboard />
+            <TaxInvoiceDashboard onView={(id) => handleView({ id } as any)} />
           </TabsContent>
 
 
