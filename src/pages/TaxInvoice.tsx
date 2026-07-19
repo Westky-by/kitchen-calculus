@@ -12,7 +12,8 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@
 import { Tabs, TabsList, TabsTrigger, TabsContent } from '@/components/ui/tabs';
 import { Badge } from '@/components/ui/badge';
 import { Checkbox } from '@/components/ui/checkbox';
-import { ArrowLeft, Plus, Upload, Trash2, FileText, Eye, Sparkles, Save, FileDown, Pencil, Copy } from 'lucide-react';
+import { ArrowLeft, Plus, Upload, Trash2, FileText, Eye, Sparkles, Save, FileDown, Pencil, Copy, BarChart3 } from 'lucide-react';
+import TaxInvoiceDashboard from '@/components/TaxInvoiceDashboard';
 import { toast } from 'sonner';
 import TaxInvoiceDoc, { type InvoiceData, type InvoiceItem } from '@/components/TaxInvoiceDoc';
 import PrintActions from '@/components/PrintActions';
@@ -97,7 +98,7 @@ const TaxInvoicePage = () => {
   const [list, setList] = useState<InvoiceRow[]>([]);
   const [loading, setLoading] = useState(true);
   const [creatorCode, setCreatorCode] = useState('00');
-  const [tab, setTab] = useState<'list' | 'new'>('list');
+  const [tab, setTab] = useState<'list' | 'new' | 'dashboard'>('list');
   const [search, setSearch] = useState('');
 
   // Form
@@ -619,10 +620,16 @@ const TaxInvoicePage = () => {
           <div className="flex items-center justify-between mb-3">
             <TabsList>
               <TabsTrigger value="list"><FileText className="w-4 h-4 mr-1" /> เอกสารทั้งหมด ({filteredList.length}{search ? `/${list.length}` : ''})</TabsTrigger>
+              <TabsTrigger value="dashboard"><BarChart3 className="w-4 h-4 mr-1" /> Dashboard สรุป</TabsTrigger>
               <TabsTrigger value="new"><Plus className="w-4 h-4 mr-1" /> สร้างใหม่</TabsTrigger>
             </TabsList>
             {tab === 'list' && <Button onClick={startNew}><Plus className="w-4 h-4 mr-1" />สร้างใหม่</Button>}
           </div>
+
+          <TabsContent value="dashboard">
+            <TaxInvoiceDashboard />
+          </TabsContent>
+
 
           <TabsContent value="list">
             <Card className="p-4 space-y-3">
