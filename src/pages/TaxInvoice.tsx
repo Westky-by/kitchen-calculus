@@ -100,6 +100,8 @@ const TaxInvoicePage = () => {
   const [creatorCode, setCreatorCode] = useState('00');
   const [tab, setTab] = useState<'list' | 'new' | 'dashboard'>('list');
   const [search, setSearch] = useState('');
+  const [dateFrom, setDateFrom] = useState('');
+  const [dateTo, setDateTo] = useState('');
 
   // Form
   const [data, setData] = useState<InvoiceData>(emptyInvoice(todayISO()));
