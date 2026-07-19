@@ -373,8 +373,99 @@ const TaxInvoiceDashboard = ({ onView }: { onView?: (id: string) => void } = {})
           </div>
         </Card>
       </div>
+
+      {/* Customer detail popup */}
+      <Dialog open={!!detailCustomer} onOpenChange={(o) => { if (!o) { setDetailCustomer(null); setExpandedId(null); } }}>
+        <DialogContent className="max-w-3xl max-h-[85vh] overflow-hidden flex flex-col">
+          <DialogHeader>
+            <DialogTitle className="text-base pr-8">
+              รายละเอียดลูกค้า: <span className="text-primary">{detailCustomer}</span>
+            </DialogTitle>
+          </DialogHeader>
+          {(() => {
+            const docs = filtered.filter(r => r.customer_name === detailCustomer)
+              .sort((a, b) => b.doc_date.localeCompare(a.doc_date) || b.doc_number.localeCompare(a.doc_number));
+            const totalGrand = docs.reduce((s, r) => s + r.grand_total, 0);
+            const totalVat = docs.reduce((s, r) => s + r.vat, 0);
+            return (
+              <>
+                <div className="grid grid-cols-3 gap-2 text-sm">
+                  <div className="rounded-md border p-2">
+                    <p className="text-xs text-muted-foreground">จำนวนครั้ง</p>
+                    <p className="text-lg font-bold">{docs.length} <span className="text-xs font-normal text-muted-foreground">ใบ</span></p>
+                  </div>
+                  <div className="rounded-md border p-2">
+                    <p className="text-xs text-muted-foreground">ยอดสุทธิรวม</p>
+                    <p className="text-lg font-bold text-primary">{fmt(totalGrand)}</p>
+                  </div>
+                  <div className="rounded-md border p-2">
+                    <p className="text-xs text-muted-foreground">VAT รวม</p>
+                    <p className="text-lg font-bold">{fmt(totalVat)}</p>
+                  </div>
+                </div>
+                <div className="overflow-auto flex-1 mt-2 border rounded-md">
+                  <Table>
+                    <TableHeader className="sticky top-0 bg-background z-10">
+                      <TableRow>
+                        <TableHead className="w-8"></TableHead>
+                        <TableHead>เลขที่</TableHead>
+                        <TableHead>วันที่</TableHead>
+                        <TableHead className="text-right">ยอดสุทธิ</TableHead>
+                        <TableHead>ผู้สร้าง</TableHead>
+                        <TableHead className="text-right">การทำงาน</TableHead>
+                      </TableRow>
+                    </TableHeader>
+                    <TableBody>
+                      {docs.map(d => {
+                        const open = expandedId === d.id;
+                        return (
+                          <>
+                            <TableRow key={d.id} className="cursor-pointer" onClick={() => setExpandedId(open ? null : d.id)}>
+                              <TableCell>
+                                {open ? <ChevronDown className="w-4 h-4" /> : <ChevronRight className="w-4 h-4" />}
+                              </TableCell>
+                              <TableCell className="font-medium">{d.doc_number}</TableCell>
+                              <TableCell>{d.doc_date}</TableCell>
+                              <TableCell className="text-right font-medium">{fmt(d.grand_total)}</TableCell>
+                              <TableCell className="text-xs">{d.created_by_username}</TableCell>
+                              <TableCell className="text-right">
+                                {onView && (
+                                  <Button size="sm" variant="outline" onClick={(e) => { e.stopPropagation(); onView(d.id); setDetailCustomer(null); }}>
+                                    <Printer className="w-3.5 h-3.5 mr-1" /> พิมพ์
+                                  </Button>
+                                )}
+                              </TableCell>
+                            </TableRow>
+                            {open && (
+                              <TableRow key={d.id + '-x'} className="bg-muted/30">
+                                <TableCell></TableCell>
+                                <TableCell colSpan={5}>
+                                  <div className="grid grid-cols-2 md:grid-cols-4 gap-2 text-xs py-1">
+                                    <div><span className="text-muted-foreground">ยอดก่อน VAT:</span> <b>{fmt(d.total_amount)}</b></div>
+                                    <div><span className="text-muted-foreground">VAT:</span> <b>{fmt(d.vat)}</b></div>
+                                    <div><span className="text-muted-foreground">ยอดสุทธิ:</span> <b>{fmt(d.grand_total)}</b></div>
+                                    <div><span className="text-muted-foreground">ย้อนหลัง:</span> <b>{d.is_backdated ? 'ใช่' : 'ไม่'}</b></div>
+                                  </div>
+                                </TableCell>
+                              </TableRow>
+                            )}
+                          </>
+                        );
+                      })}
+                      {docs.length === 0 && (
+                        <TableRow><TableCell colSpan={6} className="text-center text-muted-foreground py-6">ไม่มีข้อมูล</TableCell></TableRow>
+                      )}
+                    </TableBody>
+                  </Table>
+                </div>
+              </>
+            );
+          })()}
+        </DialogContent>
+      </Dialog>
     </div>
   );
+
 };
 
 const KpiCard = ({ icon: Icon, label, value, suffix, accent }: {
