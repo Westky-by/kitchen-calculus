@@ -674,7 +674,7 @@ const TaxInvoicePage = () => {
 
           <TabsContent value="list">
             <Card className="p-4 space-y-3">
-              <div className="flex items-center gap-2">
+              <div className="flex items-center gap-2 flex-wrap">
                 <Input
                   placeholder="ค้นหา: เลขที่ / วันที่ / ลูกค้า / ยอดสุทธิ / ผู้สร้าง / สถานะ"
                   value={search}
@@ -683,6 +683,22 @@ const TaxInvoicePage = () => {
                 />
                 {search && (
                   <Button variant="ghost" size="sm" onClick={() => setSearch('')}>ล้าง</Button>
+                )}
+              </div>
+              <div className="flex items-center gap-2 flex-wrap border-t pt-3">
+                <span className="text-sm text-muted-foreground">ช่วงวันที่:</span>
+                <Input type="date" value={dateFrom} onChange={e => setDateFrom(e.target.value)} className="w-40" />
+                <span className="text-muted-foreground">-</span>
+                <Input type="date" value={dateTo} onChange={e => setDateTo(e.target.value)} className="w-40" />
+                <Button variant="outline" size="sm" onClick={() => applyPreset('today')}>วันนี้</Button>
+                <Button variant="outline" size="sm" onClick={() => applyPreset('week')}>7 วัน</Button>
+                <Button variant="outline" size="sm" onClick={() => applyPreset('month')}>เดือนนี้</Button>
+                <Button variant="outline" size="sm" onClick={() => applyPreset('year')}>ปีนี้</Button>
+                {(dateFrom || dateTo) && (
+                  <>
+                    <span className="text-xs px-2 py-1 rounded bg-muted font-mono">{rangeLabel}</span>
+                    <Button variant="ghost" size="sm" onClick={() => { setDateFrom(''); setDateTo(''); }}>ล้างช่วงวันที่</Button>
+                  </>
                 )}
               </div>
               {loading ? <p className="text-muted-foreground">กำลังโหลด...</p> : (
