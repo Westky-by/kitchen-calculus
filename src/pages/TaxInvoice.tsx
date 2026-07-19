@@ -98,7 +98,7 @@ const TaxInvoicePage = () => {
   const [list, setList] = useState<InvoiceRow[]>([]);
   const [loading, setLoading] = useState(true);
   const [creatorCode, setCreatorCode] = useState('00');
-  const [tab, setTab] = useState<'list' | 'new'>('list');
+  const [tab, setTab] = useState<'list' | 'new' | 'dashboard'>('list');
   const [search, setSearch] = useState('');
 
   // Form
