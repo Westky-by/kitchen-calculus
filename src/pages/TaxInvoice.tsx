@@ -12,7 +12,8 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@
 import { Tabs, TabsList, TabsTrigger, TabsContent } from '@/components/ui/tabs';
 import { Badge } from '@/components/ui/badge';
 import { Checkbox } from '@/components/ui/checkbox';
-import { ArrowLeft, Plus, Upload, Trash2, FileText, Eye, Sparkles, Save, FileDown, Pencil, Copy } from 'lucide-react';
+import { ArrowLeft, Plus, Upload, Trash2, FileText, Eye, Sparkles, Save, FileDown, Pencil, Copy, BarChart3 } from 'lucide-react';
+import TaxInvoiceDashboard from '@/components/TaxInvoiceDashboard';
 import { toast } from 'sonner';
 import TaxInvoiceDoc, { type InvoiceData, type InvoiceItem } from '@/components/TaxInvoiceDoc';
 import PrintActions from '@/components/PrintActions';
