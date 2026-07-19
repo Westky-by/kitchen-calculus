@@ -620,10 +620,16 @@ const TaxInvoicePage = () => {
           <div className="flex items-center justify-between mb-3">
             <TabsList>
               <TabsTrigger value="list"><FileText className="w-4 h-4 mr-1" /> เอกสารทั้งหมด ({filteredList.length}{search ? `/${list.length}` : ''})</TabsTrigger>
+              <TabsTrigger value="dashboard"><BarChart3 className="w-4 h-4 mr-1" /> Dashboard สรุป</TabsTrigger>
               <TabsTrigger value="new"><Plus className="w-4 h-4 mr-1" /> สร้างใหม่</TabsTrigger>
             </TabsList>
             {tab === 'list' && <Button onClick={startNew}><Plus className="w-4 h-4 mr-1" />สร้างใหม่</Button>}
           </div>
+
+          <TabsContent value="dashboard">
+            <TaxInvoiceDashboard />
+          </TabsContent>
+
 
           <TabsContent value="list">
             <Card className="p-4 space-y-3">
