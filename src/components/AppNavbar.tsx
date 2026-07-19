@@ -1,4 +1,4 @@
-import { Calculator, Database, BookOpen, FolderOpen, ShoppingCart, Shield, LogOut, User, FileText } from 'lucide-react';
+import { Calculator, Database, BookOpen, FolderOpen, Shield, LogOut, User, FileText } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from '@/components/ui/dropdown-menu';
 import { Avatar, AvatarFallback } from '@/components/ui/avatar';
