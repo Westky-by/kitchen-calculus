@@ -419,7 +419,7 @@ const TaxInvoiceDashboard = ({ onView }: { onView?: (id: string) => void } = {})
                       {docs.map(d => {
                         const open = expandedId === d.id;
                         return (
-                          <FragmentRow key={d.id}>
+                          <Fragment key={d.id}>
                             <TableRow className="cursor-pointer" onClick={() => setExpandedId(open ? null : d.id)}>
                               <TableCell>
                                 {open ? <ChevronDown className="w-4 h-4" /> : <ChevronRight className="w-4 h-4" />}
@@ -449,7 +449,7 @@ const TaxInvoiceDashboard = ({ onView }: { onView?: (id: string) => void } = {})
                                 </TableCell>
                               </TableRow>
                             )}
-                          </FragmentRow>
+                          </Fragment>
                         );
                       })}
                       {docs.length === 0 && (
