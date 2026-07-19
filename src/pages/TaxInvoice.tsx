@@ -579,8 +579,13 @@ const TaxInvoicePage = () => {
 
   const filteredList = useMemo(() => {
     const q = search.trim().toLowerCase();
-    if (!q) return list;
+    const from = dateFrom || '';
+    const to = dateTo || '';
     return list.filter(r => {
+      // date range filter (doc_date is YYYY-MM-DD)
+      if (from && r.doc_date < from) return false;
+      if (to && r.doc_date > to) return false;
+      if (!q) return true;
       const dateStr = new Date(r.doc_date).toLocaleDateString('th-TH');
       const status = r.is_backdated ? 'ย้อนหลัง backdated' : 'ปกติ normal';
       const amount = Number(r.grand_total || 0).toLocaleString('en-US', { minimumFractionDigits: 2 });
@@ -595,7 +600,41 @@ const TaxInvoicePage = () => {
         status,
       ].some(v => String(v || '').toLowerCase().includes(q));
     });
-  }, [list, search]);
+  }, [list, search, dateFrom, dateTo]);
+
+  const rangeLabel = useMemo(() => {
+    const fmt = (s: string) => {
+      if (!s) return '';
+      const [y, m, d] = s.split('-');
+      return `${d}${m}${y}`;
+    };
+    if (!dateFrom && !dateTo) return '';
+    return `${fmt(dateFrom) || '........'}-${fmt(dateTo) || '........'}`;
+  }, [dateFrom, dateTo]);
+
+  const applyPreset = (preset: 'today' | 'week' | 'month' | 'year') => {
+    const now = new Date();
+    const iso = (d: Date) => {
+      const y = d.getFullYear();
+      const m = String(d.getMonth() + 1).padStart(2, '0');
+      const day = String(d.getDate()).padStart(2, '0');
+      return `${y}-${m}-${day}`;
+    };
+    if (preset === 'today') { const s = iso(now); setDateFrom(s); setDateTo(s); return; }
+    if (preset === 'week') {
+      const s = new Date(now); s.setDate(s.getDate() - 6);
+      setDateFrom(iso(s)); setDateTo(iso(now)); return;
+    }
+    if (preset === 'month') {
+      const s = new Date(now.getFullYear(), now.getMonth(), 1);
+      const e = new Date(now.getFullYear(), now.getMonth() + 1, 0);
+      setDateFrom(iso(s)); setDateTo(iso(e)); return;
+    }
+    if (preset === 'year') {
+      setDateFrom(`${now.getFullYear()}-01-01`);
+      setDateTo(`${now.getFullYear()}-12-31`);
+    }
+  };
 
   if (authLoading) return <div className="p-8">กำลังโหลด...</div>;
   if (!user) { navigate('/login'); return null; }
