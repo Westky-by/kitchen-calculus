@@ -81,8 +81,14 @@ const TaxInvoiceDashboard = () => {
 
   const range = useMemo(() => {
     if (preset === 'custom') return { from: customFrom, to: customTo };
-    return getRange(preset);
-  }, [preset, customFrom, customTo]);
+    return getRange(preset, pickYear, pickMonth);
+  }, [preset, customFrom, customTo, pickYear, pickMonth]);
+
+  const years = useMemo(() => {
+    const ys = new Set<number>(rows.map(r => Number((r.doc_date || '').slice(0, 4))).filter(Boolean));
+    ys.add(now.getFullYear());
+    return Array.from(ys).sort((a, b) => b - a);
+  }, [rows]);
 
   const customers = useMemo(() => Array.from(new Set(rows.map(r => r.customer_name).filter(Boolean))).sort(), [rows]);
   const creators = useMemo(() => Array.from(new Set(rows.map(r => r.created_by_username).filter(Boolean))).sort(), [rows]);
