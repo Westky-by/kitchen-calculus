@@ -187,12 +187,49 @@ const TaxInvoiceDashboard = () => {
               <SelectContent>
                 <SelectItem value="today">วันนี้</SelectItem>
                 <SelectItem value="week">สัปดาห์นี้</SelectItem>
-                <SelectItem value="month">เดือนนี้</SelectItem>
-                <SelectItem value="year">ปีนี้</SelectItem>
+                <SelectItem value="month">เดือนที่ระบุ</SelectItem>
+                <SelectItem value="year">ปีที่ระบุ</SelectItem>
                 <SelectItem value="custom">กำหนดเอง</SelectItem>
               </SelectContent>
             </Select>
           </div>
+          {preset === 'month' && (
+            <>
+              <div>
+                <Label className="text-xs">ปี (YYYY)</Label>
+                <Select value={String(pickYear)} onValueChange={v => setPickYear(Number(v))}>
+                  <SelectTrigger><SelectValue /></SelectTrigger>
+                  <SelectContent>
+                    {years.map(y => <SelectItem key={y} value={String(y)}>{y}</SelectItem>)}
+                  </SelectContent>
+                </Select>
+              </div>
+              <div>
+                <Label className="text-xs">เดือน (MM)</Label>
+                <Select value={String(pickMonth)} onValueChange={v => setPickMonth(Number(v))}>
+                  <SelectTrigger><SelectValue /></SelectTrigger>
+                  <SelectContent>
+                    {TH_MONTHS.map((name, i) => (
+                      <SelectItem key={i + 1} value={String(i + 1)}>
+                        {String(i + 1).padStart(2, '0')} - {name}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
+            </>
+          )}
+          {preset === 'year' && (
+            <div>
+              <Label className="text-xs">ปี (YYYY)</Label>
+              <Select value={String(pickYear)} onValueChange={v => setPickYear(Number(v))}>
+                <SelectTrigger><SelectValue /></SelectTrigger>
+                <SelectContent>
+                  {years.map(y => <SelectItem key={y} value={String(y)}>{y}</SelectItem>)}
+                </SelectContent>
+              </Select>
+            </div>
+          )}
           <div>
             <Label className="text-xs">จากวันที่</Label>
             <Input type="date" value={preset === 'custom' ? customFrom : range.from}
