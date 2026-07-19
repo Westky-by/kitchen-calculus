@@ -28,21 +28,34 @@ type Preset = 'today' | 'week' | 'month' | 'year' | 'custom';
 function iso(d: Date) { return d.toISOString().slice(0, 10); }
 function fmt(n: number) { return n.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 }); }
 
-function getRange(preset: Preset): { from: string; to: string } {
+function getRange(preset: Preset, pickYear?: number, pickMonth?: number): { from: string; to: string } {
   const now = new Date();
   const to = new Date(now); to.setHours(0, 0, 0, 0);
   const from = new Date(to);
   if (preset === 'today') { /* same */ }
   else if (preset === 'week') { const dow = (from.getDay() + 6) % 7; from.setDate(from.getDate() - dow); }
-  else if (preset === 'month') { from.setDate(1); }
-  else if (preset === 'year') { from.setMonth(0, 1); }
+  else if (preset === 'month') {
+    const y = pickYear ?? now.getFullYear();
+    const m = pickMonth ?? (now.getMonth() + 1);
+    const last = new Date(y, m, 0).getDate();
+    return { from: iso(new Date(y, m - 1, 1)), to: iso(new Date(y, m - 1, last)) };
+  }
+  else if (preset === 'year') {
+    const y = pickYear ?? now.getFullYear();
+    return { from: iso(new Date(y, 0, 1)), to: iso(new Date(y, 11, 31)) };
+  }
   return { from: iso(from), to: iso(to) };
 }
 
+const TH_MONTHS = ['มกราคม','กุมภาพันธ์','มีนาคม','เมษายน','พฤษภาคม','มิถุนายน','กรกฎาคม','สิงหาคม','กันยายน','ตุลาคม','พฤศจิกายน','ธันวาคม'];
+
 const TaxInvoiceDashboard = () => {
+  const now = new Date();
   const [rows, setRows] = useState<Row[]>([]);
   const [loading, setLoading] = useState(true);
   const [preset, setPreset] = useState<Preset>('month');
+  const [pickYear, setPickYear] = useState<number>(now.getFullYear());
+  const [pickMonth, setPickMonth] = useState<number>(now.getMonth() + 1);
   const [customFrom, setCustomFrom] = useState(iso(new Date()));
   const [customTo, setCustomTo] = useState(iso(new Date()));
   const [customer, setCustomer] = useState<string>('all');
@@ -68,8 +81,14 @@ const TaxInvoiceDashboard = () => {
 
   const range = useMemo(() => {
     if (preset === 'custom') return { from: customFrom, to: customTo };
-    return getRange(preset);
-  }, [preset, customFrom, customTo]);
+    return getRange(preset, pickYear, pickMonth);
+  }, [preset, customFrom, customTo, pickYear, pickMonth]);
+
+  const years = useMemo(() => {
+    const ys = new Set<number>(rows.map(r => Number((r.doc_date || '').slice(0, 4))).filter(Boolean));
+    ys.add(now.getFullYear());
+    return Array.from(ys).sort((a, b) => b - a);
+  }, [rows]);
 
   const customers = useMemo(() => Array.from(new Set(rows.map(r => r.customer_name).filter(Boolean))).sort(), [rows]);
   const creators = useMemo(() => Array.from(new Set(rows.map(r => r.created_by_username).filter(Boolean))).sort(), [rows]);
@@ -168,12 +187,49 @@ const TaxInvoiceDashboard = () => {
               <SelectContent>
                 <SelectItem value="today">วันนี้</SelectItem>
                 <SelectItem value="week">สัปดาห์นี้</SelectItem>
-                <SelectItem value="month">เดือนนี้</SelectItem>
-                <SelectItem value="year">ปีนี้</SelectItem>
+                <SelectItem value="month">เดือนที่ระบุ</SelectItem>
+                <SelectItem value="year">ปีที่ระบุ</SelectItem>
                 <SelectItem value="custom">กำหนดเอง</SelectItem>
               </SelectContent>
             </Select>
           </div>
+          {preset === 'month' && (
+            <>
+              <div>
+                <Label className="text-xs">ปี (YYYY)</Label>
+                <Select value={String(pickYear)} onValueChange={v => setPickYear(Number(v))}>
+                  <SelectTrigger><SelectValue /></SelectTrigger>
+                  <SelectContent>
+                    {years.map(y => <SelectItem key={y} value={String(y)}>{y}</SelectItem>)}
+                  </SelectContent>
+                </Select>
+              </div>
+              <div>
+                <Label className="text-xs">เดือน (MM)</Label>
+                <Select value={String(pickMonth)} onValueChange={v => setPickMonth(Number(v))}>
+                  <SelectTrigger><SelectValue /></SelectTrigger>
+                  <SelectContent>
+                    {TH_MONTHS.map((name, i) => (
+                      <SelectItem key={i + 1} value={String(i + 1)}>
+                        {String(i + 1).padStart(2, '0')} - {name}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
+            </>
+          )}
+          {preset === 'year' && (
+            <div>
+              <Label className="text-xs">ปี (YYYY)</Label>
+              <Select value={String(pickYear)} onValueChange={v => setPickYear(Number(v))}>
+                <SelectTrigger><SelectValue /></SelectTrigger>
+                <SelectContent>
+                  {years.map(y => <SelectItem key={y} value={String(y)}>{y}</SelectItem>)}
+                </SelectContent>
+              </Select>
+            </div>
+          )}
           <div>
             <Label className="text-xs">จากวันที่</Label>
             <Input type="date" value={preset === 'custom' ? customFrom : range.from}
