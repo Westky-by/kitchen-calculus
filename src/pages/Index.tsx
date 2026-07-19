@@ -9,7 +9,7 @@ import RecipesView from '@/components/RecipesView';
 import CategoriesView from '@/components/CategoriesView';
 import PurchaseOrderView from '@/components/PurchaseOrderView';
 import { useSupabaseData } from '@/hooks/useSupabaseData';
-import AiChatBubble from '@/components/AiChatBubble';
+
 import type { Recipe } from '@/types/recipe';
 import { toast } from 'sonner';
 
@@ -133,7 +133,7 @@ const Index = () => {
           <PurchaseOrderView ingredients={ingredients} />
         )}
       </main>
-      <AiChatBubble />
+      
     </div>
   );
 };
