@@ -51,7 +51,7 @@ function getRange(preset: Preset, pickYear?: number, pickMonth?: number): { from
 
 const TH_MONTHS = ['มกราคม','กุมภาพันธ์','มีนาคม','เมษายน','พฤษภาคม','มิถุนายน','กรกฎาคม','สิงหาคม','กันยายน','ตุลาคม','พฤศจิกายน','ธันวาคม'];
 
-const TaxInvoiceDashboard = () => {
+const TaxInvoiceDashboard = ({ onView }: { onView?: (id: string) => void } = {}) => {
   const now = new Date();
   const [rows, setRows] = useState<Row[]>([]);
   const [loading, setLoading] = useState(true);
