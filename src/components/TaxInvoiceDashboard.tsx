@@ -331,8 +331,12 @@ const TaxInvoiceDashboard = ({ onView }: { onView?: (id: string) => void } = {})
                   <TableRow><TableCell colSpan={3} className="text-center text-muted-foreground py-6">ไม่มีข้อมูล</TableCell></TableRow>
                 )}
                 {byCustomer.slice(0, 10).map(c => (
-                  <TableRow key={c.name}>
-                    <TableCell className="text-sm">{c.name}</TableCell>
+                  <TableRow
+                    key={c.name}
+                    className="cursor-pointer hover:bg-muted/50"
+                    onClick={() => { setDetailCustomer(c.name); setExpandedId(null); }}
+                  >
+                    <TableCell className="text-sm text-primary underline-offset-2 hover:underline">{c.name}</TableCell>
                     <TableCell className="text-right">{c.count}</TableCell>
                     <TableCell className="text-right font-medium">{fmt(c.total)}</TableCell>
                   </TableRow>
