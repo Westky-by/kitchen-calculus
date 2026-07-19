@@ -62,6 +62,8 @@ const TaxInvoiceDashboard = ({ onView }: { onView?: (id: string) => void } = {})
   const [customTo, setCustomTo] = useState(iso(new Date()));
   const [customer, setCustomer] = useState<string>('all');
   const [creator, setCreator] = useState<string>('all');
+  const [detailCustomer, setDetailCustomer] = useState<string | null>(null);
+  const [expandedId, setExpandedId] = useState<string | null>(null);
 
   useEffect(() => {
     (async () => {
