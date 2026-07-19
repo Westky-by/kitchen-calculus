@@ -129,9 +129,6 @@ const Index = () => {
             }}
           />
         )}
-        {activeTab === 'orders' && (
-          <PurchaseOrderView ingredients={ingredients} />
-        )}
       </main>
       
     </div>
