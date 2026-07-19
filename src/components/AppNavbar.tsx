@@ -22,8 +22,8 @@ const AppNavbar = ({ activeTab, onTabChange, profile, role, onSignOut, onAdmin }
     { id: 'ingredients' as TabType, label: 'ฐานข้อมูล', icon: Database },
     { id: 'recipes' as TabType, label: 'สูตรที่บันทึก', icon: BookOpen },
     { id: 'categories' as TabType, label: 'หมวดหมู่', icon: FolderOpen },
-    { id: 'orders' as TabType, label: 'ใบสั่งซื้อ', icon: ShoppingCart },
   ];
+
 
   const initials = profile?.full_name
     ? profile.full_name.split(' ').map(n => n[0]).join('').slice(0, 2)
