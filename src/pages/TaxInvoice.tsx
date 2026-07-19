@@ -100,6 +100,8 @@ const TaxInvoicePage = () => {
   const [creatorCode, setCreatorCode] = useState('00');
   const [tab, setTab] = useState<'list' | 'new' | 'dashboard'>('list');
   const [search, setSearch] = useState('');
+  const [dateFrom, setDateFrom] = useState('');
+  const [dateTo, setDateTo] = useState('');
 
   // Form
   const [data, setData] = useState<InvoiceData>(emptyInvoice(todayISO()));
@@ -577,8 +579,13 @@ const TaxInvoicePage = () => {
 
   const filteredList = useMemo(() => {
     const q = search.trim().toLowerCase();
-    if (!q) return list;
+    const from = dateFrom || '';
+    const to = dateTo || '';
     return list.filter(r => {
+      // date range filter (doc_date is YYYY-MM-DD)
+      if (from && r.doc_date < from) return false;
+      if (to && r.doc_date > to) return false;
+      if (!q) return true;
       const dateStr = new Date(r.doc_date).toLocaleDateString('th-TH');
       const status = r.is_backdated ? 'ย้อนหลัง backdated' : 'ปกติ normal';
       const amount = Number(r.grand_total || 0).toLocaleString('en-US', { minimumFractionDigits: 2 });
@@ -593,7 +600,41 @@ const TaxInvoicePage = () => {
         status,
       ].some(v => String(v || '').toLowerCase().includes(q));
     });
-  }, [list, search]);
+  }, [list, search, dateFrom, dateTo]);
+
+  const rangeLabel = useMemo(() => {
+    const fmt = (s: string) => {
+      if (!s) return '';
+      const [y, m, d] = s.split('-');
+      return `${d}${m}${y}`;
+    };
+    if (!dateFrom && !dateTo) return '';
+    return `${fmt(dateFrom) || '........'}-${fmt(dateTo) || '........'}`;
+  }, [dateFrom, dateTo]);
+
+  const applyPreset = (preset: 'today' | 'week' | 'month' | 'year') => {
+    const now = new Date();
+    const iso = (d: Date) => {
+      const y = d.getFullYear();
+      const m = String(d.getMonth() + 1).padStart(2, '0');
+      const day = String(d.getDate()).padStart(2, '0');
+      return `${y}-${m}-${day}`;
+    };
+    if (preset === 'today') { const s = iso(now); setDateFrom(s); setDateTo(s); return; }
+    if (preset === 'week') {
+      const s = new Date(now); s.setDate(s.getDate() - 6);
+      setDateFrom(iso(s)); setDateTo(iso(now)); return;
+    }
+    if (preset === 'month') {
+      const s = new Date(now.getFullYear(), now.getMonth(), 1);
+      const e = new Date(now.getFullYear(), now.getMonth() + 1, 0);
+      setDateFrom(iso(s)); setDateTo(iso(e)); return;
+    }
+    if (preset === 'year') {
+      setDateFrom(`${now.getFullYear()}-01-01`);
+      setDateTo(`${now.getFullYear()}-12-31`);
+    }
+  };
 
   if (authLoading) return <div className="p-8">กำลังโหลด...</div>;
   if (!user) { navigate('/login'); return null; }
@@ -619,7 +660,7 @@ const TaxInvoicePage = () => {
         <Tabs value={tab} onValueChange={(v: any) => setTab(v)}>
           <div className="flex items-center justify-between mb-3">
             <TabsList>
-              <TabsTrigger value="list"><FileText className="w-4 h-4 mr-1" /> เอกสารทั้งหมด ({filteredList.length}{search ? `/${list.length}` : ''})</TabsTrigger>
+              <TabsTrigger value="list"><FileText className="w-4 h-4 mr-1" /> เอกสารทั้งหมด ({filteredList.length}{(search || dateFrom || dateTo) ? `/${list.length}` : ''})</TabsTrigger>
               <TabsTrigger value="dashboard"><BarChart3 className="w-4 h-4 mr-1" /> Dashboard สรุป</TabsTrigger>
               <TabsTrigger value="new"><Plus className="w-4 h-4 mr-1" /> สร้างใหม่</TabsTrigger>
             </TabsList>
@@ -633,7 +674,7 @@ const TaxInvoicePage = () => {
 
           <TabsContent value="list">
             <Card className="p-4 space-y-3">
-              <div className="flex items-center gap-2">
+              <div className="flex items-center gap-2 flex-wrap">
                 <Input
                   placeholder="ค้นหา: เลขที่ / วันที่ / ลูกค้า / ยอดสุทธิ / ผู้สร้าง / สถานะ"
                   value={search}
@@ -642,6 +683,22 @@ const TaxInvoicePage = () => {
                 />
                 {search && (
                   <Button variant="ghost" size="sm" onClick={() => setSearch('')}>ล้าง</Button>
+                )}
+              </div>
+              <div className="flex items-center gap-2 flex-wrap border-t pt-3">
+                <span className="text-sm text-muted-foreground">ช่วงวันที่:</span>
+                <Input type="date" value={dateFrom} onChange={e => setDateFrom(e.target.value)} className="w-40" />
+                <span className="text-muted-foreground">-</span>
+                <Input type="date" value={dateTo} onChange={e => setDateTo(e.target.value)} className="w-40" />
+                <Button variant="outline" size="sm" onClick={() => applyPreset('today')}>วันนี้</Button>
+                <Button variant="outline" size="sm" onClick={() => applyPreset('week')}>7 วัน</Button>
+                <Button variant="outline" size="sm" onClick={() => applyPreset('month')}>เดือนนี้</Button>
+                <Button variant="outline" size="sm" onClick={() => applyPreset('year')}>ปีนี้</Button>
+                {(dateFrom || dateTo) && (
+                  <>
+                    <span className="text-xs px-2 py-1 rounded bg-muted font-mono">{rangeLabel}</span>
+                    <Button variant="ghost" size="sm" onClick={() => { setDateFrom(''); setDateTo(''); }}>ล้างช่วงวันที่</Button>
+                  </>
                 )}
               </div>
               {loading ? <p className="text-muted-foreground">กำลังโหลด...</p> : (
